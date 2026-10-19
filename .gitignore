@@ -1,0 +1,23 @@
+/node_modules
+/.vscode
+/.idea
+.npm
+dist
+main.build.js
+.DS_Store
+yarn.lock
+
+# P1 cleanup (GitHub prep): generated/large/private material kept out of the repo
+/dist/
+/tmp-*
+/dev-archive/
+/min-v1.35.7-source.zip
+/extensions/real/
+/docs/demo-atomic-mail/
+/docs/backups/
+*.log
+
+# P1-12 extension: account-creation session artifacts (P1-03 live test) - local only
+/docs/atomic-live-*.json
+/docs/atomic-recon.json
+/docs/atomic-stage3.json

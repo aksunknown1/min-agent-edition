@@ -1,0 +1,53 @@
+name: Build Package
+on: [workflow_dispatch]
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cmd: npm run buildDebian
+            artifact: linux-deb-package
+            path: dist/app/*.deb
+          - os: ubuntu-latest
+            cmd: npm run buildRedhat
+            artifact: linux-rpm-package
+            path: dist/app/*.rpm
+          - os: windows-latest
+            cmd: npm run buildWindows
+            artifact: windows-package
+            path: |
+              dist/app/*.zip
+              dist/app/*.exe
+          - os: macos-15
+            env:
+              SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+            cmd: npm run buildMacIntel
+            artifact: darwin-x86-package
+            path: dist/app/*.zip
+          - os: macos-15
+            env:
+              SDKROOT: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+            cmd: npm run buildMacArm
+            artifact: darwin-arm-package
+            path: dist/app/*.zip
+    env:
+      SDKROOT: ${{ matrix.env.SDKROOT }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        # P1-12: aligned to the tested development engine (Node 24.x; see .nvmrc and
+        # CONTRIBUTING.md). Node 25 was inherited from upstream and is untested here.
+        node-version: 24
+    # P1-12: reproducible install from the committed lockfile (proven: npm ci ->
+    # byte-identical main.build.js -> smoke 6/6 in a clean reproduction copy).
+    - run: npm ci --omit=optional
+    - name: build package
+      run: ${{ matrix.cmd }}
+    - name: upload package
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact }}
+        path: ${{ matrix.path }}

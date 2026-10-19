@@ -1,0 +1,108 @@
+{
+  "ranAt": "2026-10-17T12:36:02.726Z",
+  "sites": [
+    {
+      "site": "example.com",
+      "requestedUrl": "https://example.com/",
+      "navigate": {
+        "verified": true,
+        "verification": "navigation",
+        "finalUrl": "https://example.com/",
+        "urlChanges": 0,
+        "routeChangeKind": null,
+        "waitedMs": 4206,
+        "httpMs": 4208
+      },
+      "snapshot": {
+        "nodeCount": 1,
+        "truncated": false,
+        "roles": {
+          "link": 1
+        },
+        "redacted": 0,
+        "httpMs": 5
+      },
+      "topNodes": [
+        "link:Learn more"
+      ]
+    },
+    {
+      "site": "news.ycombinator.com",
+      "requestedUrl": "https://news.ycombinator.com/",
+      "navigate": {
+        "verified": true,
+        "verification": "navigation",
+        "finalUrl": "https://news.ycombinator.com/",
+        "urlChanges": 0,
+        "routeChangeKind": null,
+        "waitedMs": 5501,
+        "httpMs": 5502
+      },
+      "snapshot": {
+        "nodeCount": 200,
+        "truncated": false,
+        "roles": {
+          "link": 199,
+          "textbox": 1
+        },
+        "redacted": 0,
+        "httpMs": 14
+      },
+      "topNodes": [
+        "link:Consider applying for YC's Winter 2027 b",
+        "link:Guidelines",
+        "link:FAQ",
+        "link:Lists",
+        "link:API",
+        "link:Security",
+        "link:Legal",
+        "link:Apply to YC",
+        "link:Contact",
+        "textbox:",
+        "link:",
+        "link:hide"
+      ]
+    },
+    {
+      "site": "account.proton.me/login",
+      "requestedUrl": "https://account.proton.me/login",
+      "navigate": {
+        "verified": true,
+        "verification": "navigation",
+        "finalUrl": "https://account.proton.me/login",
+        "urlChanges": 0,
+        "routeChangeKind": null,
+        "waitedMs": 6346,
+        "httpMs": 6347
+      },
+      "snapshot": {
+        "nodeCount": 17,
+        "truncated": false,
+        "roles": {
+          "button": 8,
+          "link": 5,
+          "heading": 1,
+          "checkbox": 1,
+          "textbox": 2
+        },
+        "redacted": 1,
+        "httpMs": 14
+      },
+      "topNodes": [
+        "button:Close this banner",
+        "button:Learn more",
+        "link:Proton",
+        "button:English",
+        "button:Mode: Light",
+        "button:Get help from Lumo",
+        "link:Terms",
+        "link:Privacy policy",
+        "heading:Sign in",
+        "button:Sign in",
+        "link:Create account",
+        "button:Trouble signing in?"
+      ]
+    }
+  ],
+  "notes": "read-only checkpoint: navigate + snapshot only"
+}

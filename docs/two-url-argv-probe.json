@@ -1,0 +1,104 @@
+{
+  "task": "P0-08 two-URL argv probe",
+  "ranAt": "2026-10-19T03:11:05.777Z",
+  "results": {
+    "oneUrl": {
+      "name": "one",
+      "survived": true,
+      "selfExit": null,
+      "tabCount": 2,
+      "tabs": [
+        {
+          "url": "",
+          "title": "Welcome to Min",
+          "loading": false,
+          "active": false
+        },
+        {
+          "url": "u0.html",
+          "title": "URL Arg 0",
+          "loading": false,
+          "active": true
+        }
+      ],
+      "unhandledRejection": false,
+      "extensionHostLines": 0
+    },
+    "twoUrlsBare": {
+      "name": "two-bare",
+      "exit": 4294967295,
+      "stdoutLines": 0,
+      "diedBeforeFirstURLCouldLoad": null
+    },
+    "twoUrlsDashes": {
+      "name": "two",
+      "survived": true,
+      "selfExit": null,
+      "tabCount": 3,
+      "tabs": [
+        {
+          "url": "",
+          "title": "Welcome to Min",
+          "loading": false,
+          "active": false
+        },
+        {
+          "url": "u0.html",
+          "title": "URL Arg 0",
+          "loading": false,
+          "active": false
+        },
+        {
+          "url": "u1.html",
+          "title": "URL Arg 1",
+          "loading": false,
+          "active": true
+        }
+      ],
+      "unhandledRejection": false,
+      "extensionHostLines": 0
+    },
+    "threeUrlsDashes": {
+      "name": "three",
+      "survived": true,
+      "selfExit": null,
+      "tabCount": 4,
+      "tabs": [
+        {
+          "url": "",
+          "title": "Welcome to Min",
+          "loading": false,
+          "active": false
+        },
+        {
+          "url": "u0.html",
+          "title": "URL Arg 0",
+          "loading": false,
+          "active": false
+        },
+        {
+          "url": "u1.html",
+          "title": "URL Arg 1",
+          "loading": false,
+          "active": false
+        },
+        {
+          "url": "u2.html",
+          "title": "URL Arg 2",
+          "loading": false,
+          "active": true
+        }
+      ],
+      "unhandledRejection": false,
+      "extensionHostLines": 0
+    }
+  },
+  "verdicts": {
+    "case1_singleUrlWorks": true,
+    "case2_twoBareUrlsRuntimeDeath_documented": true,
+    "case3_twoUrlsWithDashesBothTabs": true,
+    "case4_threeUrlsWithDashesAllTabs": true,
+    "noUnhandledRejectionsAnywhere": true
+  },
+  "allPassed": true
+}

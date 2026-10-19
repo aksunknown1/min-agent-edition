@@ -1,0 +1,202 @@
+{
+  "task": "P0-06 agent-rpc end-to-end",
+  "startedAt": "2026-10-18T16:08:20.404Z",
+  "runs": {
+    "withoutFlag": {
+      "discoveryFileExists": false,
+      "agentRpcLogLines": 0
+    },
+    "withFlag": {
+      "discoveryFileAppeared": true,
+      "staleFileReplaced": true,
+      "discoveryKeys": [
+        "launchedAt",
+        "pid",
+        "token",
+        "url",
+        "v",
+        "version"
+      ],
+      "urlIsLoopback": true,
+      "tokenLength": 64,
+      "pidMatchesSpawnedChild": true,
+      "version": "1.35.7",
+      "agentRpcLogLines": [],
+      "tokenAbsentFromStdout": true,
+      "settledWithinTimeout": true,
+      "settleMs": 1026,
+      "status": {
+        "httpStatus": 200,
+        "result": {
+          "app": {
+            "name": "Min",
+            "version": "1.35.7",
+            "electron": "43.4.1",
+            "chromium": "150.0.7871.224",
+            "node": "24.18.1"
+          },
+          "platform": {
+            "os": "win32",
+            "arch": "x64"
+          },
+          "uptimeSeconds": 1,
+          "mode": {
+            "automationMode": false,
+            "backgroundMode": false,
+            "development": true,
+            "privateMode": false
+          },
+          "profile": {
+            "userDataPath": "C:\\Users\\AKS-PC\\AppData\\Local\\Temp\\min-agent-rpc-probe\\profile-development",
+            "dedicated": false
+          },
+          "windows": {
+            "count": 1,
+            "currentWindowId": "1",
+            "selectedTabId": "72108754932771260",
+            "items": [
+              {
+                "windowId": "1",
+                "selectedTabId": "72108754932771260",
+                "visible": true,
+                "focused": true
+              }
+            ]
+          },
+          "tabs": {
+            "count": 2
+          },
+          "bridge": {
+            "enabled": true,
+            "boundHost": "127.0.0.1",
+            "boundPort": 49948,
+            "authenticated": true,
+            "tokenSource": "per-launch file",
+            "discoveryFile": "C:\\Users\\AKS-PC\\AppData\\Local\\Temp\\min-agent-rpc-probe\\profile-development\\agent-rpc.json",
+            "launchedAt": "2026-10-18T16:08:32.375Z",
+            "requestCount": 3,
+            "rejectedCount": 0,
+            "authFailures": 0,
+            "grants": {
+              "active": 0
+            },
+            "policy": {
+              "allowRiskyClicks": false,
+              "allowSensitiveTyping": false,
+              "allowedSchemes": null
+            },
+            "refStore": {
+              "tabs": 0,
+              "refCount": 0,
+              "ttlMs": 60000,
+              "sweepRuns": 0
+            },
+            "net": {
+              "inflight": 7,
+              "observedTotal": 10,
+              "settledTotal": 3,
+              "blockedTotal": 0,
+              "filteringBlockedCount": 0
+            },
+            "telemetry": {
+              "browser_tabs": {
+                "count": 2,
+                "avgMs": 1,
+                "maxMs": 1,
+                "lastMs": 1,
+                "errors": 0
+              }
+            }
+          },
+          "features": {
+            "status": true,
+            "tabs": true,
+            "snapshot": true,
+            "navigate": true,
+            "click": true,
+            "type": true,
+            "press": true,
+            "screenshot": true,
+            "tabOpen": true,
+            "tabSelect": true,
+            "tabClose": true,
+            "content": true,
+            "hover": true,
+            "scroll": true,
+            "select": true,
+            "check": true,
+            "wait": true,
+            "downloads": true
+          },
+          "limits": {
+            "bodyBytes": 65536,
+            "urlChars": 300,
+            "titleChars": 200,
+            "requestsPerSecond": 40
+          },
+          "resultKeys": [
+            "app",
+            "bridge",
+            "features",
+            "limits",
+            "mode",
+            "platform",
+            "profile",
+            "tabs",
+            "uptimeSeconds",
+            "windows"
+          ]
+        },
+        "tokenInBody": false,
+        "corsHeader": null
+      },
+      "tabs": {
+        "httpStatus": 200,
+        "result": {
+          "tabs": [
+            {
+              "tabId": "83335643156534340",
+              "url": "https://minbrowser.org/tour/",
+              "title": "Welcome to Min",
+              "active": false,
+              "focused": false,
+              "loading": true,
+              "crashed": false,
+              "windowId": null,
+              "webContentsId": 3
+            },
+            {
+              "tabId": "72108754932771260",
+              "url": "file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-rpc-probe/tab.html",
+              "title": "Agent RPC Tab",
+              "active": true,
+              "focused": true,
+              "loading": false,
+              "crashed": false,
+              "windowId": "1",
+              "webContentsId": 4
+            }
+          ],
+          "count": 2
+        }
+      },
+      "tampering": {
+        "noAuth": 401,
+        "wrongToken": 401,
+        "badHost": 403,
+        "badOrigin": 403,
+        "badSecFetch": 403,
+        "getMethod": 405,
+        "unknownMethod": 400,
+        "malformedJson": 400
+      },
+      "discoveryFileRemovedAfterKill": false,
+      "serverClosedAfterKill": true,
+      "afterKillError": "ECONNREFUSED"
+    }
+  },
+  "finishedAt": "2026-10-18T16:08:36.191Z",
+  "cleanup": {
+    "runDirRemoved": true
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "ranAt": "2026-10-18T06:55:12.684Z",
+  "cases": [
+    {
+      "name": "live bridge ready",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "L1 live direct start resolves",
+      "ok": true,
+      "detail": "{\"ok\":true,\"downloadId\":\"dlm2\",\"filename\":\"readme (6).md\",\"relPath\":\"live/readme (6).md\",\"state\":\"progressing\",\"total\":0}"
+    },
+    {
+      "name": "L1 live download completed on disk inside approved root, nonzero, markdown content",
+      "ok": true,
+      "detail": "{\"state\":\"completed\",\"size\":6728,\"head\":\"# Visual Studio Code - Open So\"}"
+    },
+    {
+      "name": "L2 live large start resolves",
+      "ok": true,
+      "detail": "{\"ok\":true,\"downloadId\":\"dlm4\",\"filename\":\"big (2).bin\",\"relPath\":\"live/big (2).bin\",\"state\":\"progressing\",\"total\":0}"
+    },
+    {
+      "name": "L2 interrupted live download handled honestly without hang",
+      "ok": true,
+      "detail": "{\"downloadId\":\"dlm4\",\"tabId\":\"61364925857002440\",\"kind\":\"direct\",\"originHost\":\"nbg1-speed.hetzner.com\",\"url\":\"https://nbg1-speed.hetzner.com/100MB.bin\",\"filenam"
+    },
+    {
+      "name": "L2 live cancel-on-progressing",
+      "ok": false,
+      "detail": "ENVIRONMENT_LIMITED: transfer reached a terminal state (state=interrupted) before cancel could be exercised"
+    },
+    {
+      "name": "L3 parallel live starts distinct",
+      "ok": true,
+      "detail": "[{\"ok\":true,\"downloadId\":\"dlm7\",\"filename\":\"ts (6).md\",\"relPath\":\"live/ts (6).md\",\"state\":\"progressing\",\"total\":0},{\"ok\":true,\"downloadId\":\"dlm8\",\"filename\":\"no"
+    },
+    {
+      "name": "L3 both parallel live downloads completed with distinct files on disk",
+      "ok": true,
+      "detail": "{\"sA\":2741,\"sB\":42695}"
+    },
+    {
+      "name": "H1 human-flow download NOT adopted as managed (hook declined ownership)",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "H1 human-flow download still observed by the bridge observation listener",
+      "ok": true,
+      "detail": "[{\"id\":\"dl4\",\"filename\":\"README.md\",\"mimeType\":\"text/plain\",\"received\":42695,\"total\":0,\"state\":\"completed\",\"startedAt\":\"2026-10-18T06:55:16.777Z\",\"path\":\"C:\\\\Users\\\\AKS-PC\\\\AppData\\\\Local\\\\Temp\\\\min-a"
+    }
+  ],
+  "passed": 9,
+  "total": 10
+}

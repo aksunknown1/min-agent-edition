@@ -1,0 +1,115 @@
+{
+  "task": "P0-08 detach-crash probe",
+  "ranAt": "2026-10-19T03:09:50.620Z",
+  "scenarios": {
+    "D0": {
+      "scenario": "D0",
+      "done": true,
+      "survived": true,
+      "selfExit": null,
+      "killExit": 0,
+      "waitedMs": 8256,
+      "events": {
+        "uncaughtException": [],
+        "unhandledRejection": [],
+        "renderProcessGone": [],
+        "childProcessGone": []
+      },
+      "markers": [
+        "[detach-probe] ARMED scenario=D0",
+        "[detach-probe] D0-CAPTURE-WHILE-ATTACHED {\"width\":3841,\"height\":2010}",
+        "[detach-probe] DONE D0"
+      ]
+    },
+    "D1": {
+      "scenario": "D1",
+      "done": true,
+      "survived": true,
+      "selfExit": null,
+      "killExit": 0,
+      "waitedMs": 12263,
+      "events": {
+        "uncaughtException": [],
+        "unhandledRejection": [],
+        "renderProcessGone": [],
+        "childProcessGone": []
+      },
+      "markers": [
+        "[detach-probe] ARMED scenario=D1",
+        "[detach-probe] D1-DETACHED selectedView=2886747910787968",
+        "[detach-probe] D1-STILL-ALIVE-4S-NO-CAPTURE",
+        "[detach-probe] D1-REATTACHED",
+        "[detach-probe] DONE D1"
+      ]
+    },
+    "D2": {
+      "scenario": "D2",
+      "done": false,
+      "survived": false,
+      "selfExit": null,
+      "killExit": 0,
+      "waitedMs": 32520,
+      "events": {
+        "uncaughtException": [],
+        "unhandledRejection": [],
+        "renderProcessGone": [],
+        "childProcessGone": []
+      },
+      "markers": [
+        "[detach-probe] ARMED scenario=D2",
+        "[detach-probe] D2-DETACHED selectedView=70291656631219864"
+      ]
+    },
+    "D3": {
+      "scenario": "D3",
+      "done": true,
+      "survived": true,
+      "selfExit": null,
+      "killExit": 0,
+      "waitedMs": 8238,
+      "events": {
+        "uncaughtException": [],
+        "unhandledRejection": [],
+        "renderProcessGone": [],
+        "childProcessGone": []
+      },
+      "markers": [
+        "[detach-probe] ARMED scenario=D3",
+        "[detach-probe] CAPTURE_UNAVAILABLE",
+        "[detach-probe] DONE D3"
+      ]
+    },
+    "G": {
+      "scenario": "G",
+      "done": true,
+      "survived": true,
+      "selfExit": null,
+      "killExit": 0,
+      "waitedMs": 8271,
+      "events": {
+        "uncaughtException": [],
+        "unhandledRejection": [],
+        "renderProcessGone": [],
+        "childProcessGone": []
+      },
+      "markers": [
+        "[detach-probe] ARMED scenario=G",
+        "[detach-probe] G-DETACHED selectedView=36354385813293320",
+        "[detach-probe] G-ATTACHMENT-CHECK false",
+        "[detach-probe] G-GUARD-BLOCKS-CAPTURE-EXPECTED",
+        "[detach-probe] G-REATTACHED",
+        "[detach-probe] DONE G"
+      ]
+    }
+  },
+  "crashReproducedNote": "D2 (detach + capturePage same tick)",
+  "classification": {
+    "captureWhileAttachedWorks": true,
+    "detachAloneIsSafe": true,
+    "captureAfterDetachHangs": true,
+    "captureOfAlreadyDetachedViewIsSafe": true,
+    "guardBlocksDeadlyCapture": true,
+    "crashReproduced": true,
+    "crashTrigger": "D2 (detach + capturePage same tick)"
+  }
+}

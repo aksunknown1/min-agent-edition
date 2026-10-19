@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-18T11:18:47.451Z",
+  "lists": {
+    "easylist+easyprivacy-noelementhiding.txt": {
+      "bytes": 2703896,
+      "sha256": "e0deaaa326cddb0dfc311ac8ad3917abba78ad3c2363acc854e172b37dac0475",
+      "lines": 108446,
+      "mtime": "2026-08-23T21:08:23.000Z",
+      "firstLine": "[Adblock Plus 2.0]",
+      "parseMs": 242
+    },
+    "minFilters.txt": {
+      "bytes": 41,
+      "sha256": "20143f96e86c0d63f2cbf0ee4a8724a84bc5402ad391299be29548559c423deb",
+      "lines": 1,
+      "mtime": "2026-08-23T21:08:23.000Z",
+      "firstLine": "@@/browserinfo$domain=accounts.google.com",
+      "parseMs": 0
+    }
+  },
+  "matches": {
+    "blockedSample": {
+      "url": "blockedAd",
+      "iterations": 1000,
+      "totalMs": 13.3444,
+      "perCallUs": 13.3444
+    },
+    "blockedSample2": {
+      "url": "blockedTracker",
+      "iterations": 1000,
+      "totalMs": 6.5347,
+      "perCallUs": 6.5347
+    },
+    "allowedSample": {
+      "url": "allowed",
+      "iterations": 1000,
+      "totalMs": 2.8825,
+      "perCallUs": 2.8825
+    },
+    "allowedSample2": {
+      "url": "allowed2",
+      "iterations": 1000,
+      "totalMs": 5.5353,
+      "perCallUs": 5.5353
+    },
+    "results": {
+      "allowed": false,
+      "allowed2": false,
+      "blockedAd": true,
+      "blockedTracker": true,
+      "blockedRule": true
+    }
+  },
+  "memoryAfter": {
+    "rss": 156659712,
+    "heapTotal": 105435136,
+    "heapUsed": 55860008,
+    "external": 10119564,
+    "arrayBuffers": 2847543
+  }
+}

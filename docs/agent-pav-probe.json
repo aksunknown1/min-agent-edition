@@ -1,0 +1,82 @@
+{
+  "ranAt": "2026-10-19T03:06:09.103Z",
+  "passed": 15,
+  "total": 15,
+  "results": [
+    {
+      "name": "bridge discovered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "fixture page ready (bounded, event-driven wait)",
+      "pass": true,
+      "detail": "nodes=6"
+    },
+    {
+      "name": "link ref present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "predict link -> navigation, high confidence, href evidence",
+      "pass": true,
+      "detail": "{\"sideEffectClass\":\"navigation\",\"confidence\":\"high\",\"effect\":\"navigates to file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/after.html\"}"
+    },
+    {
+      "name": "prediction did NOT trigger the action (still on the fixture page)",
+      "pass": true,
+      "detail": "url=file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html"
+    },
+    {
+      "name": "act: click link -> navigation to after.html (verified)",
+      "pass": true,
+      "detail": "{\"finalUrl\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/after.html\",\"verified\":true,\"u\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\"}"
+    },
+    {
+      "name": "verify: origin-checked urlPrefix correctly rejects the wrong prefix",
+      "pass": true,
+      "detail": "{\"tabId\":\"64948900436373976\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/after.html\",\"title\":\"After PAV\",\"checks\":{\"urlPrefix\":false},\"verified\":false,\"waitedMs\":2}"
+    },
+    {
+      "name": "predict JS button -> honest unknown / low confidence / requiresUserInput",
+      "pass": true,
+      "detail": "{\"sideEffectClass\":\"unknown\",\"confidence\":\"low\",\"requiresUserInput\":true}"
+    },
+    {
+      "name": "unknown-effect button was NOT triggered by the prediction",
+      "pass": true,
+      "detail": "\"Predict Act Verify Heading Go To After PageJS Effect Button"
+    },
+    {
+      "name": "predict form submit -> form-submit class, form action/method evidence, no submit performed",
+      "pass": true,
+      "detail": "{\"cls\":\"form-submit\",\"effect\":\"submits the enclosing form to file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/never.html\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\"}"
+    },
+    {
+      "name": "predict on a stale ref -> structured invalid-ref error (never acts on a different element)",
+      "pass": true,
+      "detail": "{\"category\":\"ref_not_found\"}"
+    },
+    {
+      "name": "typed action: cheap structured verification (value), no snapshot used",
+      "pass": true,
+      "detail": "\"value\""
+    },
+    {
+      "name": "batch with per-step verify: failing check stops the remaining steps",
+      "pass": true,
+      "detail": "{\"status\":200,\"err\":null,\"result\":{\"ok\":false,\"steps\":[{\"step\":0,\"tool\":\"browser_type\",\"ok\":true,\"result\":{\"tabId\":\"64948900436373976\",\"ref\":\"rm\",\"target\":{\"role\":\"textbox\",\"name\":\"Form Field\",\"nameIndex\":0,\"shadowPath\":null},\"strategy\":\"native-insert\",\"dispatched\":true,\"verified\":true,\"verification\":\"value\",\"valueLength\":11,\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\",\"title\":\"Predict Act Verify\",\"waitedMs\":5,\"navFired\":false}},{\"step\":1,\"tool\":\"browser_verify\",\"ok\":true,\"result\":{\"tabId\":\"64948900436373976\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\",\"title\":\"Predict Act Verify\",\"checks\":{\"selectorVisible\":true,\"selectorMatches\":1,\"textContains\":true},\"verified\":true,\"waitedMs\":2}},{\"step\":2,\"tool\":\"browser_verify\",\"ok\":false,\"result\":{\"tabId\":\"64948900436373976\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\",\"title\":\"Predict Act Verify\",\"checks\":{\"selectorVisible\":false,\"selectorMatches\":0,\"textContains\":false},\"verified\":false,\"waitedMs\":1},\"error\":{\"category\":\"verification_failed\",\"message\":\"step completed but its verification did not pass\"}}],\"completed\":3,\"planned\":4,\"stopOnError\":true,\"totalMs\":9}}"
+    },
+    {
+      "name": "sensitive typing: value-length only, never the value",
+      "pass": true,
+      "detail": "{\"verification\":\"value-length\",\"valueLength\":18}"
+    },
+    {
+      "name": "live example.com link prediction (read-only)",
+      "pass": true,
+      "detail": "{\"sideEffectClass\":\"navigation-external\",\"effect\":\"navigates to https://iana.org/help/example-domains\"}"
+    }
+  ]
+}

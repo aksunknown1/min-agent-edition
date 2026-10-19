@@ -1,0 +1,198 @@
+{
+  "ranAt": "2026-10-17T13:09:56.530Z",
+  "runDurSec": 25,
+  "liveSites": {
+    "https://example.com/": {
+      "navigate": {
+        "medianHttpMs": 1589,
+        "medianSettleMs": 16,
+        "medianStabilityMs": 1561,
+        "runs": [
+          {
+            "httpMs": 1635,
+            "verified": true,
+            "verification": "navigation",
+            "settleMs": 76,
+            "stabilityMs": 1558,
+            "waitedMs": 1634,
+            "finalUrl": "https://example.com/"
+          },
+          {
+            "httpMs": 1572,
+            "verified": true,
+            "verification": "navigation",
+            "settleMs": 10,
+            "stabilityMs": 1561,
+            "waitedMs": 1571,
+            "finalUrl": "https://example.com/"
+          },
+          {
+            "httpMs": 1589,
+            "verified": true,
+            "verification": "navigation",
+            "settleMs": 16,
+            "stabilityMs": 1572,
+            "waitedMs": 1588,
+            "finalUrl": "https://example.com/"
+          }
+        ]
+      },
+      "snapshot": {
+        "medianHttpMs": 2,
+        "medianNodeCount": 1,
+        "runs": [
+          {
+            "httpMs": 3,
+            "nodeCount": 1,
+            "bytes": 481
+          },
+          {
+            "httpMs": 2,
+            "nodeCount": 1,
+            "bytes": 481
+          },
+          {
+            "httpMs": 2,
+            "nodeCount": 1,
+            "bytes": 481
+          }
+        ]
+      }
+    },
+    "https://news.ycombinator.com/": {
+      "navigate": {
+        "medianHttpMs": 1859,
+        "medianSettleMs": 301,
+        "medianStabilityMs": 1556,
+        "runs": [
+          {
+            "httpMs": 2976,
+            "verified": true,
+            "verification": "navigation",
+            "settleMs": 1403,
+            "stabilityMs": 1571,
+            "waitedMs": 2974,
+            "finalUrl": "https://news.ycombinator.com/"
+          },
+          {
+            "httpMs": 1859,
+            "verified": true,
+            "verification": "navigation",
+            "settleMs": 301,
+            "stabilityMs": 1556,
+            "waitedMs": 1857,
+            "finalUrl": "https://news.ycombinator.com/"
+          },
+          {
+            "httpMs": 1854,
+            "verified": true,
+            "verification": "navigation",
+            "settleMs": 299,
+            "stabilityMs": 1554,
+            "waitedMs": 1853,
+            "finalUrl": "https://news.ycombinator.com/"
+          }
+        ]
+      },
+      "snapshot": {
+        "medianHttpMs": 11,
+        "medianNodeCount": 200,
+        "runs": [
+          {
+            "httpMs": 9,
+            "nodeCount": 200,
+            "bytes": 51834
+          },
+          {
+            "httpMs": 13,
+            "nodeCount": 200,
+            "bytes": 51867
+          },
+          {
+            "httpMs": 11,
+            "nodeCount": 200,
+            "bytes": 51867
+          }
+        ]
+      }
+    },
+    "https://account.proton.me/login": {
+      "navigate": {
+        "medianHttpMs": 1876,
+        "medianSettleMs": 288,
+        "medianStabilityMs": 1575,
+        "runs": [
+          {
+            "httpMs": 3615,
+            "verified": true,
+            "verification": "navigation",
+            "settleMs": 2041,
+            "stabilityMs": 1572,
+            "waitedMs": 3613,
+            "finalUrl": "https://account.proton.me/login"
+          },
+          {
+            "httpMs": 1876,
+            "verified": true,
+            "verification": "navigation",
+            "settleMs": 288,
+            "stabilityMs": 1586,
+            "waitedMs": 1874,
+            "finalUrl": "https://account.proton.me/login"
+          },
+          {
+            "httpMs": 1850,
+            "verified": true,
+            "verification": "navigation",
+            "settleMs": 274,
+            "stabilityMs": 1575,
+            "waitedMs": 1849,
+            "finalUrl": "https://account.proton.me/login"
+          }
+        ]
+      },
+      "snapshot": {
+        "medianHttpMs": 10,
+        "medianNodeCount": 17,
+        "runs": [
+          {
+            "httpMs": 12,
+            "nodeCount": 16,
+            "bytes": 4392
+          },
+          {
+            "httpMs": 10,
+            "nodeCount": 17,
+            "bytes": 4661
+          },
+          {
+            "httpMs": 10,
+            "nodeCount": 17,
+            "bytes": 4661
+          }
+        ]
+      }
+    }
+  },
+  "localFixtures": {
+    "source": "docs/agent-inputs-probe.json (P1-01D build)",
+    "typeCallsMs": [
+      7,
+      6,
+      311,
+      310,
+      4,
+      2
+    ],
+    "snapshotCallsMs": [
+      4,
+      3,
+      2,
+      3,
+      2,
+      2
+    ],
+    "snapshotMedianMs": 3,
+    "note": "type calls: 6-8ms first-strategy; ~310ms fallback path (P1-01D early not-accepted detection; was ~5010ms before)"
+  }
+}

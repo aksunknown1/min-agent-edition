@@ -1,0 +1,113 @@
+{
+  "task": "P0-07 capturePage verification",
+  "ranAt": "2026-10-19T03:09:23.859Z",
+  "electron": "43.4.1",
+  "fixturePhase": {
+    "fixture": "scripts/fixtures/capture-probe-main.js",
+    "electronExit": 0,
+    "electronError": null,
+    "parseError": null,
+    "stdoutExcerpt": null,
+    "stderrExcerpt": "(node:39976) DeprecationWarning: getBitmap() is deprecated, use toBitmap() instead.\n(Use `electron --trace-deprecation ...` to show where the warning was created)",
+    "cases": [
+      {
+        "case": "A hidden window, view attached",
+        "ok": false,
+        "error": "Current display surface not available for capture"
+      },
+      {
+        "case": "A window state",
+        "visible": false,
+        "minimized": false,
+        "occluded": null
+      },
+      {
+        "case": "B hidden window, backgroundThrottling false",
+        "ok": false,
+        "error": "Current display surface not available for capture"
+      },
+      {
+        "case": "C view removed from view tree",
+        "ok": false,
+        "error": "Current display surface not available for capture"
+      },
+      {
+        "case": "D visible window (control, retry)",
+        "ok": true,
+        "returned": true,
+        "width": 2420,
+        "height": 1513,
+        "zeroSized": false,
+        "distinctColorsSampled": 9,
+        "dataUrlBytes": 18858
+      },
+      {
+        "case": "D window state",
+        "visible": true,
+        "minimized": false,
+        "occluded": null
+      },
+      {
+        "case": "E visible window minimized",
+        "ok": true,
+        "returned": true,
+        "width": 2420,
+        "height": 1513,
+        "zeroSized": false,
+        "distinctColorsSampled": 9,
+        "dataUrlBytes": 18858
+      },
+      {
+        "case": "E window state",
+        "visible": false,
+        "minimized": true,
+        "occluded": null
+      }
+    ],
+    "unhandledRejections": [],
+    "hiddenProducedPixels": false,
+    "visibleControlProducedPixels": true,
+    "minimizedProducedPixels": true,
+    "noUnhandledRejections": true
+  },
+  "realMinPhase": {
+    "viewManagerHook": "main/viewManager.js app.once('ready') gated by --development-mode + settings.experimentalCaptureProbe",
+    "profile": "<OS_TEMP>\\min-capture-probe\\profile-development",
+    "rootPid": 31876,
+    "treeKillExit": 0,
+    "procExitBeforeKill": "exited code=1",
+    "waitedMs": 15866,
+    "rawOutputTail": [
+      "(node:31876) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 ready listeners added to [EventEmitter]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit",
+      "(Use `electron --trace-warnings ...` to show where the warning was created)",
+      "(electron) 'webContents.canGoBack' is deprecated and will be removed. Please use 'webContents.navigationHistory.canGoBack' instead.",
+      "(electron) 'webContents.canGoForward' is deprecated and will be removed. Please use 'webContents.navigationHistory.canGoForward' instead.",
+      "[capture-probe] NEVER_ATTACHED_CAPTURE_RESOLVED {\"width\":0,\"height\":0}",
+      "[capture-probe] CAPTURE_UNAVAILABLE",
+      "[capture-probe] VISIBLE_CAPTURE_OK {\"width\":3841,\"height\":2010}"
+    ],
+    "naturalCaptureHandlerLines": [],
+    "hiddenRejectionHandled": true,
+    "detachedTabResolved": false,
+    "neverAttachedZeroSize": true,
+    "visibleCaptureOk": true,
+    "visibleSkipped": false,
+    "captureProbeLines": [
+      "[capture-probe] NEVER_ATTACHED_CAPTURE_RESOLVED {\"width\":0,\"height\":0}",
+      "[capture-probe] CAPTURE_UNAVAILABLE",
+      "[capture-probe] VISIBLE_CAPTURE_OK {\"width\":3841,\"height\":2010}"
+    ],
+    "unhandledRejectionLines": [],
+    "captureUnavailableCount": 1,
+    "noUnhandledRejections": true,
+    "settingsFlag": "experimentalCaptureProbe=true in throwaway profile only; everyday profile untouched",
+    "runDirRemoved": true
+  },
+  "conclusions": {
+    "visibleCaptureWorks": true,
+    "hiddenCaptureRejectedByElectron": true,
+    "minHiddenRejectionHandled": true,
+    "minNoUnhandledRejections": true,
+    "minimizedStillWorks": true
+  }
+}

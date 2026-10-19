@@ -1,0 +1,197 @@
+{
+  "ranAt": "2026-10-18T17:24:21.752Z",
+  "passed": 38,
+  "total": 38,
+  "results": [
+    {
+      "name": "bridge started",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "five argv tabs present (na selected last)",
+      "pass": true,
+      "detail": "56221179140972610/18363958652842304/12368321055042352"
+    },
+    {
+      "name": "nav1 tab is the selected view",
+      "pass": true,
+      "detail": "active=true"
+    },
+    {
+      "name": "navigate to allowed file URL -> navigation, final URL/title correct",
+      "pass": true,
+      "detail": "\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-nps-probe/ft.html\""
+    },
+    {
+      "name": "navigate succeeded second time (back to start page)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "refs cleared by navigation (live refStore back to zero for the tab)",
+      "pass": true,
+      "detail": "{\"tabs\":1,\"refCount\":1,\"ttlMs\":60000,\"sweepRuns\":0} -> {\"tabs\":0,\"refCount\":0,\"ttlMs\":60000,\"sweepRuns\":0}"
+    },
+    {
+      "name": "javascript: url blocked (403)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "data: url blocked (403)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "vbscript: url blocked (403)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "unknown scheme blocked (403)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "over-2048 url rejected as invalid_params (400)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "unreachable host -> verified=false load_failed",
+      "pass": true,
+      "detail": "status=200 {\"verified\":false,\"verification\":\"load_failed\",\"failCode\":-312}"
+    },
+    {
+      "name": "P1-01B static page -> verified navigation, finalUrl, urlChanges 0",
+      "pass": true,
+      "detail": "{\"verified\":true,\"verification\":\"navigation\",\"finalUrl\":\"http://127.0.0.1:54075/static\",\"urlChanges\":0,\"changedFrom\":null,\"routeChangeKind\":null}"
+    },
+    {
+      "name": "P1-01B immediate 302 -> verified navigation at /static",
+      "pass": true,
+      "detail": "{\"verified\":true,\"finalUrl\":\"http://127.0.0.1:54075/static\"}"
+    },
+    {
+      "name": "P1-01B delayed redirect -> verified=false unstable, finalUrl=landed",
+      "pass": true,
+      "detail": "{\"verified\":false,\"verification\":\"unstable\",\"finalUrl\":\"http://127.0.0.1:54075/landed\",\"urlChanges\":1,\"routeChangeKind\":\"cross-document\"}"
+    },
+    {
+      "name": "P1-01B SPA pushState -> verified=false unstable, routeChangeKind=same-document",
+      "pass": true,
+      "detail": "{\"verified\":false,\"verification\":\"unstable\",\"finalUrl\":\"http://127.0.0.1:54075/spa-route\",\"routeChangeKind\":\"same-document\"}"
+    },
+    {
+      "name": "P1-01B hung server -> structured timeout result",
+      "pass": true,
+      "detail": "{\"verified\":false,\"verification\":\"timeout\",\"waitedMs\":8009}"
+    },
+    {
+      "name": "P1-01B expectUrlPrefix match -> verified navigation",
+      "pass": true,
+      "detail": "{\"verified\":true,\"finalUrl\":\"http://127.0.0.1:54075/static\"}"
+    },
+    {
+      "name": "P1-01B delayed bounce into expected prefix -> verified at /landed",
+      "pass": true,
+      "detail": "{\"verified\":true,\"finalUrl\":\"http://127.0.0.1:54075/landed\",\"urlChanges\":0}"
+    },
+    {
+      "name": "P1-01B prefix match then bounce away -> redirected (not hidden)",
+      "pass": true,
+      "detail": "{\"verified\":false,\"verification\":\"redirected\",\"finalUrl\":\"http://127.0.0.1:54075/landed\",\"urlChanges\":1}"
+    },
+    {
+      "name": "P1-01B unmatched expectUrlPrefix -> redirected, verified=false",
+      "pass": true,
+      "detail": "{\"verified\":false,\"verification\":\"redirected\"}"
+    },
+    {
+      "name": "P1-01B stabilityWindowMs echoed + short window still verifies",
+      "pass": true,
+      "detail": "{\"verified\":true,\"stabilityWindowMs\":300,\"waitedMs\":544}"
+    },
+    {
+      "name": "P1-01B stabilityWindowMs 15001 -> invalid_params (400)",
+      "pass": true,
+      "detail": "status=400 \"invalid_params\""
+    },
+    {
+      "name": "P1-01B no page-derived body content leak in results",
+      "pass": true,
+      "detail": "leak check over navigate response bodies"
+    },
+    {
+      "name": "unknown tabId -> not_found (404)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "navigate to form page succeeded",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "screenshot of attached visible view works",
+      "pass": true,
+      "detail": "{\"w\":3841,\"h\":2010,\"bytes\":51892}"
+    },
+    {
+      "name": "screenshot is within the 5 MiB cap",
+      "pass": true,
+      "detail": "51892"
+    },
+    {
+      "name": "detached view screenshot refused (view_not_attached, 409)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "form field enumerated on the form page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "click focuses the field",
+      "pass": true,
+      "detail": "\"focus\""
+    },
+    {
+      "name": "press Tab -> focus moves (focus kind)",
+      "pass": true,
+      "detail": "\"focus\""
+    },
+    {
+      "name": "press Enter lands (dom-change via page keylog; implicit submission is a documented runtime limitation)",
+      "pass": true,
+      "detail": "\"dom-change\" url=file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-nps-probe/nf.html"
+    },
+    {
+      "name": "navigate to keylog-free page for the escape case",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "press Escape -> dispatched-unverified, verified=false",
+      "pass": true,
+      "detail": "\"dispatched-unverified\""
+    },
+    {
+      "name": "unknown/lowercase keys rejected (400 invalid_params)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no screenshot files written anywhere",
+      "pass": true,
+      "detail": "0 new files"
+    },
+    {
+      "name": "no page title/url/typed text in [agent-rpc] stdout",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

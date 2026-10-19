@@ -1,0 +1,127 @@
+{
+  "ts": "2026-10-19T02:33:57.923Z",
+  "results": [
+    {
+      "name": "packaged Min started + bridge discovery within 30s",
+      "pass": true
+    },
+    {
+      "name": "initialize with SHIPPED adapter",
+      "pass": true
+    },
+    {
+      "name": "tools/list = 31 tools",
+      "pass": true
+    },
+    {
+      "name": "browser_status on packaged app (Min Agent Edition identity)",
+      "pass": true
+    },
+    {
+      "name": "production development flag false",
+      "pass": true
+    },
+    {
+      "name": "dedicated user-data root used",
+      "pass": true
+    },
+    {
+      "name": "tabs enumerable, fixture page loaded by launcher",
+      "pass": true
+    },
+    {
+      "name": "navigate https://example.com verified",
+      "pass": true
+    },
+    {
+      "name": "content: Example Domain text",
+      "pass": true
+    },
+    {
+      "name": "snapshot with refs",
+      "pass": true
+    },
+    {
+      "name": "screenshot real image block from packaged app",
+      "pass": true
+    },
+    {
+      "name": "screenshot saved for agent inspection",
+      "pass": true
+    },
+    {
+      "name": "screenshot metadata (screenshotId/cssPerPixel)",
+      "pass": true
+    },
+    {
+      "name": "fixture navigate verified",
+      "pass": true
+    },
+    {
+      "name": "fixture heading ref found",
+      "pass": true
+    },
+    {
+      "name": "transform applied",
+      "pass": true
+    },
+    {
+      "name": "transform verify",
+      "pass": true
+    },
+    {
+      "name": "transform_status lists record",
+      "pass": true
+    },
+    {
+      "name": "restore_target accepted",
+      "pass": true
+    },
+    {
+      "name": "restore verified: original text back",
+      "pass": true
+    },
+    {
+      "name": "managed download started",
+      "pass": true
+    },
+    {
+      "name": "managed download terminal (completed)",
+      "pass": true
+    },
+    {
+      "name": "wait timeout contract fields absent on success but state terminal",
+      "pass": true
+    },
+    {
+      "name": "download under userData/agent-downloads root",
+      "pass": true
+    },
+    {
+      "name": "download file exists on disk",
+      "pass": true
+    },
+    {
+      "name": "download record visible in browser_downloads (managed list)",
+      "pass": true
+    },
+    {
+      "name": "no dev extension fixture pages open",
+      "pass": true
+    },
+    {
+      "name": "no extension-host errors on stderr",
+      "pass": true
+    },
+    {
+      "name": "production settings do not enable experimental extension host",
+      "pass": true
+    },
+    {
+      "name": "app close leaves no orphan Min.exe (targeted PID kill worked)",
+      "pass": true
+    }
+  ],
+  "pass": 30,
+  "total": 30
+}

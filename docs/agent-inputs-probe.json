@@ -1,0 +1,189 @@
+{
+  "ranAt": "2026-10-19T03:06:35.585Z",
+  "passed": 20,
+  "total": 20,
+  "timings": [
+    {
+      "method": "browser_snapshot",
+      "ms": 6,
+      "status": 200
+    },
+    {
+      "method": "browser_type",
+      "ms": 11,
+      "status": 200
+    },
+    {
+      "method": "browser_click",
+      "ms": 9,
+      "status": 200
+    },
+    {
+      "method": "browser_content",
+      "ms": 3,
+      "status": 200
+    },
+    {
+      "method": "browser_type",
+      "ms": 8,
+      "status": 200
+    },
+    {
+      "method": "browser_snapshot",
+      "ms": 3,
+      "status": 200
+    },
+    {
+      "method": "browser_type",
+      "ms": 316,
+      "status": 200
+    },
+    {
+      "method": "browser_snapshot",
+      "ms": 2,
+      "status": 200
+    },
+    {
+      "method": "browser_type",
+      "ms": 318,
+      "status": 200
+    },
+    {
+      "method": "browser_snapshot",
+      "ms": 2,
+      "status": 200
+    },
+    {
+      "method": "browser_snapshot",
+      "ms": 1,
+      "status": 200
+    },
+    {
+      "method": "browser_type",
+      "ms": 9,
+      "status": 200
+    },
+    {
+      "method": "browser_click",
+      "ms": 6,
+      "status": 200
+    },
+    {
+      "method": "browser_snapshot",
+      "ms": 3,
+      "status": 200
+    },
+    {
+      "method": "browser_click",
+      "ms": 7,
+      "status": 200
+    },
+    {
+      "method": "browser_type",
+      "ms": 3,
+      "status": 404
+    }
+  ],
+  "results": [
+    {
+      "name": "bridge discovery appeared",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "startup tab enumerated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "navigate to controlled form -> verified",
+      "pass": true,
+      "detail": "{\"verification\":\"navigation\",\"finalUrl\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-inputs-probe/react.html\"}"
+    },
+    {
+      "name": "controlled + plain inputs enumerated",
+      "pass": true,
+      "detail": "ci=true plain=true"
+    },
+    {
+      "name": "controlled input typed -> verified value WITHOUT fallback",
+      "pass": true,
+      "detail": "{\"verification\":\"value\",\"strategy\":\"native-insert\"}"
+    },
+    {
+      "name": "framework STATE received the typed value (submit -> content proof)",
+      "pass": true,
+      "detail": "true"
+    },
+    {
+      "name": "ordinary input typed -> verified value, no fallback",
+      "pass": true,
+      "detail": "{\"verification\":\"value\",\"strategy\":\"native-insert\"}"
+    },
+    {
+      "name": "hostile input enumerated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "hostile input -> fallback engaged and verified value",
+      "pass": true,
+      "detail": "{\"verification\":\"value\",\"strategy\":\"native-setter-fallback\"}"
+    },
+    {
+      "name": "rejecting input enumerated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "rejecting controlled input -> rejected-input, verified=false, no throw",
+      "pass": true,
+      "detail": "{\"verification\":\"rejected-input\",\"strategy\":\"native-setter-fallback\"}"
+    },
+    {
+      "name": "open shadow depth-1 button discovered",
+      "pass": true,
+      "detail": "[\"heading:Shadow Host Heading\",\"button:Shadow Deep Button\",\"button:Shadow Nested Button\",\"textbox:Shadow Field\"]"
+    },
+    {
+      "name": "open shadow nested depth-2 button + field discovered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "shadow nodes carry shadowPath locator context",
+      "pass": true,
+      "detail": "deep=\"::shadow\" field=\"::shadow::shadow\""
+    },
+    {
+      "name": "closed shadow root content NOT inspectable",
+      "pass": true,
+      "detail": "closed content in snapshot: false"
+    },
+    {
+      "name": "shadow enumeration deterministic (two snapshots identical order)",
+      "pass": true,
+      "detail": "differs"
+    },
+    {
+      "name": "type into nested shadow field -> verified value",
+      "pass": true,
+      "detail": "{\"status\":200,\"error\":null,\"result\":{\"tabId\":\"91955597636635310\",\"ref\":\"rg\",\"target\":{\"role\":\"textbox\",\"name\":\"Shadow Field\",\"nameIndex\":0,\"shadowPath\":\"::shadow::shadow\"},\"strategy\":\"native-insert\",\"dispatched\":true,\"ve"
+    },
+    {
+      "name": "click deep shadow button dispatched+verified",
+      "pass": true,
+      "detail": "\"dom-change\""
+    },
+    {
+      "name": "stale fixture enumerated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "typing with stale ref -> ref_stale (clear failure, no wrong-element action)",
+      "pass": true,
+      "detail": "{\"category\":\"ref_stale\",\"code\":-32016}"
+    }
+  ]
+}

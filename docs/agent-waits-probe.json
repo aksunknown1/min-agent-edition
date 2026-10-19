@@ -1,0 +1,164 @@
+{
+  "ranAt": "2026-10-19T03:06:59.060Z",
+  "passed": 16,
+  "total": 16,
+  "timings": [
+    {
+      "method": "browser_tabs",
+      "ms": 7,
+      "status": 200
+    },
+    {
+      "method": "browser_navigate",
+      "ms": 275,
+      "status": 200
+    },
+    {
+      "method": "browser_wait",
+      "ms": 942,
+      "status": 200
+    },
+    {
+      "method": "browser_wait",
+      "ms": 2198,
+      "status": 200
+    },
+    {
+      "method": "browser_status",
+      "ms": 2,
+      "status": 200
+    },
+    {
+      "method": "browser_navigate",
+      "ms": 295,
+      "status": 200
+    },
+    {
+      "method": "browser_wait",
+      "ms": 4103,
+      "status": 200
+    },
+    {
+      "method": "browser_status",
+      "ms": 1,
+      "status": 200
+    },
+    {
+      "method": "browser_navigate",
+      "ms": 281,
+      "status": 200
+    },
+    {
+      "method": "browser_wait",
+      "ms": 3063,
+      "status": 200
+    },
+    {
+      "method": "browser_status",
+      "ms": 2,
+      "status": 200
+    },
+    {
+      "method": "browser_wait",
+      "ms": 6276,
+      "status": 200
+    },
+    {
+      "method": "browser_status",
+      "ms": 1,
+      "status": 200
+    },
+    {
+      "method": "browser_navigate",
+      "ms": 555,
+      "status": 200
+    },
+    {
+      "method": "browser_status",
+      "ms": 1,
+      "status": 200
+    }
+  ],
+  "results": [
+    {
+      "name": "bridge discovery appeared",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "startup tab enumerated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "initial navigation to wait fixture verified",
+      "pass": true,
+      "detail": "{\"v\":true,\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-waits-probe/wait.html\"}"
+    },
+    {
+      "name": "selector_visible: delayed element satisfied with honest waitedMs",
+      "pass": true,
+      "detail": "{\"satisfied\":true,\"waitedMs\":940,\"reason\":\"selector visible (1 matches)\"}"
+    },
+    {
+      "name": "selector_visible: timeout -> satisfied=false with reason",
+      "pass": true,
+      "detail": "{\"satisfied\":false,\"waitedMs\":2196,\"reason\":\"selector not found\"}"
+    },
+    {
+      "name": "re-navigated to http wait page",
+      "pass": true,
+      "detail": "{\"verified\":true,\"url\":\"http://127.0.0.1:59420/waitpage\"}"
+    },
+    {
+      "name": "network_idle: delayed XHR covered (satisfied after in-flight window, not instantly)",
+      "pass": true,
+      "detail": "{\"r\":{\"satisfied\":true,\"waitedMs\":4102,\"reason\":\"no new activity for 3079ms; in-flight=2 (pre-existing)\"},\"observed\":\"20->23\"}"
+    },
+    {
+      "name": "network_idle: blocker handler observed the HTTP requests (integration proof)",
+      "pass": true,
+      "detail": "20->23"
+    },
+    {
+      "name": "idle http page navigated",
+      "pass": true,
+      "detail": "{\"v\":true,\"url\":\"http://127.0.0.1:59420/idle\"}"
+    },
+    {
+      "name": "network_idle: idle page satisfied promptly (<3500ms)",
+      "pass": true,
+      "detail": "{\"satisfied\":true,\"waitedMs\":3061,\"reason\":\"no new activity for 3061ms; in-flight=2 (pre-existing)\"}"
+    },
+    {
+      "name": "bridge responsive during pending wait (status answers while wait pending)",
+      "pass": true,
+      "detail": "statusMs=2"
+    },
+    {
+      "name": "pending wait still completes honestly after concurrency check",
+      "pass": true,
+      "detail": "{\"satisfied\":false,\"waitedMs\":6275,\"reason\":\"selector not found\"}"
+    },
+    {
+      "name": "pre-check: only one onBeforeRequest registrant in the bundle",
+      "pass": true,
+      "detail": "registrants must be exactly 1"
+    },
+    {
+      "name": "pre-check: bridge net counters initialized",
+      "pass": true,
+      "detail": "{\"inflight\":2,\"observedTotal\":24,\"settledTotal\":22,\"blockedTotal\":0,\"filteringBlockedCount\":0}"
+    },
+    {
+      "name": "ad-blocker integrity: blocked count INCREASED after tracker URLs (filtering pipeline alive)",
+      "pass": true,
+      "detail": "before=0 after=2"
+    },
+    {
+      "name": "ad-blocker integrity: observed request total grew (handler still sees requests)",
+      "pass": true,
+      "detail": "before=24 after=26"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Min Agent Docstart Test",
+  "version": "0.0.1",
+  "description": "P0-04 fixture: MAIN-world document_start ordering probe. Not a product feature.",
+  "permissions": ["storage"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["http://127.0.0.1/*", "https://127.0.0.1/*", "https://example.com/*"],
+      "run_at": "document_start",
+      "all_frames": false,
+      "world": "MAIN",
+      "js": ["main-world.js"]
+    }
+  ]
+}

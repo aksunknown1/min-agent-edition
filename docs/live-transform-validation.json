@@ -1,0 +1,225 @@
+{
+  "ranAt": "2026-10-18T05:36:35.414Z",
+  "sites": [
+    {
+      "site": "example.com",
+      "url": "https://example.com/",
+      "steps": [
+        {
+          "step": "navigate",
+          "status": "PASS",
+          "detail": "finalUrl=https://example.com/ verified=true verification=navigation failCode=-"
+        },
+        {
+          "step": "target discovery (2 visible leaves)",
+          "status": "PASS",
+          "detail": "p:nth-of-type(1) + a:nth-of-type(1)"
+        },
+        {
+          "step": "apply reversible transforms",
+          "status": "PASS",
+          "detail": "p:nth-of-type(1)→tf1(AGENT-PROBE-0-806581), a:nth-of-type(1)→tf2(AGENT-PROBE-1-807494)"
+        },
+        {
+          "step": "independent verify applied target 0 (p:nth-of-type(1))",
+          "status": "PASS",
+          "detail": "browser_verify={\"tabId\":\"93151059350088380\",\"url\":\"https://example.com/\",\"title\":\"Example Domain\",\"checks\":{\"textContains\":true},\"verified\":true,\"waitedMs\":2} contentReferences=true"
+        },
+        {
+          "step": "independent verify applied target 1 (a:nth-of-type(1))",
+          "status": "PASS",
+          "detail": "browser_verify={\"tabId\":\"93151059350088380\",\"url\":\"https://example.com/\",\"title\":\"Example Domain\",\"checks\":{\"textContains\":true},\"verified\":true,\"waitedMs\":2} contentReferences=true"
+        },
+        {
+          "step": "restore by exact transformId tf2 (a:nth-of-type(1))",
+          "status": "PASS",
+          "detail": "{\"sel\":\"a:nth-of-type(1)\",\"ordinal\":\"sel0\",\"op\":\"restore\",\"ok\":true,\"restoredText\":\"Learn more\",\"restoredId\":\"tf2\",\"rendered\":{}}"
+        },
+        {
+          "step": "no cross-target restoration after tf2",
+          "status": "PASS",
+          "detail": "un-restored target markers still visible=true"
+        },
+        {
+          "step": "independent post-restore check tf2 (original back via content read, marker gone)",
+          "status": "PASS",
+          "detail": "originalVisible=true markerGone=true"
+        },
+        {
+          "step": "restore by exact transformId tf1 (p:nth-of-type(1))",
+          "status": "PASS",
+          "detail": "{\"sel\":\"p:nth-of-type(1)\",\"ordinal\":\"sel0\",\"op\":\"restore\",\"ok\":true,\"restoredText\":\"This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and "
+        },
+        {
+          "step": "independent post-restore check tf1 (original back via content read, marker gone)",
+          "status": "PASS",
+          "detail": "originalVisible=true markerGone=true"
+        },
+        {
+          "step": "no marker remains anywhere after restoration",
+          "status": "PASS",
+          "detail": "markerStillVisible=false"
+        },
+        {
+          "step": "post-restore status: no active records remain",
+          "status": "PASS",
+          "detail": "{\"tabId\":\"93151059350088380\",\"active\":0,\"ops\":{},\"drift\":[],\"cleared\":true}"
+        }
+      ],
+      "nav": {
+        "tabId": "93151059350088380",
+        "requestedUrl": "https://example.com/",
+        "finalUrl": "https://example.com/",
+        "title": "Example Domain",
+        "verified": true,
+        "verification": "navigation",
+        "urlChanges": 0,
+        "routeChangeKind": null,
+        "changedFrom": null,
+        "settleMs": 10,
+        "stabilityMs": 1283,
+        "stabilityWindowMs": 1200,
+        "refsCleared": true,
+        "waitedMs": 1293
+      },
+      "consoleErrors": "renderer console not exposed by bridge; tool statuses + did-fail-load codes recorded above"
+    },
+    {
+      "site": "news.ycombinator.com",
+      "url": "https://news.ycombinator.com/",
+      "steps": [
+        {
+          "step": "navigate",
+          "status": "PASS",
+          "detail": "finalUrl=https://news.ycombinator.com/ verified=true verification=navigation failCode=-"
+        },
+        {
+          "step": "target discovery (2 visible leaves)",
+          "status": "PASS",
+          "detail": "span.titleline > a + a:nth-of-type(1)"
+        },
+        {
+          "step": "candidate a:nth-of-type(1) usable as leaf target",
+          "status": "FAIL",
+          "detail": "engine refusal: {\"category\":\"transform_target_failed\",\"message\":\"target has element children; text replacement refused (framework safety)\"}"
+        },
+        {
+          "step": "apply reversible transforms",
+          "status": "PASS",
+          "detail": "span.titleline > a→tf3(AGENT-PROBE-0-824381)"
+        },
+        {
+          "step": "independent verify applied target 0 (span.titleline > a)",
+          "status": "PASS",
+          "detail": "browser_verify={\"tabId\":\"93151059350088380\",\"url\":\"https://news.ycombinator.com/\",\"title\":\"Hacker News\",\"checks\":{\"textContains\":true},\"verified\":true,\"waitedMs\":8} contentReferences=true"
+        },
+        {
+          "step": "restore by exact transformId tf3 (span.titleline > a)",
+          "status": "PASS",
+          "detail": "{\"sel\":\"span.titleline > a\",\"ordinal\":\"sel0\",\"op\":\"restore\",\"ok\":true,\"restoredText\":\"Show HN: Sphinx – a hook that quizzes you on your AI's code before shipping\",\"restoredId\":\"tf3\",\"rendered\":{}}"
+        },
+        {
+          "step": "independent post-restore check tf3 (original back via content read, marker gone)",
+          "status": "PASS",
+          "detail": "originalVisible=true markerGone=true"
+        },
+        {
+          "step": "no marker remains anywhere after restoration",
+          "status": "PASS",
+          "detail": "markerStillVisible=false"
+        },
+        {
+          "step": "post-restore status: no active records remain",
+          "status": "PASS",
+          "detail": "{\"tabId\":\"93151059350088380\",\"active\":0,\"ops\":{},\"drift\":[],\"cleared\":true}"
+        }
+      ],
+      "nav": {
+        "tabId": "93151059350088380",
+        "requestedUrl": "https://news.ycombinator.com/",
+        "finalUrl": "https://news.ycombinator.com/",
+        "title": "Hacker News",
+        "verified": true,
+        "verification": "navigation",
+        "urlChanges": 0,
+        "routeChangeKind": null,
+        "changedFrom": null,
+        "settleMs": 878,
+        "stabilityMs": 1296,
+        "stabilityWindowMs": 1200,
+        "refsCleared": true,
+        "waitedMs": 2174
+      },
+      "consoleErrors": "renderer console not exposed by bridge; tool statuses + did-fail-load codes recorded above"
+    },
+    {
+      "site": "developer.mozilla.org",
+      "url": "https://developer.mozilla.org/",
+      "steps": [
+        {
+          "step": "navigate",
+          "status": "PASS",
+          "detail": "finalUrl=https://developer.mozilla.org/en-US/ verified=true verification=navigation failCode=-"
+        },
+        {
+          "step": "target discovery (2 visible leaves)",
+          "status": "PASS",
+          "detail": "h1 + h2"
+        },
+        {
+          "step": "candidate h1 usable as leaf target",
+          "status": "FAIL",
+          "detail": "engine refusal: {\"category\":\"transform_target_failed\",\"message\":\"target has element children; text replacement refused (framework safety)\"}"
+        },
+        {
+          "step": "apply reversible transforms",
+          "status": "PASS",
+          "detail": "h2→tf4(AGENT-PROBE-1-831962)"
+        },
+        {
+          "step": "independent verify applied target 0 (h2)",
+          "status": "PASS",
+          "detail": "browser_verify={\"tabId\":\"93151059350088380\",\"url\":\"https://developer.mozilla.org/en-US/\",\"title\":\"MDN Web Docs\",\"checks\":{\"textContains\":true},\"verified\":true,\"waitedMs\":7} contentReferences=true"
+        },
+        {
+          "step": "restore by exact transformId tf4 (h2)",
+          "status": "PASS",
+          "detail": "{\"sel\":\"h2\",\"ordinal\":\"sel0\",\"op\":\"restore\",\"ok\":true,\"restoredText\":\"\\n          Featured articles\\n        \",\"restoredId\":\"tf4\",\"rendered\":{}}"
+        },
+        {
+          "step": "independent post-restore check tf4 (original back via content read, marker gone)",
+          "status": "PASS",
+          "detail": "originalVisible=true markerGone=true"
+        },
+        {
+          "step": "no marker remains anywhere after restoration",
+          "status": "PASS",
+          "detail": "markerStillVisible=false"
+        },
+        {
+          "step": "post-restore status: no active records remain",
+          "status": "PASS",
+          "detail": "{\"tabId\":\"93151059350088380\",\"active\":0,\"ops\":{},\"drift\":[],\"cleared\":true}"
+        }
+      ],
+      "nav": {
+        "tabId": "93151059350088380",
+        "requestedUrl": "https://developer.mozilla.org/",
+        "finalUrl": "https://developer.mozilla.org/en-US/",
+        "title": "MDN Web Docs",
+        "verified": true,
+        "verification": "navigation",
+        "urlChanges": 0,
+        "routeChangeKind": null,
+        "changedFrom": null,
+        "settleMs": 136,
+        "stabilityMs": 1295,
+        "stabilityWindowMs": 1200,
+        "refsCleared": true,
+        "waitedMs": 1431
+      },
+      "consoleErrors": "renderer console not exposed by bridge; tool statuses + did-fail-load codes recorded above"
+    }
+  ],
+  "lifecycle": []
+}

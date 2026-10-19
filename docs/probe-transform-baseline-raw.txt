@@ -1,0 +1,4 @@
+exit=null
+===STDOUT===
+
+===STDERR===

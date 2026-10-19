@@ -1,0 +1,1117 @@
+{
+  "task": "P0-05 extension-host feasibility",
+  "startedAt": "2026-10-19T03:08:38.470Z",
+  "platform": "win32 x64",
+  "node": "v24.19.0",
+  "electron": "43.4.1",
+  "workspace": "min-agent-edition",
+  "runs": [
+    {
+      "label": "A loopback http",
+      "rootPid": 13360,
+      "treeKillExit": 0,
+      "title": "EXT ds=no css=yes sw=ok n=1 f=1 v=P0-03 | Min",
+      "extensionHostLog": [
+        "[extension-host] loading fixture into session default test-min-agent-extension",
+        "[extension-host] loading fixture into session default test-min-agent-docstart",
+        "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader",
+        "[extension-host] loading fixture into session session-created test-min-agent-extension",
+        "[extension-host] loading fixture into session session-created test-min-agent-docstart",
+        "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader",
+        "[extension-host] after app ready count=0 ids=none",
+        "[extension-host] loaded: name=Min Agent Test Extension id=lgjffmdghonadknllapamfdomolbabig session=default",
+        "[extension-host] after load [default] count=1 ids=lgjffmdghonadknllapamfdomolbabig",
+        "[extension-host] loaded: name=Min Agent Docstart Test id=nkhdbhbikdgokhjabbfpplhphopnpchl session=default",
+        "[extension-host] after load [default] count=2 ids=lgjffmdghonadknllapamfdomolbabig,nkhdbhbikdgokhjabbfpplhphopnpchl",
+        "[extension-host] loaded: name=Min Agent Test Extension id=lgjffmdghonadknllapamfdomolbabig session=persist:webcontent",
+        "[extension-host] after load [persist:webcontent] count=1 ids=lgjffmdghonadknllapamfdomolbabig",
+        "[extension-host] loaded: name=Min Agent Docstart Test id=nkhdbhbikdgokhjabbfpplhphopnpchl session=persist:webcontent",
+        "[extension-host] after load [persist:webcontent] count=2 ids=lgjffmdghonadknllapamfdomolbabig,nkhdbhbikdgokhjabbfpplhphopnpchl"
+      ],
+      "manifestErrors": [
+        "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader",
+        "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader"
+      ],
+      "storage": {
+        "exists": true,
+        "extensionIds": [
+          "lgjffmdghonadknllapamfdomolbabig"
+        ],
+        "probe": [
+          {
+            "count": 1,
+            "marker": "P0-03"
+          },
+          {
+            "count": 2,
+            "marker": "P0-03"
+          },
+          {
+            "count": 3,
+            "marker": "P0-03"
+          },
+          {
+            "count": 4,
+            "marker": "P0-03"
+          }
+        ],
+        "frames": [
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveod9pzb6z4b1",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 4,
+            "senderUrl": "http://127.0.0.1:56795/probe.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveod9pzb6z4b1",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 4,
+            "senderUrl": "http://127.0.0.1:56795/probe.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveod9qdn1jnr6",
+            "isTop": false,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 5,
+            "senderTabId": 4,
+            "senderUrl": "http://127.0.0.1:56795/frame.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveod9pzb6z4b1",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 4,
+            "senderUrl": "http://127.0.0.1:56795/probe.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveod9qdn1jnr6",
+            "isTop": false,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 5,
+            "senderTabId": 4,
+            "senderUrl": "http://127.0.0.1:56795/frame.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveod9qrrxd9wt",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 3,
+            "senderUrl": "https://minbrowser.org/min/tour/"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveod9pzb6z4b1",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 4,
+            "senderUrl": "http://127.0.0.1:56795/probe.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveod9qdn1jnr6",
+            "isTop": false,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 5,
+            "senderTabId": 4,
+            "senderUrl": "http://127.0.0.1:56795/frame.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveod9qrrxd9wt",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 3,
+            "senderUrl": "https://minbrowser.org/min/tour/"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveod9riypl20x",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 3,
+            "senderUrl": "https://minbrowser.org/tour/"
+          }
+        ],
+        "order": [
+          {
+            "frameId": "fmveod9pzb6z4b1",
+            "isTop": true,
+            "mainWorldMarker": "document-start",
+            "pageSawIsolated": "yes",
+            "pageSawMainWorld": "yes",
+            "senderFrameId": 0,
+            "seq": "ext-main-document-start",
+            "url": "http://127.0.0.1:56795/probe.html"
+          },
+          {
+            "frameId": "fmveod9pzb6z4b1",
+            "isTop": true,
+            "mainWorldMarker": "document-start",
+            "pageSawIsolated": "yes",
+            "pageSawMainWorld": "yes",
+            "senderFrameId": 0,
+            "seq": "ext-main-document-start",
+            "url": "http://127.0.0.1:56795/probe.html"
+          },
+          {
+            "frameId": "fmveod9qdn1jnr6",
+            "isTop": false,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 5,
+            "seq": null,
+            "url": "http://127.0.0.1:56795/frame.html"
+          },
+          {
+            "frameId": "fmveod9pzb6z4b1",
+            "isTop": true,
+            "mainWorldMarker": "document-start",
+            "pageSawIsolated": "yes",
+            "pageSawMainWorld": "yes",
+            "senderFrameId": 0,
+            "seq": "ext-main-document-start",
+            "url": "http://127.0.0.1:56795/probe.html"
+          },
+          {
+            "frameId": "fmveod9qdn1jnr6",
+            "isTop": false,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 5,
+            "seq": null,
+            "url": "http://127.0.0.1:56795/frame.html"
+          },
+          {
+            "frameId": "fmveod9qrrxd9wt",
+            "isTop": true,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 0,
+            "seq": null,
+            "url": "https://minbrowser.org/min/tour/"
+          },
+          {
+            "frameId": "fmveod9pzb6z4b1",
+            "isTop": true,
+            "mainWorldMarker": "document-start",
+            "pageSawIsolated": "yes",
+            "pageSawMainWorld": "yes",
+            "senderFrameId": 0,
+            "seq": "ext-main-document-start",
+            "url": "http://127.0.0.1:56795/probe.html"
+          },
+          {
+            "frameId": "fmveod9qdn1jnr6",
+            "isTop": false,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 5,
+            "seq": null,
+            "url": "http://127.0.0.1:56795/frame.html"
+          },
+          {
+            "frameId": "fmveod9qrrxd9wt",
+            "isTop": true,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 0,
+            "seq": null,
+            "url": "https://minbrowser.org/min/tour/"
+          },
+          {
+            "frameId": "fmveod9riypl20x",
+            "isTop": true,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 0,
+            "seq": null,
+            "url": "https://minbrowser.org/tour/"
+          }
+        ]
+      }
+    },
+    {
+      "label": "B loopback https",
+      "rootPid": 16556,
+      "treeKillExit": 0,
+      "title": "EXT ds=no css=yes sw=ok n=1 f=1 v=P0-03 | Min",
+      "extensionHostLog": [
+        "[extension-host] loading fixture into session default test-min-agent-extension",
+        "[extension-host] loading fixture into session default test-min-agent-docstart",
+        "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader",
+        "[extension-host] loading fixture into session session-created test-min-agent-extension",
+        "[extension-host] loading fixture into session session-created test-min-agent-docstart",
+        "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader",
+        "[extension-host] after app ready count=0 ids=none",
+        "[extension-host] loaded: name=Min Agent Test Extension id=lgjffmdghonadknllapamfdomolbabig session=default",
+        "[extension-host] after load [default] count=1 ids=lgjffmdghonadknllapamfdomolbabig",
+        "[extension-host] loaded: name=Min Agent Docstart Test id=nkhdbhbikdgokhjabbfpplhphopnpchl session=default",
+        "[extension-host] after load [default] count=2 ids=lgjffmdghonadknllapamfdomolbabig,nkhdbhbikdgokhjabbfpplhphopnpchl",
+        "[extension-host] loaded: name=Min Agent Test Extension id=lgjffmdghonadknllapamfdomolbabig session=persist:webcontent",
+        "[extension-host] after load [persist:webcontent] count=1 ids=lgjffmdghonadknllapamfdomolbabig",
+        "[extension-host] loaded: name=Min Agent Docstart Test id=nkhdbhbikdgokhjabbfpplhphopnpchl session=persist:webcontent",
+        "[extension-host] after load [persist:webcontent] count=2 ids=lgjffmdghonadknllapamfdomolbabig,nkhdbhbikdgokhjabbfpplhphopnpchl"
+      ],
+      "manifestErrors": [
+        "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader",
+        "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader"
+      ],
+      "storage": {
+        "exists": true,
+        "extensionIds": [
+          "lgjffmdghonadknllapamfdomolbabig"
+        ],
+        "probe": [
+          {
+            "count": 1,
+            "marker": "P0-03"
+          },
+          {
+            "count": 2,
+            "marker": "P0-03"
+          },
+          {
+            "count": 3,
+            "marker": "P0-03"
+          },
+          {
+            "count": 4,
+            "marker": "P0-03"
+          }
+        ],
+        "frames": [
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveodfviygk5tc",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 4,
+            "senderUrl": "https://127.0.0.1:55736/probe.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveodfviygk5tc",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 4,
+            "senderUrl": "https://127.0.0.1:55736/probe.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveodfvu51jfsv",
+            "isTop": false,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 5,
+            "senderTabId": 4,
+            "senderUrl": "https://127.0.0.1:55736/frame.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveodfviygk5tc",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 4,
+            "senderUrl": "https://127.0.0.1:55736/probe.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveodfvu51jfsv",
+            "isTop": false,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 5,
+            "senderTabId": 4,
+            "senderUrl": "https://127.0.0.1:55736/frame.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveodfwnbc9wf8",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 3,
+            "senderUrl": "https://minbrowser.org/min/tour/"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveodfviygk5tc",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 4,
+            "senderUrl": "https://127.0.0.1:55736/probe.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveodfvu51jfsv",
+            "isTop": false,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 5,
+            "senderTabId": 4,
+            "senderUrl": "https://127.0.0.1:55736/frame.html"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveodfwnbc9wf8",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 3,
+            "senderUrl": "https://minbrowser.org/min/tour/"
+          },
+          {
+            "cssMarkerSeen": "yes",
+            "documentStartSeenByPage": "no",
+            "frameId": "fmveodfx56dfb3l",
+            "isTop": true,
+            "senderExtensionId": "lgjffmdghonadknllapamfdomolbabig",
+            "senderFrameId": 0,
+            "senderTabId": 3,
+            "senderUrl": "https://minbrowser.org/tour/"
+          }
+        ],
+        "order": [
+          {
+            "frameId": "fmveodfviygk5tc",
+            "isTop": true,
+            "mainWorldMarker": "document-start",
+            "pageSawIsolated": "yes",
+            "pageSawMainWorld": "yes",
+            "senderFrameId": 0,
+            "seq": "ext-main-document-start",
+            "url": "https://127.0.0.1:55736/probe.html"
+          },
+          {
+            "frameId": "fmveodfviygk5tc",
+            "isTop": true,
+            "mainWorldMarker": "document-start",
+            "pageSawIsolated": "yes",
+            "pageSawMainWorld": "yes",
+            "senderFrameId": 0,
+            "seq": "ext-main-document-start",
+            "url": "https://127.0.0.1:55736/probe.html"
+          },
+          {
+            "frameId": "fmveodfvu51jfsv",
+            "isTop": false,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 5,
+            "seq": null,
+            "url": "https://127.0.0.1:55736/frame.html"
+          },
+          {
+            "frameId": "fmveodfviygk5tc",
+            "isTop": true,
+            "mainWorldMarker": "document-start",
+            "pageSawIsolated": "yes",
+            "pageSawMainWorld": "yes",
+            "senderFrameId": 0,
+            "seq": "ext-main-document-start",
+            "url": "https://127.0.0.1:55736/probe.html"
+          },
+          {
+            "frameId": "fmveodfvu51jfsv",
+            "isTop": false,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 5,
+            "seq": null,
+            "url": "https://127.0.0.1:55736/frame.html"
+          },
+          {
+            "frameId": "fmveodfwnbc9wf8",
+            "isTop": true,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 0,
+            "seq": null,
+            "url": "https://minbrowser.org/min/tour/"
+          },
+          {
+            "frameId": "fmveodfviygk5tc",
+            "isTop": true,
+            "mainWorldMarker": "document-start",
+            "pageSawIsolated": "yes",
+            "pageSawMainWorld": "yes",
+            "senderFrameId": 0,
+            "seq": "ext-main-document-start",
+            "url": "https://127.0.0.1:55736/probe.html"
+          },
+          {
+            "frameId": "fmveodfvu51jfsv",
+            "isTop": false,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 5,
+            "seq": null,
+            "url": "https://127.0.0.1:55736/frame.html"
+          },
+          {
+            "frameId": "fmveodfwnbc9wf8",
+            "isTop": true,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 0,
+            "seq": null,
+            "url": "https://minbrowser.org/min/tour/"
+          },
+          {
+            "frameId": "fmveodfx56dfb3l",
+            "isTop": true,
+            "mainWorldMarker": null,
+            "pageSawIsolated": null,
+            "pageSawMainWorld": null,
+            "senderFrameId": 0,
+            "seq": null,
+            "url": "https://minbrowser.org/tour/"
+          }
+        ]
+      }
+    },
+    {
+      "label": "removal probe",
+      "rootPid": 32360,
+      "treeKillExit": 0,
+      "samples": [
+        {
+          "tMs": 1511,
+          "title": "EXT ds=no css=yes sw=ok n=1 f=1 v=P0-03 | Min"
+        },
+        {
+          "tMs": 3186,
+          "title": "EXT ds=no css=yes sw=ok n=1 f=1 v=P0-03 | Min"
+        },
+        {
+          "tMs": 4849,
+          "title": "EXT ds=no css=yes sw=ok n=1 f=1 v=P0-03 | Min"
+        },
+        {
+          "tMs": 6528,
+          "title": "EXT ds=no css=yes sw=ok n=4 f=4 v=P0-03 | Min"
+        },
+        {
+          "tMs": 8200,
+          "title": "EXT ds=no css=yes sw=ok n=4 f=4 v=P0-03 | Min"
+        },
+        {
+          "tMs": 9872,
+          "title": "EXT ds=no css=yes sw=ok n=4 f=4 v=P0-03 | Min"
+        },
+        {
+          "tMs": 11551,
+          "title": "EXT ds=no css=yes sw=ok n=5 f=5 v=P0-03 | Min"
+        },
+        {
+          "tMs": 13249,
+          "title": "EXT ds=no css=yes sw=ok n=5 f=5 v=P0-03 | Min"
+        },
+        {
+          "tMs": 14922,
+          "title": "EXT ds=no css=yes sw=ok n=5 f=5 v=P0-03 | Min"
+        },
+        {
+          "tMs": 16596,
+          "title": "PROBE iso=no css=no main=no | Min"
+        },
+        {
+          "tMs": 18266,
+          "title": "PROBE iso=no css=no main=no | Min"
+        },
+        {
+          "tMs": 19940,
+          "title": "PROBE iso=no css=no main=no | Min"
+        },
+        {
+          "tMs": 21623,
+          "title": "PROBE iso=no css=no main=no | Min"
+        },
+        {
+          "tMs": 23309,
+          "title": "PROBE iso=no css=no main=no | Min"
+        },
+        {
+          "tMs": 24978,
+          "title": "PROBE iso=no css=no main=no | Min"
+        },
+        {
+          "tMs": 26656,
+          "title": "PROBE iso=no css=no main=no | Min"
+        }
+      ],
+      "extensionHostLog": [
+        "[extension-host] loading fixture into session default test-min-agent-extension",
+        "[extension-host] loading fixture into session default test-min-agent-docstart",
+        "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader",
+        "[extension-host] loading fixture into session session-created test-min-agent-extension",
+        "[extension-host] loading fixture into session session-created test-min-agent-docstart",
+        "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader",
+        "[extension-host] after app ready count=0 ids=none",
+        "[extension-host] remove probe scheduled in 12000 ms",
+        "[extension-host] loaded: name=Min Agent Test Extension id=lgjffmdghonadknllapamfdomolbabig session=default",
+        "[extension-host] after load [default] count=1 ids=lgjffmdghonadknllapamfdomolbabig",
+        "[extension-host] loaded: name=Min Agent Docstart Test id=nkhdbhbikdgokhjabbfpplhphopnpchl session=default",
+        "[extension-host] after load [default] count=2 ids=lgjffmdghonadknllapamfdomolbabig,nkhdbhbikdgokhjabbfpplhphopnpchl",
+        "[extension-host] loaded: name=Min Agent Test Extension id=lgjffmdghonadknllapamfdomolbabig session=persist:webcontent",
+        "[extension-host] after load [persist:webcontent] count=1 ids=lgjffmdghonadknllapamfdomolbabig",
+        "[extension-host] loaded: name=Min Agent Docstart Test id=nkhdbhbikdgokhjabbfpplhphopnpchl session=persist:webcontent",
+        "[extension-host] after load [persist:webcontent] count=2 ids=lgjffmdghonadknllapamfdomolbabig,nkhdbhbikdgokhjabbfpplhphopnpchl",
+        "[extension-host] before remove [persist:webcontent] count=2 ids=lgjffmdghonadknllapamfdomolbabig,nkhdbhbikdgokhjabbfpplhphopnpchl",
+        "[extension-host] removed: Min Agent Test Extension lgjffmdghonadknllapamfdomolbabig persist:webcontent",
+        "[extension-host] after remove [persist:webcontent] count=1 ids=nkhdbhbikdgokhjabbfpplhphopnpchl",
+        "[extension-host] removed: Min Agent Docstart Test nkhdbhbikdgokhjabbfpplhphopnpchl persist:webcontent",
+        "[extension-host] after remove [persist:webcontent] count=0 ids=none"
+      ]
+    }
+  ],
+  "httpsRun": {
+    "url": "https://127.0.0.1:<ephemeral>/probe.html",
+    "cert": "throwaway self-signed, CN=127.0.0.1, SAN IP:127.0.0.1, 1 day",
+    "flag": "--ignore-certificate-errors (this run only)"
+  },
+  "serversClosed": true,
+  "frameRecords": [
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "A loopback http",
+      "url": "https://minbrowser.org/min/tour/",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "A loopback http",
+      "url": "https://minbrowser.org/min/tour/",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "A loopback http",
+      "url": "https://minbrowser.org/tour/",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://minbrowser.org/min/tour/",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://minbrowser.org/min/tour/",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://minbrowser.org/tour/",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    }
+  ],
+  "orderRecords": [
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/probe.html",
+      "senderFrameId": 0,
+      "pageSawIsolated": "yes",
+      "pageSawMainWorld": "yes",
+      "mainWorldMarker": "document-start"
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/probe.html",
+      "senderFrameId": 0,
+      "pageSawIsolated": "yes",
+      "pageSawMainWorld": "yes",
+      "mainWorldMarker": "document-start"
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/frame.html",
+      "senderFrameId": 5,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/probe.html",
+      "senderFrameId": 0,
+      "pageSawIsolated": "yes",
+      "pageSawMainWorld": "yes",
+      "mainWorldMarker": "document-start"
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/frame.html",
+      "senderFrameId": 5,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "A loopback http",
+      "url": "https://minbrowser.org/min/tour/",
+      "senderFrameId": 0,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/probe.html",
+      "senderFrameId": 0,
+      "pageSawIsolated": "yes",
+      "pageSawMainWorld": "yes",
+      "mainWorldMarker": "document-start"
+    },
+    {
+      "run": "A loopback http",
+      "url": "http://127.0.0.1:56795/frame.html",
+      "senderFrameId": 5,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "A loopback http",
+      "url": "https://minbrowser.org/min/tour/",
+      "senderFrameId": 0,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "A loopback http",
+      "url": "https://minbrowser.org/tour/",
+      "senderFrameId": 0,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "pageSawIsolated": "yes",
+      "pageSawMainWorld": "yes",
+      "mainWorldMarker": "document-start"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "pageSawIsolated": "yes",
+      "pageSawMainWorld": "yes",
+      "mainWorldMarker": "document-start"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "pageSawIsolated": "yes",
+      "pageSawMainWorld": "yes",
+      "mainWorldMarker": "document-start"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://minbrowser.org/min/tour/",
+      "senderFrameId": 0,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "pageSawIsolated": "yes",
+      "pageSawMainWorld": "yes",
+      "mainWorldMarker": "document-start"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://minbrowser.org/min/tour/",
+      "senderFrameId": 0,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://minbrowser.org/tour/",
+      "senderFrameId": 0,
+      "pageSawIsolated": null,
+      "pageSawMainWorld": null,
+      "mainWorldMarker": null
+    }
+  ],
+  "httpsFrames": [
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://minbrowser.org/min/tour/",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/probe.html",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://minbrowser.org/min/tour/",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://minbrowser.org/tour/",
+      "senderFrameId": 0,
+      "isTop": true,
+      "css": "yes"
+    }
+  ],
+  "httpsNonTopFrames": [
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    },
+    {
+      "run": "B loopback https",
+      "url": "https://127.0.0.1:55736/frame.html",
+      "senderFrameId": 5,
+      "isTop": false,
+      "css": "yes"
+    }
+  ],
+  "removalRun": {
+    "label": "removal probe",
+    "rootPid": 32360,
+    "treeKillExit": 0,
+    "samples": [
+      {
+        "tMs": 1511,
+        "title": "EXT ds=no css=yes sw=ok n=1 f=1 v=P0-03 | Min"
+      },
+      {
+        "tMs": 3186,
+        "title": "EXT ds=no css=yes sw=ok n=1 f=1 v=P0-03 | Min"
+      },
+      {
+        "tMs": 4849,
+        "title": "EXT ds=no css=yes sw=ok n=1 f=1 v=P0-03 | Min"
+      },
+      {
+        "tMs": 6528,
+        "title": "EXT ds=no css=yes sw=ok n=4 f=4 v=P0-03 | Min"
+      },
+      {
+        "tMs": 8200,
+        "title": "EXT ds=no css=yes sw=ok n=4 f=4 v=P0-03 | Min"
+      },
+      {
+        "tMs": 9872,
+        "title": "EXT ds=no css=yes sw=ok n=4 f=4 v=P0-03 | Min"
+      },
+      {
+        "tMs": 11551,
+        "title": "EXT ds=no css=yes sw=ok n=5 f=5 v=P0-03 | Min"
+      },
+      {
+        "tMs": 13249,
+        "title": "EXT ds=no css=yes sw=ok n=5 f=5 v=P0-03 | Min"
+      },
+      {
+        "tMs": 14922,
+        "title": "EXT ds=no css=yes sw=ok n=5 f=5 v=P0-03 | Min"
+      },
+      {
+        "tMs": 16596,
+        "title": "PROBE iso=no css=no main=no | Min"
+      },
+      {
+        "tMs": 18266,
+        "title": "PROBE iso=no css=no main=no | Min"
+      },
+      {
+        "tMs": 19940,
+        "title": "PROBE iso=no css=no main=no | Min"
+      },
+      {
+        "tMs": 21623,
+        "title": "PROBE iso=no css=no main=no | Min"
+      },
+      {
+        "tMs": 23309,
+        "title": "PROBE iso=no css=no main=no | Min"
+      },
+      {
+        "tMs": 24978,
+        "title": "PROBE iso=no css=no main=no | Min"
+      },
+      {
+        "tMs": 26656,
+        "title": "PROBE iso=no css=no main=no | Min"
+      }
+    ],
+    "extensionHostLog": [
+      "[extension-host] loading fixture into session default test-min-agent-extension",
+      "[extension-host] loading fixture into session default test-min-agent-docstart",
+      "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader",
+      "[extension-host] loading fixture into session session-created test-min-agent-extension",
+      "[extension-host] loading fixture into session session-created test-min-agent-docstart",
+      "[extension-host] fixture manifest missing at C:\\Users\\extensions\\real\\darkreader",
+      "[extension-host] after app ready count=0 ids=none",
+      "[extension-host] remove probe scheduled in 12000 ms",
+      "[extension-host] loaded: name=Min Agent Test Extension id=lgjffmdghonadknllapamfdomolbabig session=default",
+      "[extension-host] after load [default] count=1 ids=lgjffmdghonadknllapamfdomolbabig",
+      "[extension-host] loaded: name=Min Agent Docstart Test id=nkhdbhbikdgokhjabbfpplhphopnpchl session=default",
+      "[extension-host] after load [default] count=2 ids=lgjffmdghonadknllapamfdomolbabig,nkhdbhbikdgokhjabbfpplhphopnpchl",
+      "[extension-host] loaded: name=Min Agent Test Extension id=lgjffmdghonadknllapamfdomolbabig session=persist:webcontent",
+      "[extension-host] after load [persist:webcontent] count=1 ids=lgjffmdghonadknllapamfdomolbabig",
+      "[extension-host] loaded: name=Min Agent Docstart Test id=nkhdbhbikdgokhjabbfpplhphopnpchl session=persist:webcontent",
+      "[extension-host] after load [persist:webcontent] count=2 ids=lgjffmdghonadknllapamfdomolbabig,nkhdbhbikdgokhjabbfpplhphopnpchl",
+      "[extension-host] before remove [persist:webcontent] count=2 ids=lgjffmdghonadknllapamfdomolbabig,nkhdbhbikdgokhjabbfpplhphopnpchl",
+      "[extension-host] removed: Min Agent Test Extension lgjffmdghonadknllapamfdomolbabig persist:webcontent",
+      "[extension-host] after remove [persist:webcontent] count=1 ids=nkhdbhbikdgokhjabbfpplhphopnpchl",
+      "[extension-host] removed: Min Agent Docstart Test nkhdbhbikdgokhjabbfpplhphopnpchl persist:webcontent",
+      "[extension-host] after remove [persist:webcontent] count=0 ids=none"
+    ]
+  },
+  "cleanup": {
+    "runDirRemoved": true
+  },
+  "finishedAt": "2026-10-19T03:09:23.465Z"
+}

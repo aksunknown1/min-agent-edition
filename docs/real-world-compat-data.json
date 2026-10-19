@@ -1,0 +1,145 @@
+{
+  "ranAt": "2026-10-17T13:23:38.423Z",
+  "matrix": [
+    {
+      "tool": "browser_status",
+      "target": "lo (bridge)/live session",
+      "expected": "status 200 + version + telemetry",
+      "outcome": "PASS",
+      "detail": "version=1.35.7 telemetryMethods=1"
+    },
+    {
+      "tool": "browser_navigate + expectUrlPrefix",
+      "target": "https://example.com/",
+      "expected": "verified navigation, prefix origin-checked",
+      "outcome": "PASS",
+      "detail": "{\"verified\":true,\"verification\":\"navigation\",\"finalUrl\":\"https://example.com/\"}"
+    },
+    {
+      "tool": "browser_snapshot",
+      "target": "https://news.ycombinator.com/",
+      "expected": ">100 interactive nodes",
+      "outcome": "PASS",
+      "detail": "{\"nodes\":200,\"ms\":32}"
+    },
+    {
+      "tool": "browser_content",
+      "target": "https://news.ycombinator.com/",
+      "expected": "text contains Hacker News marker",
+      "outcome": "PASS",
+      "detail": "len=1000"
+    },
+    {
+      "tool": "browser_click",
+      "target": "playwrightlab.github.io Login link",
+      "expected": "navigation happens (login.html)",
+      "outcome": "PASS",
+      "detail": "{\"v\":true,\"kind\":\"navigation\"}"
+    },
+    {
+      "tool": "browser_type",
+      "target": "playwrightlab.github.io #forms text field (filled, NOT submitted)",
+      "expected": "read-back verified",
+      "outcome": "PASS",
+      "detail": "{\"verification\":\"value\",\"strategy\":\"native-insert\"}"
+    },
+    {
+      "tool": "browser_press",
+      "target": "playwrightlab.github.io #forms",
+      "expected": "focus or dispatch verification",
+      "outcome": "PASS",
+      "detail": "{\"verification\":\"focus\",\"verified\":true}"
+    },
+    {
+      "tool": "browser_select",
+      "target": "playwrightlab.github.io #forms dropdown",
+      "expected": "selection applied to a real option (10 seconds timer)",
+      "outcome": "PASS",
+      "detail": "{\"tabId\":\"26862594741142308\",\"ref\":\"rg8\",\"target\":{\"role\":\"combobox\",\"name\":\"2 seconds 5 seconds 10 seconds\"},\"dispatched\":true,\"verified\":true,\"verification\":\"focus\",\"value\":\"10\",\"selectedText\":\"10 seconds\",\"url\":\"https://playwrightlab.git"
+    },
+    {
+      "tool": "browser_check",
+      "target": "playwrightlab.github.io #forms checkbox",
+      "expected": "state change attempt result",
+      "outcome": "PASS",
+      "detail": "{\"tabId\":\"26862594741142308\",\"ref\":\"rjn\",\"target\":{\"role\":\"checkbox\",\"name\":\"Autoplay\"},\"dispatched\":true,\"verified\":false,\"verification\":\"dispatched-unverified\",\"checked\":null,\"waitedMs\":7345}"
+    },
+    {
+      "tool": "browser_hover",
+      "target": "playwrightlab.github.io button",
+      "expected": "hover dispatched",
+      "outcome": "PASS",
+      "detail": "{\"tabId\":\"26862594741142308\",\"ref\":\"reh\",\"target\":{\"role\":\"button\",\"name\":\"Toggle theme\"},\"dispatched\":true,\"verified\":true,\"verification\":\"dispatched\",\"url\":\"https://playwrightlab.github.io/#forms\"}"
+    },
+    {
+      "tool": "browser_scroll",
+      "target": "playwrightlab.github.io",
+      "expected": "scroll executed",
+      "outcome": "PASS",
+      "detail": "{\"tabId\":\"26862594741142308\",\"scrolled\":true}"
+    },
+    {
+      "tool": "browser_screenshot",
+      "target": "playwrightlab.github.io",
+      "expected": "PNG bytes returned",
+      "outcome": "PASS",
+      "detail": "hasBytes=true"
+    },
+    {
+      "tool": "browser_wait (network_idle)",
+      "target": "playwrightlab.github.io (Google Fonts CDN)",
+      "expected": "satisfied",
+      "outcome": "PASS",
+      "detail": "{\"satisfied\":true,\"waitedMs\":1016,\"reason\":\"no request activity for 1016ms\"}"
+    },
+    {
+      "tool": "browser_wait (selector_visible)",
+      "target": "playwrightlab.github.io h1",
+      "expected": "satisfied",
+      "outcome": "PASS",
+      "detail": "{\"satisfied\":true,\"waitedMs\":14,\"reason\":\"selector visible (1 matches)\"}"
+    },
+    {
+      "tool": "browser_tab_open",
+      "target": "https://example.com/",
+      "expected": "attached:true",
+      "outcome": "PASS",
+      "detail": "{\"tabId\":\"44422059029464480\",\"attached\":true,\"background\":false}"
+    },
+    {
+      "tool": "browser_tab_select",
+      "target": "main tab",
+      "expected": "attached:true",
+      "outcome": "PASS",
+      "detail": "{\"tabId\":\"26862594741142308\",\"attached\":true}"
+    },
+    {
+      "tool": "browser_tab_close",
+      "target": "agent-opened tab",
+      "expected": "closed by id",
+      "outcome": "PASS",
+      "detail": "{\"tabId\":\"44422059029464480\",\"closed\":true}"
+    },
+    {
+      "tool": "browser_tabs",
+      "target": "live inventory",
+      "expected": "agent-opened tab absent by id, main remains",
+      "outcome": "PASS",
+      "detail": "count=1"
+    },
+    {
+      "tool": "browser_downloads",
+      "target": "playwrightlab.github.io Playwright-Cheat-Sheet.pdf",
+      "expected": "download recorded (state completed/progressing)",
+      "outcome": "PASS",
+      "detail": "{\"id\":\"dl2\",\"filename\":\"Playwright-Cheat-Sheet.pdf\",\"mimeType\":\"application/pdf\",\"received\":18596,\"total\":18596,\"state\":\"progressing\",\"startedAt\":\"2026-10-17T13:23:32.415Z\"}"
+    },
+    {
+      "tool": "browser_grant",
+      "target": "live risky path",
+      "expected": "no qualifying live control safely testable; refusal/allow semantics are covered by probe:agent-actions 33/33 grant flows (P0-13)",
+      "outcome": "ENVIRONMENT_BLOCKED",
+      "detail": "covered-locally"
+    }
+  ]
+}

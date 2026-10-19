@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Min Agent Test Extension",
+  "version": "0.0.1",
+  "description": "P0-03 feasibility fixture. Proves content script, content CSS, MV3 service worker and chrome.storage.local round-trips inside Min's Electron 43.4.1 runtime. Not a product feature.",
+  "permissions": ["storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ]
+}

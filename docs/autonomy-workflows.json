@@ -1,0 +1,97 @@
+{
+  "ranAt": "2026-10-17T14:50:44.494Z",
+  "workflows": [
+    {
+      "workflow": "W1 search+extraction (HN front page)",
+      "durationMs": 2454,
+      "mcpCalls": 1,
+      "calls": [
+        "browser_batch"
+      ],
+      "outcome": {
+        "verified": true,
+        "note": "top titles extracted from a batched navigate+snapshot",
+        "titles": [
+          "Consider applying for YC's Winter 2027 batch! Applications a",
+          "DeepSeek: DeepSeek v4.1 Flash 1017",
+          "Solar surpasses nuclear power globally for first time – pv m",
+          "Making Chicken Transparent Using Dorito Dust",
+          "Ultramarine 1 Flash"
+        ],
+        "steps": [
+          {
+            "t": "browser_navigate",
+            "ok": true
+          },
+          {
+            "t": "browser_snapshot",
+            "ok": true
+          }
+        ]
+      }
+    },
+    {
+      "workflow": "W2 form filling (PlayLab #forms, fill-only)",
+      "durationMs": 1456,
+      "mcpCalls": 2,
+      "calls": [
+        "browser_batch",
+        "browser_type"
+      ],
+      "outcome": {
+        "verified": true,
+        "note": "fill verified by read-back via browser_type structured result",
+        "field": "My Post Title"
+      }
+    },
+    {
+      "workflow": "W3 SPA navigation + network settle (PlayLab)",
+      "durationMs": 11088,
+      "mcpCalls": 1,
+      "calls": [
+        "browser_batch"
+      ],
+      "outcome": {
+        "verified": true,
+        "note": "navigate+wait+snapshot in one round trip",
+        "waitedMs": 3056
+      }
+    },
+    {
+      "workflow": "W4 multi-tab research",
+      "durationMs": 249,
+      "mcpCalls": 4,
+      "calls": [
+        "browser_batch",
+        "browser_tab_open",
+        "browser_tab_close",
+        "browser_tab_close"
+      ],
+      "outcome": {
+        "verified": true,
+        "note": "2 tabs opened (one batched), both closed by id"
+      }
+    },
+    {
+      "workflow": "W5 renamed/removed element recovery (HN)",
+      "durationMs": 6696,
+      "mcpCalls": 8,
+      "calls": [
+        "browser_navigate",
+        "browser_tab_select",
+        "browser_navigate",
+        "browser_snapshot",
+        "browser_navigate",
+        "browser_click",
+        "browser_snapshot",
+        "browser_click"
+      ],
+      "outcome": {
+        "verified": true,
+        "note": "autonomous recovery exercised",
+        "recovery": "reference invalidated (ref_not_found) -> re-snapshot -> retry on fresh element -> retry dispatched-unverified",
+        "retryVerified": false
+      }
+    }
+  ]
+}

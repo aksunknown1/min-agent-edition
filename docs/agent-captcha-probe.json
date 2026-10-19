@@ -1,0 +1,77 @@
+{
+  "ranAt": "2026-10-19T03:07:09.896Z",
+  "passed": 14,
+  "total": 14,
+  "results": [
+    {
+      "name": "bridge discovery appeared",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "startup tab enumerated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "browser_state: plain fixture NOT flagged",
+      "pass": true,
+      "detail": "{\"detected\":false,\"kind\":null,\"confidence\":null,\"basis\":null,\"widgetCount\":0,\"policy\":\"never solved, bypassed or automated by the agent; complete challenges manually in the visible window, then re-run browser_state to co"
+    },
+    {
+      "name": "browser_state: hcaptcha detected with kind/confidence/basis",
+      "pass": true,
+      "detail": "{\"detected\":true,\"kind\":\"hcaptcha\",\"confidence\":\"high\",\"basis\":\"locator .h-captcha (1 match(es))\",\"widgetCount\":1,\"policy\":\"never solved, bypassed or automated by the agent; complete challenges manually in the visible wi"
+    },
+    {
+      "name": "browser_state: recaptcha kind detected",
+      "pass": true,
+      "detail": "{\"detected\":true,\"kind\":\"recaptcha\",\"confidence\":\"high\",\"basis\":\"locator .g-recaptcha (1 match(es))\",\"widgetCount\":1,\"policy\":\"never solved, bypassed or automated by the agent; complete challenges manually in the visible"
+    },
+    {
+      "name": "browser_state: turnstile kind detected",
+      "pass": true,
+      "detail": "{\"detected\":true,\"kind\":\"turnstile\",\"confidence\":\"high\",\"basis\":\"locator .cf-turnstile (1 match(es))\",\"widgetCount\":1,\"policy\":\"never solved, bypassed or automated by the agent; complete challenges manually in the visibl"
+    },
+    {
+      "name": "browser_state: generic sitekey -> unknown kind / low confidence (honest)",
+      "pass": true,
+      "detail": "{\"detected\":true,\"kind\":\"unknown\",\"confidence\":\"low\",\"basis\":\"locator [data-sitekey] (1 match(es))\",\"widgetCount\":1,\"policy\":\"never solved, bypassed or automated by the agent; complete challenges manually in the visible "
+    },
+    {
+      "name": "captcha page: safe inspection still available (snapshot works)",
+      "pass": true,
+      "detail": "textbox found=true"
+    },
+    {
+      "name": "type at/over challenge widget -> 409 captcha_handoff_required",
+      "pass": true,
+      "detail": "{\"status\":409,\"cat\":\"captcha_handoff_required\",\"handled\":-32021}"
+    },
+    {
+      "name": "content still readable on the captcha page (no blanket block)",
+      "pass": true,
+      "detail": "null"
+    },
+    {
+      "name": "bridge status/managers still available during captcha",
+      "pass": true,
+      "detail": "status=200"
+    },
+    {
+      "name": "challenge cleared state after navigating away (poll-for-continue flow)",
+      "pass": true,
+      "detail": "{\"detected\":false,\"kind\":null,\"confidence\":null,\"basis\":null,\"widgetCount\":0,\"policy\":\"never solved, bypassed or automated by the agent; complete challenges manually in the visible window, then re-run browser_state to co"
+    },
+    {
+      "name": "browser_state: apparent block reported after failed navigation",
+      "pass": true,
+      "detail": "{\"apparently\":true,\"signals\":[\"last navigation: load_failed\",\"Min internal error page\"]}"
+    },
+    {
+      "name": "live example.com NOT flagged as captcha/blocked",
+      "pass": true,
+      "detail": "{\"detected\":false,\"kind\":null,\"confidence\":null,\"basis\":null,\"widgetCount\":0,\"policy\":\"never solved, bypassed or automated by the agent; complete challenges manually in the visible window, then re-run browser_state to co"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "ranAt": "2026-10-18T05:26:49.576Z",
+  "label": "FIXTURE-ONLY lifecycle evidence (not live-site evidence)",
+  "passed": 7,
+  "total": 7,
+  "results": [
+    {
+      "name": "L1. cross-document navigation clears transform records",
+      "pass": true
+    },
+    {
+      "name": "L2. same-URL reload leaves no stale records",
+      "pass": true
+    },
+    {
+      "name": "L3. stale/fabricated transformId refused on cross-document restore",
+      "pass": true
+    },
+    {
+      "name": "L3b. records do not survive navigation into another document",
+      "pass": true
+    },
+    {
+      "name": "L4. rejected navigation (blocked URL) preserves active records",
+      "pass": true
+    },
+    {
+      "name": "L5. tab close discards its records; other tab unaffected",
+      "pass": true
+    },
+    {
+      "name": "L6. hash change follows URL-diff lifecycle contract (records discarded)",
+      "pass": true
+    }
+  ]
+}

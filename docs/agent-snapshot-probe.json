@@ -1,0 +1,142 @@
+{
+  "ranAt": "2026-10-18T17:23:23.050Z",
+  "passed": 27,
+  "total": 27,
+  "results": [
+    {
+      "name": "controlled tabs present from argv (`--` launch)",
+      "pass": true,
+      "detail": "36830540631444270/41973637297335496/12902358303666428"
+    },
+    {
+      "name": "snapshot json returns result envelope",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "button/link/textbox/checkbox/combobox/heading found",
+      "pass": true,
+      "detail": "button=5 link=1 textbox=3 checkbox=1 combobox=1 heading=2"
+    },
+    {
+      "name": "password and email redacted to length-only",
+      "pass": true,
+      "detail": "redacted=2 lens=10,18"
+    },
+    {
+      "name": "secret value absent from raw HTTP body",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "names truncated to 120 chars",
+      "pass": true,
+      "detail": "120"
+    },
+    {
+      "name": "control chars stripped from title",
+      "pass": true,
+      "detail": "\"Features Control\""
+    },
+    {
+      "name": "dup names -> distinct refs with nameIndex 0/1",
+      "pass": true,
+      "detail": "[[\"r4\",0],[\"r5\",1]]"
+    },
+    {
+      "name": "disabled state exposed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "refs are opaque tokens",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "hostile page text returned as inert data, exact equality",
+      "pass": true,
+      "detail": "count=2"
+    },
+    {
+      "name": "checkbox state exposed (nameless interactive node kept)",
+      "pass": true,
+      "detail": "{\"ref\":\"r7\",\"role\":\"checkbox\",\"name\":\"\",\"value\":null,\"valueLength\":null,\"redacted\":false,\"checked\":true,\"expanded\":null,\"disabled\":false,\"box\":{\"x\":755,\"y\":83,\"w\":13,\"h\":13},\"shadowPath\":null,\"locator\":{\"kind\":\"text\",\"role\":\"checkbox\",\"nameIndex\":0}}"
+    },
+    {
+      "name": "single-window attribution marked, not guessed",
+      "pass": true,
+      "detail": "active=false windowId=null"
+    },
+    {
+      "name": "locator.kind preferred for a labelled control",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "page/node caps + truncation flagged",
+      "pass": true,
+      "detail": "900 truncated=true pageTruncated=true bytes=238910"
+    },
+    {
+      "name": "response body <= 256 KiB claim",
+      "pass": true,
+      "detail": "238910"
+    },
+    {
+      "name": "response body <= 268 KiB on the wire",
+      "pass": true,
+      "detail": "238970"
+    },
+    {
+      "name": "requested maxNodes 200 slices page result",
+      "pass": true,
+      "detail": "200 truncated=false"
+    },
+    {
+      "name": "text format bounded with ref handles",
+      "pass": true,
+      "detail": "len=1789"
+    },
+    {
+      "name": "same tab twice -> fresh refs, store replaced",
+      "pass": true,
+      "detail": "r0 vs rz3"
+    },
+    {
+      "name": "refs never reused across tabs",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "browser_status exposes refStore self-status",
+      "pass": true,
+      "detail": "{\"tabs\":2,\"refCount\":63,\"ttlMs\":60000,\"sweepRuns\":0}"
+    },
+    {
+      "name": "refStore counts last snapshot per tab",
+      "pass": true,
+      "detail": "63 vs 63"
+    },
+    {
+      "name": "navigation clears that tab's refs",
+      "pass": true,
+      "detail": "before=64"
+    },
+    {
+      "name": "unknown tabId -> structured not_found",
+      "pass": true,
+      "detail": "{\"jsonrpc\":\"2.0\",\"id\":\"bad\",\"error\":{\"code\":-32002,\"category\":\"not_found\",\"message\":\"tabId does not match a live view\",\""
+    },
+    {
+      "name": "refs expired after 60s TTL + sweep",
+      "pass": true,
+      "detail": "afterCount=0 sweepsBefore=0 sweepsAfter=2"
+    },
+    {
+      "name": "nothing from pages leaks into [agent-rpc] stdout",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

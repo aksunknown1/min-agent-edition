@@ -1,0 +1,287 @@
+{
+  "ranAt": "2026-10-19T03:39:40.100Z",
+  "passed": 56,
+  "total": 56,
+  "results": [
+    {
+      "name": "initialize returns a supported protocol version",
+      "pass": true,
+      "detail": "\"2025-03-26\""
+    },
+    {
+      "name": "initialize returns serverInfo min-agent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "tools/list returns exactly the 31 bridge tools (P1-06: + browser_mouse)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ping answers",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "browser_status with Min down -> isError with launcher guidance",
+      "pass": true,
+      "detail": "Min is not running, or its agent-rpc discovery file is missing, under \"C:\\Users\\AKS-PC\\AppData\\Local\\Temp\\min-mcp-e2e-unit-1792381165827\". Start Min first: node scripts/min-launch.js (visible window, "
+    },
+    {
+      "name": "unknown tool -> invalid params (-32602)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "survives malformed JSON-RPC line (still answering ping)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "stdout carried only MCP frames (unit phase)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "launcher stdout = profile/discovery-file/ready protocol (3 lines, no token)",
+      "pass": true,
+      "detail": "[\"profile: C:\\\\Users\\\\AKS-PC\\\\AppData\\\\Local\\\\Temp\\\\min-mcp-e2e\\\\agent-profile\",\"discovery-file: C:\\\\Users\\\\AKS-PC\\\\AppData\\\\Local\\\\Temp\\\\min-mcp-e2e\\\\agent-profile-development\\\\agent-rpc.json\",\"[min-"
+    },
+    {
+      "name": "discovery file exists and holds a 64-hex token",
+      "pass": true,
+      "detail": "64"
+    },
+    {
+      "name": "launcher output never contains the token",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "e2e initialize",
+      "pass": true,
+      "detail": "\"2025-03-26\""
+    },
+    {
+      "name": "browser_status ok (Min versions + tabs via MCP)",
+      "pass": true,
+      "detail": "{\n  \"app\": {\n    \"name\": \"Min Agent Edition\",\n    \"version\": \"1.35.7\",\n    \"electron\": \"43.4.1\",\n    \"chromium\": \"150.0.7871.224\",\n    \"node"
+    },
+    {
+      "name": "browser_tabs shows the start page tab",
+      "pass": true,
+      "detail": "file:///C:/Users/AKS-PC/AppData/Local/Temp/min-mcp-e2e/act.html"
+    },
+    {
+      "name": "browser_snapshot enumerates field + button + link, refs returned",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "browser_type -> value verified",
+      "pass": true,
+      "detail": "\"value\""
+    },
+    {
+      "name": "browser_click -> dom-change verified",
+      "pass": true,
+      "detail": "\"dom-change\""
+    },
+    {
+      "name": "browser_press Tab -> focus verified",
+      "pass": true,
+      "detail": "\"focus\""
+    },
+    {
+      "name": "browser_navigate -> navigation verified, finalUrl = after page",
+      "pass": true,
+      "detail": "\"navigation\""
+    },
+    {
+      "name": "browser_screenshot -> PNG image block (magic, mime, size)",
+      "pass": true,
+      "detail": "49888"
+    },
+    {
+      "name": "browser_screenshot metadata: screenshotId + viewport + dpr + cssPerPixel present",
+      "pass": true,
+      "detail": "{\"id\":\"ss1\",\"vp\":{\"width\":2032,\"height\":1063,\"dpr\":1.8900001049041748,\"scrollX\":0,\"scrollY\":0},\"f\":1.890255905511811}"
+    },
+    {
+      "name": "browser_mouse move dispatched with coordinates",
+      "pass": true,
+      "detail": "{\"tabId\":\"64790249277602020\",\"action\":\"move\",\"dispatched\":true,\"x\":12,\"y\":34,\"screenshotId\":null,\"screenshotCheck\":null,\"delivery\":\"unverifi"
+    },
+    {
+      "name": "browser_mouse scroll dispatched",
+      "pass": true,
+      "detail": "{\"tabId\":\"64790249277602020\",\"action\":\"scroll\",\"dispatched\":true,\"deltaX\":0,\"deltaY\":240,\"ms\":0,\"note\":\"mouseWheel synthesized per Electron "
+    },
+    {
+      "name": "browser_mouse rejects unknown screenshotId (structured over stdio)",
+      "pass": true,
+      "detail": "invalid_params -32602: unknown screenshotId ss999999999"
+    },
+    {
+      "name": "navigated back to the act page for the grant section",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "browser_predict: unknown-effect button honestly unknown/low confidence",
+      "pass": true,
+      "detail": "{\"cls\":\"unknown\",\"c\":\"low\"}"
+    },
+    {
+      "name": "browser_verify: cheap combined verify (selector visible + body text) via real stdio",
+      "pass": true,
+      "detail": "{\"selectorVisible\":true,\"selectorMatches\":1,\"textContains\":true}"
+    },
+    {
+      "name": "risky + sensitive targets present on the e2e page",
+      "pass": true,
+      "detail": "[\"textbox:Agent Field\",\"button:Change Text\",\"link:Go To After Page\",\"textbox:\",\"button:Pay Now\"]"
+    },
+    {
+      "name": "unprompted risky click -> 403 risky_action",
+      "pass": true,
+      "detail": "risky_action -32014: accessible name matches a purchase/payment pattern; requires a single-use browser_grant(risky_click"
+    },
+    {
+      "name": "browser_grant risky_click ok (single-use, tab-bound)",
+      "pass": true,
+      "detail": "{\"granted\":true,\"action\":\"risky_click\",\"tabId\":\"64790249277602020\",\"ttlSeconds\":120,\"grantsActive\":1}"
+    },
+    {
+      "name": "granted risky click -> dom-change, grant consumed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "second risky click without a new grant -> 403 again (single use)",
+      "pass": true,
+      "detail": "risky_action -32014: accessible name matches a purchase/payment pattern; requires a single-use browser_grant(risky_click"
+    },
+    {
+      "name": "unprompted sensitive typing -> 403 sensitive_field",
+      "pass": true,
+      "detail": "sensitive_field -32013: typing into password/email/phone/autocomplete-sensitive fields is refused; requires a single-use"
+    },
+    {
+      "name": "browser_grant sensitive_type ok (ref-bound)",
+      "pass": true,
+      "detail": "{\"granted\":true,\"action\":\"sensitive_type\",\"tabId\":\"64790249277602020\",\"ttlSeconds\":60,\"grantsActive\":1}"
+    },
+    {
+      "name": "browser_status.bridge.grants exposes active count only (no sensitive detail)",
+      "pass": true,
+      "detail": "{\"active\":1}"
+    },
+    {
+      "name": "granted sensitive typing -> value-length verified (P1-01C semantics), grant consumed",
+      "pass": true,
+      "detail": "{\n  \"tabId\": \"64790249277602020\",\n  \"ref\": \"r8\",\n  \"target\": {\n    \"role\": \"textbox\",\n    \"name\": \"\",\n    \"nameIndex\": 0,\n    \"shadowPath\": "
+    },
+    {
+      "name": "second sensitive typing without a new grant -> 403 (single use)",
+      "pass": true,
+      "detail": "sensitive_field -32013: typing into password/email/phone/autocomplete-sensitive fields is refused; requires a single-use"
+    },
+    {
+      "name": "tools/list exposes browser_batch schema (typed array, excluded tools documented)",
+      "pass": true,
+      "detail": "\"browser_batch\""
+    },
+    {
+      "name": "browser_batch: navigate+snapshot+content in one MCP call, all steps ok",
+      "pass": true,
+      "detail": "{\"ok\":true,\"completed\":3,\"planned\":3}"
+    },
+    {
+      "name": "browser_batch: snapshot step returned live example.com nodes",
+      "pass": true,
+      "detail": "\"https://example.com/\""
+    },
+    {
+      "name": "browser_batch: content step verified Example Domain text",
+      "pass": true,
+      "detail": "\"This domain is for use in documentation examples without nee\""
+    },
+    {
+      "name": "browser_batch: 5-step multi-page sequence, per-step ok flags",
+      "pass": true,
+      "detail": "{\"ok\":true,\"completed\":5,\"totalMs\":6493}"
+    },
+    {
+      "name": "browser_batch: wait step verified exercised mid-batch",
+      "pass": true,
+      "detail": "{\"satisfied\":true,\"waitedMs\":3042,\"reason\":\"no new activity for 3042ms; in-flight=2 (pre-existing)\"}"
+    },
+    {
+      "name": "browser_batch: browser_grant excluded (step error), stop-on-error prevents step 3",
+      "pass": true,
+      "detail": "{\"completed\":2,\"planned\":3,\"lastErr\":{\"category\":\"invalid_params\",\"message\":\"browser_grant cannot run inside a batch (excluded tool)\"}}"
+    },
+    {
+      "name": "browser_batch: nested batch rejected (no grant/permit smuggling path)",
+      "pass": true,
+      "detail": "{\"category\":\"invalid_params\",\"message\":\"browser_batch cannot run inside a batch (excluded tool)\"}"
+    },
+    {
+      "name": "browser_batch: blocked scheme per-step (blocked category), stop-on-error",
+      "pass": true,
+      "detail": "{\"category\":\"blocked\",\"message\":\"url scheme is not allowed; http, https, file, min and about only (the profile policy.json can further restrict this)\",\"code\":-32005}"
+    },
+    {
+      "name": "browser_batch: >20 steps rejected with structured invalid_params (exact count enforced per-command)",
+      "pass": true,
+      "detail": "{\n  \"ok\": false,\n  \"error\": {\n    \"category\": \"invalid_params\",\n    \"message\": \"actions must be a JSON array of 1-20 entries\"\n  },\n  \"steps\""
+    },
+    {
+      "name": "browser_batch: non-JSON actions rejected with structured invalid_params",
+      "pass": true,
+      "detail": "{\n  \"ok\": false,\n  \"error\": {\n    \"category\": \"invalid_params\",\n    \"message\": \"actions is not valid JSON\"\n  },\n  \"steps\": [],\n  \"completed\""
+    },
+    {
+      "name": "ad-blocker: exactly one effective onBeforeRequest registration in the bundle",
+      "pass": true,
+      "detail": "registrants=1"
+    },
+    {
+      "name": "ad-blocker: blocker handler observed http(s) requests during this run (net.observedTotal > 0)",
+      "pass": true,
+      "detail": "{\"inflight\":2,\"observedTotal\":31,\"settledTotal\":29,\"blockedTotal\":0,\"filteringBlockedCount\":0}"
+    },
+    {
+      "name": "ad-blocker: filter pipeline still blocks (persisted count >= 0 known tracker fixtures handled by probe:waits — here: counters consistent)",
+      "pass": true,
+      "detail": "{\"settled\":29,\"observed\":31}"
+    },
+    {
+      "name": "adapter stdout still carried only MCP frames after batch phase",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "adapter stdout carried only MCP frames (e2e phase)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "token never appeared in adapter stderr",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "transcript saved (docs/mcp-e2e-run.json, valid JSON, token removed, image data truncated)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Min tree shut down with the launcher",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

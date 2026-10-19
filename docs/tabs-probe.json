@@ -1,0 +1,87 @@
+{
+  "ranAt": "2026-10-19T03:06:24.159Z",
+  "passed": 16,
+  "total": 16,
+  "results": [
+    {
+      "name": "launcher reached ready with one startup tab",
+      "pass": true,
+      "detail": "[\"profile: C:\\\\Users\\\\AKS-PC\\\\AppData\\\\Local\\\\Temp\\\\min-agent-tabs-probe\\\\profile\",\"discovery-file: C:\\\\Users\\\\AKS-PC\\\\AppData\\\\Local\\\\Temp\\\\min-agent-tabs-probe\\\\profile-development\\\\agent-rpc.json\","
+    },
+    {
+      "name": "startup tab enumerated via browser_tabs",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "tab_open (plain) returns tabId with attached:true",
+      "pass": true,
+      "detail": "{\"tabId\":\"84159178022569620\",\"attached\":true,\"background\":false}"
+    },
+    {
+      "name": "snapshot works on the newly opened tab",
+      "pass": true,
+      "detail": "\"min://newtab/\""
+    },
+    {
+      "name": "tab_open (url) returns tabId attached",
+      "pass": true,
+      "detail": "{\"tabId\":\"38076487785873736\",\"attached\":true,\"background\":false}"
+    },
+    {
+      "name": "target URL tab is open and loaded",
+      "pass": true,
+      "detail": "file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-tabs-probe/target.html"
+    },
+    {
+      "name": "snapshot on the new URL tab finds content",
+      "pass": true,
+      "detail": "\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-tabs-probe/target.html\""
+    },
+    {
+      "name": "tab_open background -> attached:false",
+      "pass": true,
+      "detail": "{\"tabId\":\"21693017710381844\",\"attached\":false,\"background\":true}"
+    },
+    {
+      "name": "tab_select startup tab -> attached:true",
+      "pass": true,
+      "detail": "{\"tabId\":\"89465865358926060\",\"attached\":true}"
+    },
+    {
+      "name": "snapshot works on the previously failing startup tab after select",
+      "pass": true,
+      "detail": "\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-tabs-probe/other.html\""
+    },
+    {
+      "name": "each closed tab is absent from the inventory by its tabId",
+      "pass": true,
+      "detail": "4/4"
+    },
+    {
+      "name": "bridge responsive after each serial close",
+      "pass": true,
+      "detail": "4/4"
+    },
+    {
+      "name": "closing tabs reduces the visible tabs to exactly one",
+      "pass": true,
+      "detail": "[\"https://minbrowser.org/tour/\"]"
+    },
+    {
+      "name": "bridge healthy after serial closes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "closing the last tab -> structured last_tab error (refused, no hang)",
+      "pass": true,
+      "detail": "last_tab -32020: cannot close the last tab"
+    },
+    {
+      "name": "the last tab was NOT closed",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

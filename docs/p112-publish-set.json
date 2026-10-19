@@ -1,0 +1,407 @@
+{
+  "ts": "2026-10-19T03:39:17.792Z",
+  "count": 410,
+  "bytes": 15757327,
+  "largest": [
+    {
+      "rel": "ext\\filterLists\\easylist+easyprivacy-noelementhiding.txt",
+      "size": 2703896
+    },
+    {
+      "rel": "icons\\source\\min_logo.pxm",
+      "size": 1424041
+    },
+    {
+      "rel": "icons\\source\\min_logo_mac.pxm",
+      "size": 1358860
+    },
+    {
+      "rel": "icons\\source\\min_logo_windows_small.pxm",
+      "size": 1343604
+    },
+    {
+      "rel": "icons\\source\\min_logo_windows.pxm",
+      "size": 1186439
+    },
+    {
+      "rel": "docs\\p110-runs\\agent-live-mdn-1792338489900.png",
+      "size": 738114
+    },
+    {
+      "rel": "icons\\source\\windows-installer.pxm",
+      "size": 626500
+    },
+    {
+      "rel": "icons\\icon256.ico",
+      "size": 419110
+    },
+    {
+      "rel": "icons\\icon.icns",
+      "size": 412411
+    },
+    {
+      "rel": "package-lock.json",
+      "size": 383072
+    },
+    {
+      "rel": "ext\\franc\\franc-6.2.0.bundle.mjs",
+      "size": 363294
+    },
+    {
+      "rel": "docs\\p111-runs\\packaged-screenshot.png",
+      "size": 320790
+    },
+    {
+      "rel": "main\\agentRpc.js",
+      "size": 239618
+    },
+    {
+      "rel": "ext\\icons\\iconfont.woff2",
+      "size": 146268
+    },
+    {
+      "rel": "docs\\BASELINE.md",
+      "size": 115810
+    },
+    {
+      "rel": "ext\\publicSuffixes\\public_suffix_list.json",
+      "size": 108902
+    },
+    {
+      "rel": "docs\\mcp-e2e-run.json",
+      "size": 96672
+    },
+    {
+      "rel": "ext\\icons\\iconfont.css",
+      "size": 93879
+    },
+    {
+      "rel": "ext\\readability-master\\Readability.js",
+      "size": 90944
+    },
+    {
+      "rel": "docs\\p110-runs\\trace-api.jsonl",
+      "size": 82569
+    },
+    {
+      "rel": "docs\\p110-runs\\agent-s1-1792338285424.png",
+      "size": 57341
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v1-1792337992438.png",
+      "size": 57341
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v1-1792337995765.png",
+      "size": 57341
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v1-1792338139949.png",
+      "size": 57341
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v1-1792338143375.png",
+      "size": 57341
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v1-1792338214912.png",
+      "size": 57341
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v1-1792338218282.png",
+      "size": 57341
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v1-1792344804688.png",
+      "size": 57341
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v1-1792344808129.png",
+      "size": 57341
+    },
+    {
+      "rel": "docs\\p110-runs\\smoke-1792337867928.png",
+      "size": 57341
+    },
+    {
+      "rel": "docs\\p110-runs\\agent-s1v2-1792338300946.png",
+      "size": 53516
+    },
+    {
+      "rel": "docs\\p110-runs\\agent-s7b-1792338442622.png",
+      "size": 53516
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v2-1792337994093.png",
+      "size": 53516
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v2-1792338141648.png",
+      "size": 53516
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v2-1792338216565.png",
+      "size": 53516
+    },
+    {
+      "rel": "docs\\p110-runs\\api-s1-v2-1792344806395.png",
+      "size": 53516
+    },
+    {
+      "rel": "docs\\PHASE1-DESIGN.md",
+      "size": 46804
+    },
+    {
+      "rel": "docs\\extension-probe.json",
+      "size": 37383
+    },
+    {
+      "rel": "icons\\icon256.png",
+      "size": 37324
+    },
+    {
+      "rel": "scripts\\agent-rpc-test.js",
+      "size": 36844
+    },
+    {
+      "rel": "mcp\\min-agent-mcp.js",
+      "size": 32560
+    },
+    {
+      "rel": "scripts\\mcp-e2e.js",
+      "size": 30803
+    },
+    {
+      "rel": "docs\\p110-runs\\trace-p110-1792338344518.jsonl",
+      "size": 29275
+    },
+    {
+      "rel": "scripts\\agent-nps-probe.js",
+      "size": 26034
+    },
+    {
+      "rel": "main\\viewManager.js",
+      "size": 25814
+    },
+    {
+      "rel": "localization\\languages\\th.json",
+      "size": 25737
+    },
+    {
+      "rel": "localization\\languages\\el.json",
+      "size": 25092
+    },
+    {
+      "rel": "localization\\languages\\bn.json",
+      "size": 23615
+    },
+    {
+      "rel": "localization\\languages\\be.json",
+      "size": 22948
+    },
+    {
+      "rel": "localization\\languages\\uk.json",
+      "size": 22753
+    },
+    {
+      "rel": "ext\\abp-filter-parser-modified\\abp-filter-parser.js",
+      "size": 22684
+    },
+    {
+      "rel": "localization\\languages\\ru.json",
+      "size": 22562
+    },
+    {
+      "rel": "localization\\languages\\sr.json",
+      "size": 22516
+    },
+    {
+      "rel": "localization\\languages\\bg.json",
+      "size": 22507
+    },
+    {
+      "rel": "scripts\\agent-actions-probe.js",
+      "size": 20468
+    },
+    {
+      "rel": "pages\\settings\\settings.js",
+      "size": 20266
+    },
+    {
+      "rel": "icons\\windows-installer.gif",
+      "size": 19978
+    },
+    {
+      "rel": "scripts\\agent-inputs-probe.js",
+      "size": 19698
+    },
+    {
+      "rel": "localization\\languages\\ar.json",
+      "size": 19503
+    },
+    {
+      "rel": "localization\\languages\\ja.json",
+      "size": 19424
+    },
+    {
+      "rel": "localization\\languages\\vi.json",
+      "size": 18988
+    },
+    {
+      "rel": "localization\\languages\\fr.json",
+      "size": 18265
+    },
+    {
+      "rel": "localization\\languages\\es.json",
+      "size": 18262
+    },
+    {
+      "rel": "localization\\languages\\fa.json",
+      "size": 18175
+    },
+    {
+      "rel": "localization\\languages\\hr.json",
+      "size": 18094
+    },
+    {
+      "rel": "localization\\languages\\de.json",
+      "size": 17947
+    },
+    {
+      "rel": "localization\\languages\\cs.json",
+      "size": 17929
+    },
+    {
+      "rel": "scripts\\agent-mouse-probe.js",
+      "size": 17902
+    },
+    {
+      "rel": "localization\\languages\\nl.json",
+      "size": 17887
+    },
+    {
+      "rel": "localization\\languages\\ca.json",
+      "size": 17667
+    },
+    {
+      "rel": "localization\\languages\\ko.json",
+      "size": 17640
+    },
+    {
+      "rel": "pages\\pdfViewer\\viewer.js",
+      "size": 17529
+    },
+    {
+      "rel": "localization\\languages\\pt-PT.json",
+      "size": 17509
+    },
+    {
+      "rel": "localization\\languages\\tr.json",
+      "size": 17470
+    },
+    {
+      "rel": "localization\\languages\\lt.json",
+      "size": 17448
+    },
+    {
+      "rel": "localization\\languages\\fi.json",
+      "size": 17423
+    },
+    {
+      "rel": "localization\\languages\\pl.json",
+      "size": 17422
+    },
+    {
+      "rel": "localization\\languages\\uz.json",
+      "size": 17418
+    },
+    {
+      "rel": "localization\\languages\\pt-BR.json",
+      "size": 17208
+    },
+    {
+      "rel": "ext\\httpsUpgrade\\httpsTopSites.json",
+      "size": 17155
+    },
+    {
+      "rel": "localization\\languages\\it.json",
+      "size": 17136
+    },
+    {
+      "rel": "localization\\languages\\sv.json",
+      "size": 17108
+    },
+    {
+      "rel": "localization\\languages\\da.json",
+      "size": 17094
+    },
+    {
+      "rel": "localization\\languages\\id.json",
+      "size": 17068
+    },
+    {
+      "rel": "scripts\\agent-downloads-probe.js",
+      "size": 17065
+    },
+    {
+      "rel": "js\\webviews.js",
+      "size": 16995
+    },
+    {
+      "rel": "localization\\languages\\hu.json",
+      "size": 16925
+    },
+    {
+      "rel": "localization\\languages\\en-US.json",
+      "size": 16826
+    },
+    {
+      "rel": "main\\main.js",
+      "size": 16625
+    },
+    {
+      "rel": "localization\\languages\\zh-CN.json",
+      "size": 16605
+    },
+    {
+      "rel": "scripts\\agent-snapshot-probe.js",
+      "size": 16585
+    },
+    {
+      "rel": "docs\\p110-runs\\trace-p110-1792338459907.jsonl",
+      "size": 16394
+    },
+    {
+      "rel": "scripts\\p110-api-matrix.js",
+      "size": 16306
+    },
+    {
+      "rel": "localization\\languages\\zh-TW.json",
+      "size": 16198
+    },
+    {
+      "rel": "ext\\abp-filter-parser-modified\\LICENSE",
+      "size": 15922
+    },
+    {
+      "rel": "js\\preload\\passwordFill.js",
+      "size": 15612
+    },
+    {
+      "rel": "SKILL.md",
+      "size": 15512
+    },
+    {
+      "rel": "main\\menu.js",
+      "size": 15075
+    },
+    {
+      "rel": "scripts\\extension-probe.js",
+      "size": 14843
+    },
+    {
+      "rel": "scripts\\agent-pav-probe.js",
+      "size": 14805
+    }
+  ]
+}

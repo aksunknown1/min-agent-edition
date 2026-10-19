@@ -1,0 +1,71 @@
+{
+  "ts": "2026-10-19T03:11:47.118Z",
+  "results": [
+    {
+      "name": "host has an original-Min profile at %APPDATA%/Min (coexistence risk is real here)",
+      "pass": true
+    },
+    {
+      "name": "packaged app (no --user-data-dir) starts",
+      "pass": true
+    },
+    {
+      "name": "MCP adapter attaches to default-profile instance",
+      "pass": true
+    },
+    {
+      "name": "default userData is the DISTINCT \"Min Agent Edition\" root",
+      "pass": true
+    },
+    {
+      "name": "default userData is NOT the original %APPDATA%/Min",
+      "pass": true
+    },
+    {
+      "name": "default-profile instance navigable (example.com)",
+      "pass": true
+    },
+    {
+      "name": "original %APPDATA%/Min untouched by default launch (dir listing hash unchanged)",
+      "pass": true
+    },
+    {
+      "name": "instance A bridge up",
+      "pass": true
+    },
+    {
+      "name": "instance B bridge up",
+      "pass": true
+    },
+    {
+      "name": "distinct bridge ports/tokens (no cross-attach)",
+      "pass": true
+    },
+    {
+      "name": "instance A sees its own pages (example.com)",
+      "pass": true
+    },
+    {
+      "name": "instance B sees its own pages (example.org)",
+      "pass": true
+    },
+    {
+      "name": "instance A standalone navigation call does not disturb instance B",
+      "pass": true
+    },
+    {
+      "name": "confined fetch attempt handled by A without crashing A or B",
+      "pass": true
+    },
+    {
+      "name": "both processes coexist during test (no mutual termination)",
+      "pass": true
+    },
+    {
+      "name": "temporary test profiles removed",
+      "pass": true
+    }
+  ],
+  "pass": 16,
+  "total": 16
+}

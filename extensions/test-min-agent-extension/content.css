@@ -1,0 +1,11 @@
+/* P0-03 feasibility fixture content CSS.
+ * The custom property is the unambiguous attribution channel: nothing in the
+ * page or in content.js defines --min-agent-css-marker, so if a computed style
+ * read returns this value, it came from this extension stylesheet.
+ * The outline is the visible marker: subtle, and it does not reflow content.
+ */
+html {
+  --min-agent-css-marker: rgb(251, 191, 36);
+  outline: 2px solid var(--min-agent-css-marker) !important;
+  outline-offset: -2px;
+}

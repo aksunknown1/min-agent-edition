@@ -1,0 +1,186 @@
+{
+  "startedAt": "2026-10-18T17:33:21.916Z",
+  "scenarios": {
+    "S1": [
+      {
+        "variant": 1,
+        "calls": 5,
+        "screenshots": 1,
+        "blindClicks": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 1689
+      },
+      {
+        "variant": 2,
+        "calls": 5,
+        "screenshots": 1,
+        "blindClicks": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 1708
+      },
+      {
+        "variant": 1,
+        "calls": 5,
+        "screenshots": 1,
+        "blindClicks": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 1733
+      }
+    ],
+    "S2": [
+      {
+        "calls": 5,
+        "screenshots": 0,
+        "blindClicks": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 2155
+      },
+      {
+        "calls": 5,
+        "screenshots": 0,
+        "blindClicks": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 2155
+      },
+      {
+        "calls": 5,
+        "screenshots": 0,
+        "blindClicks": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 2142
+      }
+    ],
+    "S3": [
+      {
+        "calls": 4,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "eventDrivenWaits": 1,
+        "ok": true,
+        "ttl": 1558
+      },
+      {
+        "calls": 4,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "eventDrivenWaits": 1,
+        "ok": true,
+        "ttl": 1587
+      },
+      {
+        "calls": 4,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "eventDrivenWaits": 1,
+        "ok": true,
+        "ttl": 1556
+      }
+    ],
+    "S4": [
+      {
+        "calls": 6,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 5217
+      },
+      {
+        "calls": 6,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 5214
+      },
+      {
+        "calls": 6,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 6115
+      }
+    ],
+    "S5": [
+      {
+        "calls": 4,
+        "screenshots": 0,
+        "extraSnapshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 2157
+      },
+      {
+        "calls": 4,
+        "screenshots": 0,
+        "extraSnapshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 2145
+      },
+      {
+        "calls": 4,
+        "screenshots": 0,
+        "extraSnapshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 2151
+      }
+    ],
+    "S6": [
+      {
+        "calls": 8,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 1616
+      },
+      {
+        "calls": 8,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 1554
+      },
+      {
+        "calls": 8,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 1600
+      }
+    ],
+    "S7": [
+      {
+        "calls": 6,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 2144
+      },
+      {
+        "calls": 6,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 2118
+      },
+      {
+        "calls": 6,
+        "screenshots": 0,
+        "fixedSleeps": 0,
+        "ok": true,
+        "ttl": 2172
+      }
+    ]
+  },
+  "counts": {
+    "pass": 90,
+    "fail": 0
+  },
+  "finishedAt": "2026-10-18T17:34:13.495Z"
+}

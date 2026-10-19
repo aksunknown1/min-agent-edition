@@ -1,0 +1,172 @@
+{
+  "ranAt": "2026-10-18T17:22:00.165Z",
+  "passed": 33,
+  "total": 33,
+  "results": [
+    {
+      "name": "L1 bridge started (default policy)",
+      "pass": true,
+      "detail": "selfExit=null"
+    },
+    {
+      "name": "argv tabs present (act/after/other)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "act tab selected (single-window scope precondition)",
+      "pass": true,
+      "detail": "active=true"
+    },
+    {
+      "name": "snapshot has the action targets",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "text field located by label with initial value",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "click changing button -> dom-change",
+      "pass": true,
+      "detail": "\"dom-change\""
+    },
+    {
+      "name": "click link -> navigation",
+      "pass": true,
+      "detail": "\"navigation\""
+    },
+    {
+      "name": "L1b bridge started",
+      "pass": true,
+      "detail": "selfExit=null"
+    },
+    {
+      "name": "type into text field -> value match",
+      "pass": true,
+      "detail": "\"value\""
+    },
+    {
+      "name": "type into password refused (sensitive_field, 403)",
+      "pass": true,
+      "detail": "{\"code\":-32013,\"category\":\"sensitive_field\",\"message\":\"typing into password/email/phone/autocomplete-sensitive fields is refused; requires a single-use browser_grant(sensitive_type) for this tab (or allowSensitiveTyping:"
+    },
+    {
+      "name": "browser_grant issues for the other tab too",
+      "pass": true,
+      "detail": "{\"granted\":true,\"action\":\"risky_click\",\"tabId\":\"83279922413787300\",\"ttlSeconds\":120,\"grantsActive\":1}"
+    },
+    {
+      "name": "wrong-tab grant does NOT unlock this tab (403, unconsumed)",
+      "pass": true,
+      "detail": "{\"code\":-32014,\"category\":\"risky_action\",\"message\":\"accessible name matches a purchase/payment pattern; requires a single-use browser_grant(risky_click) for this tab (or allowRiskyClicks: true in profile policy.json)\",\"d"
+    },
+    {
+      "name": "sensitive_type grant issues (bound to the ref)",
+      "pass": true,
+      "detail": "{\"granted\":true,\"action\":\"sensitive_type\",\"tabId\":\"56333742814871710\",\"ttlSeconds\":120,\"grantsActive\":2}"
+    },
+    {
+      "name": "sensitive_type grant does NOT unlock a risky click (403)",
+      "pass": true,
+      "detail": "{\"code\":-32014,\"category\":\"risky_action\",\"message\":\"accessible name matches a purchase/payment pattern; requires a single-use browser_grant(risky_click) for this tab (or allowRiskyClicks: true in profile policy.json)\",\"d"
+    },
+    {
+      "name": "click disabled refused (disabled, 409)",
+      "pass": true,
+      "detail": "{\"code\":-32015,\"category\":\"disabled\",\"message\":\"target element is disabled; a click would be a no-op\",\"data\":null,\"agentRpcCommandError\":true}"
+    },
+    {
+      "name": "risky click refused by default (risky_action, 403)",
+      "pass": true,
+      "detail": "{\"code\":-32014,\"category\":\"risky_action\",\"message\":\"accessible name matches a purchase/payment pattern; requires a single-use browser_grant(risky_click) for this tab (or allowRiskyClicks: true in profile policy.json)\",\"d"
+    },
+    {
+      "name": "browser_grant risky_click ok (single-use, tab+ref bound)",
+      "pass": true,
+      "detail": "{\"granted\":true,\"action\":\"risky_click\",\"tabId\":\"56333742814871710\",\"ttlSeconds\":120,\"grantsActive\":3}"
+    },
+    {
+      "name": "browser_status.bridge.grants exposes active count only",
+      "pass": true,
+      "detail": "{\"active\":3}"
+    },
+    {
+      "name": "granted risky click -> dom-change (grant consumed)",
+      "pass": true,
+      "detail": "\"dom-change\""
+    },
+    {
+      "name": "second risky click without a new grant -> 403 (single use)",
+      "pass": true,
+      "detail": "{\"code\":-32014,\"category\":\"risky_action\",\"message\":\"accessible name matches a purchase/payment pattern; requires a single-use browser_grant(risky_click) for this tab (or allowRiskyClicks: true in profile policy.json)\",\"d"
+    },
+    {
+      "name": "browser_grant sensitive_type ok",
+      "pass": true,
+      "detail": "{\"granted\":true,\"action\":\"sensitive_type\",\"tabId\":\"56333742814871710\",\"ttlSeconds\":120,\"grantsActive\":3}"
+    },
+    {
+      "name": "granted sensitive typing -> value-length (length-only verify), consumed",
+      "pass": true,
+      "detail": "\"value-length\""
+    },
+    {
+      "name": "second sensitive typing without a new grant -> 403 (single use)",
+      "pass": true,
+      "detail": "{\"code\":-32013,\"category\":\"sensitive_field\",\"message\":\"typing into password/email/phone/autocomplete-sensitive fields is refused; requires a single-use browser_grant(sensitive_type) for this tab (or allowSensitiveTyping:"
+    },
+    {
+      "name": "expired-test grant issued",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "expired grant -> 403 (not accepted after TTL)",
+      "pass": true,
+      "detail": "{\"code\":-32014,\"category\":\"risky_action\",\"message\":\"accessible name matches a purchase/payment pattern; requires a single-use browser_grant(risky_click) for this tab (or allowRiskyClicks: true in profile policy.json)\",\"d"
+    },
+    {
+      "name": "mutation click -> dom-change",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "stale-after-mutation ref -> AMBIGUOUS (409, no guess)",
+      "pass": true,
+      "detail": "{\"code\":-32011,\"category\":\"ambiguous\",\"message\":\"role and accessible name match 2 elements; take a fresh snapshot and use the unambiguous ref\",\"data\":null,\"agentRpcCommandError\":true}"
+    },
+    {
+      "name": "no page content in [agent-rpc] stdout",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L2 bridge started (profile policy)",
+      "pass": true,
+      "detail": "selfExit=null"
+    },
+    {
+      "name": "risky click allowed via policy.json (no grant) -> dom-change",
+      "pass": true,
+      "detail": "\"dom-change\""
+    },
+    {
+      "name": "sensitive typing allowed via policy.json -> value-length (length-only verify)",
+      "pass": true,
+      "detail": "\"value-length\""
+    },
+    {
+      "name": "policy allowedSchemes restricts file:// -> blocked (403)",
+      "pass": true,
+      "detail": "{\"code\":-32005,\"category\":\"blocked\",\"message\":\"url scheme is not allowed; http, https, file, min and about only (the profile policy.json can further restrict this)\",\"data\":null,\"agentRpcCommandError\":true}"
+    },
+    {
+      "name": "the removed launch flag was never used",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "ranAt": "2026-10-18T10:44:06.079Z",
+  "live": [
+    {
+      "name": "EX1 live screenshot: real PNG bytes + metadata",
+      "ok": true,
+      "detail": "{\"id\":\"ss1\",\"w\":3841,\"h\":2010,\"vp\":{\"width\":2032,\"height\":1063,\"dpr\":1.8900001049041748,\"scrollX\":0,\"scrollY\":0},\"f\":1.890255905511811}"
+    },
+    {
+      "name": "EX1 live click-flow navigation verified (link target reached)",
+      "ok": true,
+      "detail": "\"https://www.iana.org/domains/reserved\""
+    },
+    {
+      "name": "HN live navigation",
+      "ok": true,
+      "detail": "\"https://news.ycombinator.com/\""
+    },
+    {
+      "name": "HN live screenshot: real PNG + metadata",
+      "ok": true,
+      "detail": "{\"id\":\"ss2\",\"w\":3841,\"sy\":0}"
+    },
+    {
+      "name": "HN hover did not navigate (no side effects)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "HN live stale screenshot coordinates rejected (ref_stale)",
+      "ok": true,
+      "detail": "{\"code\":-32016,\"category\":\"ref_stale\",\"message\":\"screenshot coordinates are stale: scrollY changed\",\"data\":null,\"agentRpcCommandError\":true}"
+    },
+    {
+      "name": "HN fresh screenshot coordinates accepted (hover dispatched)",
+      "ok": true,
+      "detail": "{\"tabId\":\"45319353863364056\",\"action\":\"hover\",\"dispatched\":true,\"x\":400,\"y\":200,\"screenshotId\":\"ss3\",\"screenshotCheck\":\"verified\",\"delivery\":\"unverified\",\"deliv"
+    }
+  ]
+}
