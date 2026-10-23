@@ -166,9 +166,15 @@ async function main () {
       const snapC = await stack.callTool('browser_snapshot', { tabId }, { label: 'S6-snap-challenge' }); run.calls++
       const solveRef = ((T(snapC).nodes || []).find(n => n.role === 'button' && /solve challenge/i.test(n.name || '')) || {}).ref
       check('S6.' + i + ' challenge control has a snapshot ref', !!solveRef)
+      /* P1-13 CAPTCHA policy correction: challenge-control clicks are NOT
+       * refused by a blanket guard; detection alone is not clearance. */
       if (solveRef) {
-        const refused = await stack.callTool('browser_click', { tabId, ref: solveRef }, { label: 'S6-challenge-click' }); run.calls++
-        check('S6.' + i + ' click on challenge refused (captcha_handoff_required)', refused.isError && /captcha_handoff_required/.test(refused.summary), String(refused.summary).slice(0, 140))
+        const allowed = await stack.callTool('browser_click', { tabId, ref: solveRef }, { label: 'S6-challenge-click' }); run.calls++
+        check('S6.' + i + ' explicit click on challenge control not rejected by global guard',
+          !allowed.isError && !/captcha_handoff_required/.test(allowed.summary), String(allowed.summary).slice(0, 140))
+        const stC = await stack.callTool('browser_state', { tabId }, { label: 'S6-state-after-challenge-click' }); run.calls++
+        check('S6.' + i + ' detection alone is not clearance (challenge click changes nothing by itself)',
+          /"detected":true/.test(stC.summary) === true, stC.summary.slice(0, 120))
       }
       // simulate the user completing the challenge (fixture button = user action proxy)
       const snap = await stack.callTool('browser_snapshot', { tabId }, { label: 'S6-snap' }); run.calls++

@@ -30,6 +30,9 @@ const PAGE = [
   '<h1 id="h1">Page Heading</h1>',
   '<p id="p1">Original paragraph one</p>',
   '<p id="p2">Original paragraph two</p>',
+  /* R1 regression: a paragraph LONGER than the 1200-char transform text cap.
+   * Restoring a replace_text on this element must be faithful, not truncated. */
+  '<p id="plong">' + ('LONGTEXT-' + 'x'.repeat(3000)) + '</p>',
   '<div id="clutter">Clutter block for highlight</div>',
   '<div id="shadowhost"></div>',
   '<button id="btn" onclick="document.getElementById(\'p1\').textContent=\'JS-MUTATED-TEXT\'">JS Button</button>',
@@ -189,6 +192,21 @@ async function nav (url) {
     { op: 'replace_text', selector: '#p1', text: 'VALID-AFTER-ALL' }
   ])
   const pr = pv.result
+    /* R1: restoring a replace_text on a paragraph LONGER than the transform
+     * text cap must be faithful. Regression for the 1200-char truncation of
+     * the saved original text (previous behaviour restored only 1200 chars). */
+    const LONG_LEN = ('LONGTEXT-' + 'x'.repeat(3000)).length
+    const rLong = await T([{ op: 'replace_text', selector: '#plong', text: 'SHORT-REPLACEMENT' }])
+    const longApplied = !!(rLong.result && rLong.result.ok === true)
+    await T([{ op: 'restore_target', selector: '#plong' }])
+    await sleep(400)
+    /* Read the restored element through browser_content (already used above) so
+     * this check does not depend on the eval result shape. */
+    const longNow = await rpc('browser_content', { tabId, maxChars: 50000 })
+    const longBody = String((longNow.result && (longNow.result.text || longNow.result.content)) || '')
+    const longLen = longBody.indexOf('LONGTEXT-') !== -1 ? longBody.length : 0
+    check('17. long-text restore is FAITHFUL (no 1200-char truncation)', longApplied && longLen >= LONG_LEN, JSON.stringify({ applied: longApplied, expected: LONG_LEN, actual: longLen }))
+
   check('16. per-target outcomes on mixed batch', !!(pr && pr.ok === false && Array.isArray(pr.results) && pr.results.length === 2 && pr.results[1].ok === true) && await vText('VALID-AFTER-ALL'), JSON.stringify(pr && { ok: pr.ok, steps: pr.results && pr.results.map(s => s.ok) }).slice(0, 200))
 })().then(async () => {
   const passed = results.filter(r => r.pass).length

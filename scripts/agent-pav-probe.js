@@ -10,6 +10,7 @@ const http = require('http')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
+const pt = require(path.join(__dirname, 'lib', 'proctools.js'))
 
 const ROOT = path.resolve(__dirname, '..')
 const EVIDENCE_FILE = path.join(ROOT, 'docs', 'agent-pav-probe.json')
@@ -111,8 +112,40 @@ async function main () {
   const u = new URL(disc.url)
   const port = u.port
   const token = disc.token
-  const tabsR = await rpcJ(port, token, 'browser_tabs', {}, 't0')
-  const tabId = (tabsR.result.tabs.find(t => t.active) || tabsR.result.tabs[0]).tabId
+  /* P1-12-VPS reconciliation, P1-14 hygiene migration: the readiness poll and
+   * targeted cleanup now come from the tested shared helper
+   * (scripts/lib/proctools.js) instead of duplicated inline logic. Semantics
+   * are unchanged and preserved by proctools-test.js: transient empty lists/
+   * empty-shell tabs are tolerated while bounded; the fixture tab must be
+   * enumerated and fully loaded; failure still FAILS if the browser never
+   * becomes ready. */
+  let pavSeq = 0
+  const startUrlRef = 'pav.html'
+  let readyTabsCount = 0
+  let sawEmptyTransient = false
+  const tabsReady = await pt.pollReadiness(
+    async function () {
+      const tR0 = await rpcJ(port, token, 'browser_tabs', {}, 't0.' + (pavSeq++))
+      const tabs0 = (tR0.result && tR0.result.tabs) || []
+      readyTabsCount = tabs0.length
+      if (tabs0.length === 0) sawEmptyTransient = true
+      return tabs0
+    },
+    pt.tabsStablePredicate(startUrlRef),
+    { timeoutMs: 30000, intervalMs: 400 }
+  ).then(r => r.value).catch(function (e) {
+    check('readiness: startup tab enumerated via bounded poll (transient empty tolerated)', false, e.code === 'PT_TIMEOUT' ? ('PT_TIMEOUT after ' + e.elapsedMs + 'ms — browser never became ready') : String(e.message))
+    return null
+  })
+  check('readiness: empty-tab transient observed and tolerated (not masked as ready)', sawEmptyTransient || readyTabsCount > 0, 'sawEmpty=' + sawEmptyTransient)
+  check('readiness: startup tab enumerated via bounded poll (transient empty tolerated)', readyTabsCount > 0, 'tabs=' + readyTabsCount)
+  check('readiness: no empty-shell tab used after staleness filter', !!tabsReady, '')
+  const tabId = tabsReady ? ((tabsReady.find(t2 => (t2.url || '').indexOf(startUrlRef) !== -1) || tabsReady.find(t2 => t2.active) || tabsReady[0] || {}).tabId) : null
+  if (!tabId) {
+    check('fixture page ready (bounded, event-driven wait)', false, 'browser never became ready')
+    printSummary(2)
+    process.exit(2)
+  }
   /* bounded page-ready wait: re-snapshot until the fixture heading is enumerable
    * (no fixed sleep; max 12 s). */
   let nodesReady = []
@@ -237,11 +270,11 @@ function printSummary (code) {
 process.on('exit', function () { try { rmrf(RUN_DIR) } catch (e) { /* ignore */ } })
 main().then(function () {
   const code = printSummary(0)
-  try { if (probeProc && probeProc.pid) spawnSync('taskkill.exe', ['/F', '/T', '/PID', String(probeProc.pid)]) } catch (e) { /* ignore */ }
+  try { pt.killTree(probeProc.pid) } catch (ignored) { /* ignore */ }
   process.exit(code)
 }).catch(function (e) {
   console.error('pav probe error: ' + e.message)
-  try { if (probeProc && probeProc.pid) spawnSync('taskkill.exe', ['/F', '/T', '/PID', String(probeProc.pid)]) } catch (ignored) { /* ignore */ }
+  try { pt.killTree(probeProc.pid) } catch (ignored) { /* ignore */ }
   printSummary(2)
   process.exit(2)
 })

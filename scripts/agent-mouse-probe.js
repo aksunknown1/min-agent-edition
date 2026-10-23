@@ -2,7 +2,7 @@
  * a loopback fixture with a real Min instance. Page records its own mouse
  * events in window.__ev for independent verification (page text state kept as
  * simple visible strings for browser_verify checks). */
-const { spawn, spawnSync, execSync } = require('child_process')
+const { spawn, spawnSync } = require('child_process')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
@@ -13,6 +13,7 @@ const RUN_DIR = path.join(os.tmpdir(), 'min-agent-mouse-probe')
 const PROFILE = path.join(RUN_DIR, 'profile')
 const DISC = PROFILE + '-development' + path.sep + 'agent-rpc.json'
 const bin = require('electron')
+const pt = require(path.join(__dirname, 'lib', 'proctools.js'))
 
 const PAGE = [
   '<!doctype html><html><head><title>Mouse Fixture</title><style>',
@@ -82,16 +83,13 @@ function check (name, ok, detail) {
 }
 const R = f => (f && f.result) || null
 
+let procHandle = null
+const killTree = function () { try { if (procHandle) pt.killTree(procHandle) } catch (e) { /* ignore */ } }
 ;(async () => {
   fs.mkdirSync(RUN_DIR, { recursive: true })
-  /* drain stray electrons */
-  for (let k = 0; k < 10; k++) {
-    let n = '0'
-    try { n = execSync('tasklist /FI "IMAGENAME eq electron.exe" | find /I /C "electron.exe"').toString().trim()[0] } catch (e) { break }
-    if (n === '0') break
-    try { execSync('taskkill /F /IM electron.exe /T') } catch (e2) { }
-    await sleep(1000)
-  }
+  /* P1-12-VPS reconciliation: former process-name-wide drain loop removed.
+   * This probe uses a dedicated profile and targeted /PID cleanup; it must
+   * never terminate unrelated Electron applications. */
   const srv = http.createServer(function (req, res) {
     res.writeHead(200, { 'content-type': 'text/html' })
     res.end(PAGE)
@@ -101,12 +99,24 @@ const R = f => (f && f.result) || null
   const pageUrl = 'http://127.0.0.1:' + port + '/'
   const proc = spawn(bin, ['.', '--development-mode', '--user-data-dir=' + PROFILE, '--agent-rpc', '--', pageUrl],
     { cwd: ROOT, windowsHide: true, stdio: 'ignore', detached: true })
-  proc.unref()
+  procHandle = proc.pid /* tracked for targeted /PID cleanup on every exit path */
   for (let i = 0; i < 250; i++) { try { JSON.parse(fs.readFileSync(DISC, 'utf8')); break } catch (e) { await sleep(400) } }
-  await sleep(2800)
-  const tabs = (((await rpc('browser_tabs', {})).result) || {}).tabs || []
-  /* target the FIXTURE tab explicitly (spawn-URL tab), never Min's restored welcome tab */
-  const fixtureTab = tabs.find(t => t.url.indexOf(pageUrl) !== -1) || tabs.find(t => t.active)
+  /* P1-12-VPS reconciliation: bounded readiness poll (event-driven on browser_tabs
+   * state) instead of a fixed 2800ms sleep. Tolerates the observed window where the
+   * bridge/discovery exists but browser_tabs transiently returns an empty list or
+   * empty-shell tabs, and requires the FIXTURE tab to be enumerated and fully
+   * loaded before the probe proceeds. Still FAILS if the browser never becomes ready. */
+  let tabs = []
+  let fixtureTab = null
+  const probeUrlMatch = tt => (tt.url || '').indexOf(pageUrl) !== -1
+  for (let i = 0; i < 75; i++) {
+    tabs = ((((await rpc('browser_tabs', {})).result) || {}).tabs) || []
+    fixtureTab = tabs.find(probeUrlMatch) || null
+    if (tabs.length > 0 && fixtureTab && fixtureTab.loading === false) { await sleep(200); break }
+    await sleep(400)
+  }
+  check('bridge readiness: browser_tabs eventually non-empty (delayed readiness tolerated)', tabs.length > 0, 'tabs=' + tabs.length)
+  check('readiness: startup fixture tab enumerated and loaded (no transient empty-shell)', !!fixtureTab && fixtureTab.loading === false, JSON.stringify(tabs.map(t => ({ u: (t.url || '').slice(0, 50), l: t.loading }))))
   const tabId = (fixtureTab || tabs[0] || {}).tabId
   console.log('[probe targets tab]', tabId, (fixtureTab || {}).url, '| all tabs:', JSON.stringify(tabs.map(t => t.url.slice(0, 40))))
   check('bridge + fixture ready', !!tabId, '')
@@ -236,12 +246,11 @@ const R = f => (f && f.result) || null
   await rpc('browser_tab_close', { tabId: t2id })
 })().then(() => {
   console.log('\n' + passed + '/' + total + ' checks passed')
-  try { spawnSync('taskkill.exe', ['/F', '/IM', 'electron.exe', '/T']) } catch (e) { /* ignore */ }
-  try { spawnSync('taskkill.exe', ['/F', '/IM', 'electron.exe', '/T']) } catch (e) { /* ignore */ }
+  killTree()
   process.exit(passed === total ? 0 : 2)
 }).catch(e => {
   console.log('fatal ' + e.message)
   if (e.stack) console.log(String(e.stack).split(String.fromCharCode(10)).slice(0, 5).join(' | '))
-  try { spawnSync('taskkill.exe', ['/F', '/IM', 'electron.exe', '/T']) } catch (x) { /* ignore */ }
+  killTree()
   process.exit(2)
 })

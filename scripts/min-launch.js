@@ -4,7 +4,7 @@
  * bridge on a dedicated profile.
  *
  * Usage:
- *   node scripts/min-launch.js [--profile=<dir>] [-- <startUrl> [url2 …]]
+ *   node scripts/min-launch.js [--profile=<dir>] [--ignore-certificate-errors] [-- <startUrl> [url2 …]]
  *
  * Default profile dir: %USERPROFILE%\.min-agent-profile
  * Overridable per launch with --profile=<dir>.
@@ -17,6 +17,10 @@
  * "ready") and nothing else - the token never appears there. Diagnostic
  * messages go to stderr. The Electron child's output is piped and FILTERED —
  * only lifecycle lines are forwarded to launcher stderr; nothing from Min's pages can leak.
+ *
+ * --ignore-certificate-errors is a TEST-ONLY escape hatch for the loopback
+ * stand-in HTTPS server used by the real-web acceptance harness. It is opt-in
+ * per launch, never a default, and must never be used against real sites.
  *
  * Ctrl+C kills the Electron process tree that was started here.
  */
@@ -33,6 +37,7 @@ const argv = process.argv.slice(2)
 let profileDir = path.join(os.homedir(), '.min-agent-profile')
 const startUrls = []
 let afterDash = false
+let ignoreCert = false
 
 for (const a of argv) {
   if (a === '--') { afterDash = true; continue }
@@ -42,13 +47,14 @@ for (const a of argv) {
     profileDir = path.resolve(v)
     continue
   }
+  if (!afterDash && a === '--ignore-certificate-errors') { ignoreCert = true; continue }
   if (!afterDash && a === '--help' || a === '-h') {
-    console.error('usage: node scripts/min-launch.js [--profile=<dir>] [-- <startUrl> …]')
+    console.error('usage: node scripts/min-launch.js [--profile=<dir>] [--ignore-certificate-errors] [-- <startUrl> …]')
     process.exit(0)
   }
   if (!afterDash && a.charAt(0) === '-') {
     console.error('min-launch: unknown option "' + a + '"')
-    console.error('usage: node scripts/min-launch.js [--profile=<dir>] [-- <startUrl> …]')
+    console.error('usage: node scripts/min-launch.js [--profile=<dir>] [--ignore-certificate-errors] [-- <startUrl> …]')
     process.exit(2)
   }
   if (afterDash) startUrls.push(a)
@@ -62,6 +68,7 @@ fs.mkdirSync(profileDir, { recursive: true })
 
 const bin = require('electron')
 const electronArgs = ['.', '--development-mode', '--agent-rpc', '--user-data-dir=' + profileDir]
+if (ignoreCert) electronArgs.push('--ignore-certificate-errors')
 /* P0-08: start URLs always after `--`, any count. */
 if (startUrls.length > 0) electronArgs.push('--')
 

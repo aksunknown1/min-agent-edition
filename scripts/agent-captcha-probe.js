@@ -11,8 +11,9 @@
  *
  * Checks:
  *   1. browser_state detects each fixture's challenge kind + confidence/basis.
- *   2. click/type on a field positioned over/near the widget -> structured
- *      captcha_handoff_required (HTTP 409), never an attempt to solve.
+ *   2. click/type on challenge-overlapping controls now use the normal verified
+ *      interaction path (P1-13 CAPTCHA policy correction: a detector match never
+ *      disables page interaction and no blanket captcha_handoff_required refusal).
  *   3. unrelated safe inspection (snapshot/content/status) remains available
  *      on the captcha page.
  *   4. navigating away (widget removed) -> browser_state reports cleared.
@@ -57,7 +58,9 @@ const captchaPage = (cls, kind) =>
   '<form id="f">' +
   '<label for="email">' + 'Email Field Near Challenge' + '</label>' +
   '<input id="email" type="text" value="">' +
-  '<div class="' + cls + '" data-sitekey="00000000-0000-0000-0000-000000000000" style="width:300px;height:80px"></div>' +
+  '<div class="' + cls + '" data-sitekey="00000000-0000-0000-0000-000000000000" style="width:300px;height:80px">' +
+  '<button id="challenge-btn" type="button">Open challenge</button>' +
+  '</div>' +
   '<button id="go" type="button">' + 'Submit Now' + '</button>' +
   '</form>' +
   '<div id="marker">pre</div>' +
@@ -169,23 +172,44 @@ async function main () {
   check('browser_state: generic sitekey -> unknown kind / low confidence (honest)',
     stG.captcha && stG.captcha.detected === true && stG.captcha.kind === 'unknown' && stG.captcha.confidence === 'low', JSON.stringify(stG.captcha))
 
-  /* 2. action targeting the challenge-adjacent field -> structured 409 handoff */
+  /* 2. CAPTCHA-policy correction (P1-13): challenge-overlapping controls use the
+   *    normal verified interaction path; ordinary controls stay usable while the
+   *    widget is present. No blanket captcha_handoff_required refusal. */
   await rpcJ(port, token, 'browser_navigate', { tabId, url: fileUrl('hcaptcha'), stabilityWindowMs: 200 }, 'n5')
   await sleep(600)
   const snapH = await rpcJ(port, token, 'browser_snapshot', { tabId }, 'snapH')
-  const emailRef = (((snapH.result || {}).nodes) || []).find(n => n.role === 'textbox')
+  const nodesH = ((snapH.result || {}).nodes) || []
+  const emailRef = nodesH.find(n => n.role === 'textbox')
+  const challengeBtn = nodesH.find(n => n.role === 'button' && /open challenge/i.test(n.name || ''))
   check('captcha page: safe inspection still available (snapshot works)', !!emailRef, 'textbox found=' + !!emailRef)
   const tH = await rpcJ(port, token, 'browser_type', { tabId, ref: emailRef.ref, text: 'user@example.com' }, 'tH')
-  const tHErr = tH.error || {}
-  check('type at/over challenge widget -> 409 captcha_handoff_required', tH.status === 409 && tHErr.category === 'captcha_handoff_required',
-    JSON.stringify({ status: tH.status, cat: tHErr.category, handled: tHErr.code }))
+  check('type into field overlapping challenge widget -> normal verified path (no blanket 409)',
+    tH.status === 200 && tH.result && tH.result.verification === 'value',
+    JSON.stringify({ status: tH.status, cat: tH.error && tH.error.category, ver: tH.result && tH.result.verification }))
+  check('visible challenge control has a snapshot ref', !!challengeBtn, 'ref=' + (challengeBtn && challengeBtn.ref))
+  const cHbtn = await rpcJ(port, token, 'browser_click', { tabId, ref: challengeBtn && challengeBtn.ref }, 'cHbtn')
+  check('explicit click on visible challenge control is NOT rejected by a global guard',
+    cHbtn.status === 200 && cHbtn.result && cHbtn.result.dispatched === true && !(cHbtn.error && cHbtn.error.category === 'captcha_handoff_required'),
+    JSON.stringify({ status: cHbtn.status, cat: cHbtn.error && cHbtn.error.category }))
+  /* unrelated ordinary control click while challenge present -> content-verified effect */
+  const goBtn = nodesH.find(n => n.role === 'button' && /submit now/i.test(n.name || ''))
+  const cGo = await rpcJ(port, token, 'browser_click', { tabId, ref: goBtn && goBtn.ref }, 'cGo')
+  check('unrelated ordinary button still clickable while captcha present',
+    cGo.status === 200 && cGo.result && cGo.result.dispatched === true, JSON.stringify({ status: cGo.status }))
+  const contAfter = await rpcJ(port, token, 'browser_content', { tabId, maxChars: 1000 }, 'cAfter')
+  check('ordinary click effect independently verified from page content',
+    contAfter.status === 200 && /clicked/i.test((contAfter.result || {}).text || ''))
+  const stDuring = await rpcJ(port, token, 'browser_status', {}, 'stD')
+  check('bridge status/managers still available during captcha', stDuring.status === 200, 'status=' + stDuring.status)
+  const stSteady = await rpcJ(port, token, 'browser_state', { tabId }, 'stS2')
+  check('clicking a challenge control does NOT count as clearance (detection persists)',
+    stSteady.status === 200 && stSteady.result && stSteady.result.captcha && stSteady.result.captcha.detected === true,
+    JSON.stringify(stSteady.result && stSteady.result.captcha))
 
   /* 3. unrelated SAFE page inspection remains available while captcha present */
   const contH = await rpcJ(port, token, 'browser_content', { tabId, maxChars: 1000 }, 'cH')
   check('content still readable on the captcha page (no blanket block)',
     contH.status === 200 && /Challenge Heading/i.test((contH.result || {}).text || ''), JSON.stringify(contH.error && contH.error.category))
-  const stDuring = await rpcJ(port, token, 'browser_status', {}, 'stD')
-  check('bridge status/managers still available during captcha', stDuring.status === 200, 'status=' + stDuring.status)
 
   /* 4. navigation away -> cleared */
   await rpcJ(port, token, 'browser_navigate', { tabId, url: fileUrl('plain'), stabilityWindowMs: 200 }, 'n6')

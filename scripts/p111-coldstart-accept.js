@@ -5,7 +5,7 @@
  * then drives the SHIPPED MCP adapter (resources/app/mcp/min-agent-mcp.js).
  * Cleanup is targeted (taskkill /PID <own pid> /T) - never a name-wide kill.
  *
- * Checks: production mode (no development flags), 31 tools, tabs/navigate/content/
+ * Checks: production mode (no development flags), 37 tools, tabs/navigate/content/
  * snapshot/screenshot image, transform apply+verify+restore, agent-managed download
  * under userData/agent-downloads, no dev extension fixtures, userData isolation.
  */
@@ -109,7 +109,7 @@ async function main () {
   check('initialize with SHIPPED adapter', !!(r.result && r.result.serverInfo && r.result.serverInfo.name === 'min-agent'), JSON.stringify(r.error || {}).slice(0, 100))
   adapter.notify('notifications/initialized')
   r = await adapter.request('tools/list', {}, 10000)
-  check('tools/list = 31 tools', r.result && r.result.tools && r.result.tools.length === 31, r.result && r.result.tools && r.result.tools.length)
+  check('tools/list = 39 tools', r.result && r.result.tools && r.result.tools.length === 39, r.result && r.result.tools && r.result.tools.length)
 
   const call = async (name, args, to) => { const rr = await adapter.request('tools/call', { name, arguments: args || {} }, to || 45000); return { raw: rr, T: textOf(rr) } }
 

@@ -43,7 +43,19 @@ function makeStubs () {
     isLoading: () => false,
     isCrashed: () => false,
     isDestroyed: () => false,
-    isFocused: () => id === 101
+    isFocused: () => id === 101,
+    /* P1-15/D1-F2: the stale-ref recovery path re-snapshots through this hook.
+     * Default resolves to a minimal snapshot payload; tests override
+     * `__scriptFn` to distinguish locate-mode from snapshot-mode replies. */
+    executeJavaScript: function (src) {
+      if (typeof this.__scriptFn === 'function') return Promise.resolve(this.__scriptFn(src))
+      return Promise.resolve({ nodes: [], url: url, title: title, truncated: false })
+    },
+    sendInputEvent: function () {},
+    insertText: function () {},
+    on: function () {},
+    once: function () {},
+    removeListener: function () {}
   })
 
   const winA = {
@@ -111,7 +123,7 @@ function loadTarget () {
   const code = fs.readFileSync(TARGET, 'utf8')
   /* Top-level const/let in a vm script are script-scoped, so hand the names we
    * need back out explicitly. Appended here only - the product file is untouched. */
-  const exported = code + '\n;globalThis.__x = { agentRpcValidate, agentRpcState, agentRpcStartServer, agentRpcStopServer, agentRpcHostAllowed, agentRpcBrowserHeadersAllowed, agentRpcBearer, agentRpcConstantTimeEqual, agentRpcSafeUrl, agentRpcSafeText, AGENT_RPC_MAX_BODY_BYTES, AGENT_RPC_METHODS, AGENT_RPC_SNAPSHOT_BYTES, AGENT_RPC_SNAPSHOT_TIMEOUT, agentRpcValidateUrl, agentRpcScreenshotSizeOk, agentRpcPrefixMatchesUrl };\n'
+  const exported = code + '\n;globalThis.__x = { agentRpcValidate, agentRpcState, agentRpcStartServer, agentRpcStopServer, agentRpcHostAllowed, agentRpcBrowserHeadersAllowed, agentRpcBearer, agentRpcConstantTimeEqual, agentRpcSafeUrl, agentRpcSafeText, AGENT_RPC_MAX_BODY_BYTES, AGENT_RPC_METHODS, AGENT_RPC_SNAPSHOT_BYTES, AGENT_RPC_SNAPSHOT_TIMEOUT, agentRpcValidateUrl, agentRpcScreenshotSizeOk, agentRpcPrefixMatchesUrl, agentRpcCommandBatch, agentRpcDispatch, agentRpcReResolveRef, agentRpcGrantsActive, agentRpcConsumeGrant, AGENT_RPC_COMMAND_HTTP_STATUS, AGENT_RPC_DISPATCH_TABLE: (typeof AGENT_RPC_DISPATCH_TABLE === "undefined" ? null : AGENT_RPC_DISPATCH_TABLE), AGENT_RPC_HELPER_CATALOGUE: (typeof AGENT_RPC_HELPER_CATALOGUE === "undefined" ? null : AGENT_RPC_HELPER_CATALOGUE), AGENT_RPC_HELPER_ALLOWED_TOOLS: (typeof AGENT_RPC_HELPER_ALLOWED_TOOLS === "undefined" ? null : AGENT_RPC_HELPER_ALLOWED_TOOLS), agentRpcJsonError, agentRpcCommandError, AGENT_RPC_ERRORS, agentRpcReadPolicy, agentRpcEffectiveProtocols, agentRpcCommandGrant, agentRpcPruneGrants, AGENT_RPC_RISKY_NAME, AGENT_RPC_ALLOWED_PROTOCOLS, agentRpcPolicyAllows: (typeof agentRpcPolicyAllows === "undefined" ? undefined : agentRpcPolicyAllows), agentRpcPolicyWouldAllow: (typeof agentRpcPolicyWouldAllow === "undefined" ? undefined : agentRpcPolicyWouldAllow), AGENT_RPC_ERRORS: (typeof AGENT_RPC_ERRORS === "undefined" ? null : AGENT_RPC_ERRORS), agentRpcCommandHelper, agentRpcCommandHelperList, AGENT_RPC_PARAM_SCHEMAS, AGENT_RPC_BATCH_EXCLUDED, AGENT_RPC_BATCH_MAX_STEPS, AGENT_RPC_GRANTS, AGENT_SNAPSHOT_REFS };\n'
 
   const sandbox = Object.assign({}, stubs, {
     require: m => require(m),
@@ -185,12 +197,12 @@ function layer1 () {
   check('missing jsonrpc rejected', V(baseMeta(), JSON.stringify({ method: 'browser_status' })).error.category === 'invalid_request')
   check('wrong jsonrpc version rejected', V(baseMeta(), JSON.stringify({ jsonrpc: '1.0', method: 'browser_status' })).error.category === 'invalid_request')
 
-  const unknown = V(baseMeta(), JSON.stringify({ jsonrpc: '2.0', method: 'browser_eval' }))
+  const unknown = V(baseMeta(), JSON.stringify({ jsonrpc: '2.0', method: 'browser_evalx' }))
   check('unknown method -> method_not_found', unknown.httpStatus === 404 && unknown.error.code === -32601)
   const unknown2 = V(baseMeta(), JSON.stringify({ jsonrpc: '2.0', method: 'executeJavaScript' }))
   /* camelCase never reaches the method set: the identifier pattern rejects it first. */
   check('injected method name rejected before dispatch', unknown2.httpStatus === 400 && unknown2.error.code === -32600)
-  check('method set is closed (31 methods)', JSON.stringify(api.AGENT_RPC_METHODS.slice().sort()) === JSON.stringify(["browser_batch","browser_check","browser_click","browser_content","browser_download_cancel","browser_download_pause","browser_download_resume","browser_download_start","browser_download_wait","browser_downloads","browser_grant","browser_hover","browser_mouse","browser_navigate","browser_predict","browser_press","browser_screenshot","browser_scroll","browser_select","browser_snapshot","browser_state","browser_status","browser_tab_close","browser_tab_open","browser_tab_select","browser_tabs","browser_transform","browser_transform_status","browser_type","browser_verify","browser_wait"]))
+  check('method set is closed (39 methods)', JSON.stringify(api.AGENT_RPC_METHODS.slice().sort()) === JSON.stringify(["browser_batch","browser_check","browser_click","browser_content","browser_download_cancel","browser_download_pause","browser_download_resume","browser_download_start","browser_download_wait","browser_downloads","browser_eval","browser_frames","browser_grant","browser_health","browser_helper","browser_helper_list","browser_hover","browser_mouse","browser_navigate","browser_pdf","browser_predict","browser_press","browser_screenshot","browser_scroll","browser_select","browser_snapshot","browser_state","browser_status","browser_tab_close","browser_tab_open","browser_tab_select","browser_tabs","browser_transform","browser_transform_status","browser_type","browser_upload","browser_verify","browser_viewport","browser_wait"]))
   check('method name pattern blocks traversal', V(baseMeta(), JSON.stringify({ jsonrpc: '2.0', method: '../../etc' })).error.category === 'invalid_request')
 
   check('params on a no-param command rejected', V(baseMeta(), JSON.stringify({ jsonrpc: '2.0', method: 'browser_status', params: { url: 'file:///etc/passwd' } })).error.category === 'invalid_params')
@@ -210,7 +222,30 @@ function layer1 () {
   check('snapshot maxNodes NaN rejected', V(baseMeta(), snapBody({ tabId: '123', maxNodes: NaN })).error.category === 'invalid_params')
   check('snapshot maxNodes 500 accepted', V(baseMeta(), snapBody({ tabId: '123', maxNodes: 500 })).ok === true)
   check('snapshot unknown key rejected', (V(baseMeta(), snapBody({ tabId: '123', css: '#x' })).error.data || {}).field === 'css')
+  /* P1-15/D1-F5: the handler implements a bounded settle delay but the schema
+   * never declared it, and unknown keys are rejected - so it was unreachable. */
+  check('D1-F5: snapshot schema declares waitMs', !!api.AGENT_RPC_PARAM_SCHEMAS.browser_snapshot.waitMs)
+  check('D1-F5: snapshot waitMs accepted', V(baseMeta(), snapBody({ tabId: '123', waitMs: 250 })).ok === true)
+  check('D1-F5: snapshot waitMs above the 5000ms bound rejected', V(baseMeta(), snapBody({ tabId: '123', waitMs: 6000 })).error.category === 'invalid_params')
+  check('D1-F5: snapshot waitMs below 0 rejected', V(baseMeta(), snapBody({ tabId: '123', waitMs: -1 })).error.category === 'invalid_params')
+  check('D1-F5: snapshot waitMs non-integer rejected', V(baseMeta(), snapBody({ tabId: '123', waitMs: 1.5 })).error.category === 'invalid_params')
   check('snapshot cap constant is 256 KiB', api.AGENT_RPC_SNAPSHOT_BYTES === 256 * 1024)
+
+  /* P1-15/D1-F7: every category a command can emit must have an HTTP status.
+   * A missing entry silently falls through to 500, which tells the client the
+   * bridge crashed when it was in fact an expected structured outcome. */
+  const emitted = new Set()
+  const reCat = /agentRpcCommandError\(AGENT_RPC_ERRORS\.[a-z_]+,\s*'([a-z_]+)'/g
+  let mCat
+  while ((mCat = reCat.exec(fs.readFileSync(TARGET, 'utf8'))) !== null) emitted.add(mCat[1])
+  /* Two eval categories come from a computed variable, not a literal. */
+  emitted.add('eval_rejected')
+  emitted.add('eval_exception')
+  const unmapped = Array.from(emitted).filter(c => !api.AGENT_RPC_COMMAND_HTTP_STATUS[c])
+  check('D1-F7: every emitted error category has an HTTP status mapping', unmapped.length === 0, unmapped.join(','))
+  check('D1-F7: queue saturation maps to 429, not 500', api.AGENT_RPC_COMMAND_HTTP_STATUS.busy === 429)
+  check('D1-F7: unknown downloadId maps to 404', api.AGENT_RPC_COMMAND_HTTP_STATUS.download_not_found === 404)
+  check('D1-F7: a rejected page promise is distinguishable from a crash', api.AGENT_RPC_COMMAND_HTTP_STATUS.eval_rejected === 502 && api.AGENT_RPC_COMMAND_HTTP_STATUS.eval_exception === 502)
 
   /* P0-10: browser_click / browser_type schemas. */
   var clickBody = function (params) { return JSON.stringify({ jsonrpc: '2.0', method: 'browser_click', params: params }) }
@@ -449,7 +484,7 @@ async function layer2 () {
   check('wrong content-type rejected', badct.status === 415, 'status=' + badct.status)
   const badjson = await rpc(port, { headers: H() }, '{ broken')
   check('malformed JSON rejected cleanly', badjson.status === 400, 'status=' + badjson.status)
-  const unknown = await rpc(port, { headers: H() }, JSON.stringify({ jsonrpc: '2.0', method: 'browser_eval' }))
+  const unknown = await rpc(port, { headers: H() }, JSON.stringify({ jsonrpc: '2.0', method: 'browser_evalx' }))
   check('unknown method -> 404 + -32601', unknown.status === 404 && JSON.parse(unknown.body).error.code === -32601)
 
   const big = await rpc(port, { headers: H() }, JSON.stringify({ jsonrpc: '2.0', method: 'browser_status', pad: 'z'.repeat(70 * 1024) }))
@@ -493,10 +528,424 @@ async function layer2 () {
   check('server closed after stop', after.status === 0, after.error)
 }
 
+/* ---------- layer 3: D1 batch security boundary, stale-ref recovery, error map ---------- */
+
+async function layer3 () {
+  const { api, stubs } = loadTarget()
+  api.agentRpcState.port = 41000
+  api.agentRpcState.token = 'a'.repeat(64)
+  /* The transport only accepts numeric tabIds; the shared stub keys views by
+   * name. Alias one so grant/click paths can resolve a real view. */
+  stubs.viewMap['1'] = stubs.viewMap['tab-1']
+  /* agentRpcPruneGrants REASSIGNS AGENT_RPC_GRANTS, so a captured array
+   * reference goes stale. Assert through the live-binding accessor instead. */
+  const grants0 = api.agentRpcGrantsActive()
+
+  /* --- D1-F1: excluded tools must NEVER execute, whatever stopOnError says --- */
+  const r1 = await api.agentRpcCommandBatch({
+    tabId: '1',
+    stopOnError: false,
+    actions: JSON.stringify([
+      { tool: 'browser_grant', params: { tabId: '1', action: 'risky_click' } },
+      { tool: 'browser_tabs', params: {} }
+    ])
+  })
+  check('D1-F1: browser_grant inside a batch is refused', !!(r1.steps[0] && r1.steps[0].tool === 'browser_grant' && r1.steps[0].ok === false), JSON.stringify(r1.steps[0]))
+  check('D1-F1: refused grant had NO side effect (no grant issued)', api.agentRpcGrantsActive() === grants0, api.agentRpcGrantsActive() + ' vs ' + grants0)
+  check('D1-F1: no step returned a granted result', !r1.steps.some(s => s.result && s.result.granted === true), JSON.stringify(r1.steps.map(s => s.result)))
+  check('D1-F1: stopOnError:false still runs later ALLOWED steps', r1.steps.length === 2 && !!(r1.steps[1] && r1.steps[1].ok === true), JSON.stringify(r1.steps.map(s => s.tool + ':' + s.ok)))
+
+  const r1b = await api.agentRpcCommandBatch({
+    tabId: '1',
+    stopOnError: false,
+    actions: JSON.stringify([{ tool: 'browser_batch', params: { tabId: '1', actions: '[]' } }])
+  })
+  check('D1-F1: nested browser_batch inside a batch is refused', !!(r1b.steps[0] && r1b.steps[0].tool === 'browser_batch' && r1b.steps[0].ok === false))
+
+  /* --- D1-F1: a step the validator REJECTED must not reach dispatch either --- */
+  const r2 = await api.agentRpcCommandBatch({
+    tabId: '1',
+    stopOnError: false,
+    actions: JSON.stringify([
+      { tool: 'browser_click', params: { tabId: '1' } },
+      { tool: 'browser_tabs', params: {} }
+    ])
+  })
+  check('D1-F1: schema-invalid step is rejected by the transport validator', !!(r2.steps[0] && r2.steps[0].error && r2.steps[0].error.category === 'invalid_params' && r2.steps[0].error.data && r2.steps[0].error.data.field === 'ref'), JSON.stringify(r2.steps[0] && r2.steps[0].error))
+  check('D1-F1: rejected step never dispatched (invalid_params, not a runtime ref error)', !!(r2.steps[0] && r2.steps[0].error.category !== 'ref_not_found' && r2.steps[0].error.category !== 'ref_stale'))
+  check('D1-F1: later allowed step still ran after the invalid one', r2.steps.length === 2 && !!(r2.steps[1] && r2.steps[1].ok === true))
+
+  /* --- unchanged default behaviour --- */
+  const r3 = await api.agentRpcCommandBatch({
+    tabId: '1',
+    actions: JSON.stringify([
+      { tool: 'browser_grant', params: { tabId: '1', action: 'risky_click' } },
+      { tool: 'browser_tabs', params: {} }
+    ])
+  })
+  check('D1-F1: stopOnError:true still halts at the excluded step', r3.steps.length === 1 && r3.steps[0].ok === false, JSON.stringify(r3.steps.map(s => s.ok)))
+  check('D1-F1: no grant issued with stopOnError:true either', api.agentRpcGrantsActive() === grants0, String(api.agentRpcGrantsActive()))
+  /* A grant created by a batch would be spendable by a later risky click.
+   * Prove the single-use grant mechanism still works through the normal path. */
+  const gIssued = await api.agentRpcDispatch('browser_grant', { tabId: '1', action: 'risky_click', ttlSeconds: 30 })
+  check('D1-F1: a directly-issued grant still works (control)', !!(gIssued && gIssued.granted === true && gIssued.grantsActive === 1), JSON.stringify(gIssued))
+  check('D1-F1: that grant is consumable exactly once', api.agentRpcConsumeGrant('risky_click', '1') === true && api.agentRpcConsumeGrant('risky_click', '1') === false)
+
+  /* --- D1-F4: the response must echo what the caller asked for --- */
+  check('D1-F4: response echoes stopOnError:false', r1.stopOnError === false, String(r1.stopOnError))
+  check('D1-F4: response echoes stopOnError:true', r3.stopOnError === true, String(r3.stopOnError))
+  check('D1-F4: batch ok:false when a step failed under stopOnError:false', r1.ok === false)
+
+  /* --- D1-F2: identity-strict stale-ref recovery --- */
+  const wc1 = stubs.viewMap['1'].webContents
+  const store = api.AGENT_SNAPSHOT_REFS
+  const IDENTITY = { role: 'button', name: 'Continue', nameIndex: 0 }
+  /* The page-side box uses w/h keys (not width/height) - see AGENT_SNAPSHOT_PAGE_FN. */
+  const BOXED = { role: IDENTITY.role, name: IDENTITY.name, nameIndex: 0, box: { x: 0, y: 0, w: 40, h: 20 } }
+  const seed = () => store.set('1', { born: Date.now(), refs: [{ ref: 'ra', role: IDENTITY.role, name: IDENTITY.name, nameIndex: 0, ordinal: 0, enumLen: 1 }], enumLen: 1 })
+  let locateCalls = 0
+  wc1.__scriptFn = function (src) {
+    if (src.indexOf('"locate"') !== -1) {
+      locateCalls++
+      /* First locate: the element has vanished -> weak fallback finds zero
+       * candidates -> ref_stale, with the original record STILL in the store. */
+      if (locateCalls === 1) return { mode: 'locate', nodes: [], target: null, total: 1 }
+      return { mode: 'locate', nodes: [BOXED], target: BOXED, total: 1 }
+    }
+    return { nodes: [{ role: IDENTITY.role, name: IDENTITY.name, nameIndex: 0, nameKind: 'text', box: { x: 0, y: 0, width: 10, height: 10 } }], url: 'https://example.com/', title: 'Example', truncated: false }
+  }
+
+  seed()
+  const pending = api.agentRpcReResolveRef('1', 'ra')
+  check('D1-F2: re-resolve returns a Promise (async; callers MUST await it)', !!(pending && typeof pending.then === 'function'))
+  const reResolved = await pending
+  check('D1-F2: re-resolve yields a STRING ref, never a Promise object', !!(reResolved && typeof reResolved.ref === 'string' && /^[0-9a-z]{1,13}$/.test(reResolved.ref)), JSON.stringify(reResolved))
+
+  seed()
+  locateCalls = 0
+  const r4 = await api.agentRpcCommandBatch({
+    tabId: '1',
+    recoverStale: true,
+    actions: JSON.stringify([{ tool: 'browser_click', params: { tabId: '1', ref: 'ra', verification: 'none' } }])
+  })
+  check('D1-F2: batch reports the original ref_stale', !!(r4.steps[0] && r4.steps[0].error && r4.steps[0].error.category === 'ref_stale'), JSON.stringify(r4.steps[0] && r4.steps[0].error))
+  check('D1-F2: recovery actually retried the step', r4.steps.some(s => s.retried === true), JSON.stringify(r4.steps.map(s => (s.retried ? 'retry:' : 'first:') + (s.error ? s.error.category : 'ok'))))
+  check('D1-F2: retry received a usable ref (no ref_stale_recovery_failed)', !r4.steps.some(s => s.error && s.error.category === 'ref_stale_recovery_failed'), JSON.stringify(r4.steps.map(s => s.error && s.error.category)))
+
+  /* Ambiguous identity must fail loudly rather than pick one element. */
+  seed()
+  locateCalls = 0
+  wc1.__scriptFn = function (src) {
+    if (src.indexOf('"locate"') !== -1) {
+      locateCalls++
+      if (locateCalls === 1) return { mode: 'locate', nodes: [], target: null, total: 1 }
+      return { mode: 'locate', nodes: [BOXED], target: BOXED, total: 1 }
+    }
+    /* Two elements share the identity -> must NOT be resolved to one of them. */
+    return { nodes: [
+      { role: IDENTITY.role, name: IDENTITY.name, nameIndex: 0, nameKind: 'text', box: { x: 0, y: 0, width: 10, height: 10 } },
+      { role: IDENTITY.role, name: IDENTITY.name, nameIndex: 0, nameKind: 'text', box: { x: 0, y: 40, width: 10, height: 10 } }
+    ], url: 'https://example.com/', title: 'Example', truncated: false }
+  }
+  const r5 = await api.agentRpcCommandBatch({
+    tabId: '1',
+    recoverStale: true,
+    actions: JSON.stringify([{ tool: 'browser_click', params: { tabId: '1', ref: 'ra', verification: 'none' } }])
+  })
+  check('D1-F2: ambiguous identity fails loudly, never silently retargeted', r5.steps.some(s => s.error && s.error.category === 'ref_stale_recovery_failed'), JSON.stringify(r5.steps.map(s => s.error && s.error.category)))
+  check('D1-F2: ambiguous recovery performed no click', !r5.steps.some(s => s.ok === true && s.retried === true))
+
+  /* --- D2-A: the three stages must never be conflated --- */
+  const DELIVERIES = ['attested', 'unverified', 'unsupported']
+  const clickRes = r4.steps.filter(s => s.result).map(s => s.result)[0]
+  check('D2-A: click result carries an explicit delivery stage', !!(clickRes && DELIVERIES.indexOf(clickRes.delivery) !== -1), JSON.stringify(clickRes && { delivered: clickRes.delivered, verified: clickRes.verified, delivery: clickRes.delivery }))
+  check('D2-A: delivery is never ' + "'attested'" + ' when no renderer channel exists', !!(clickRes && clickRes.delivery === 'unsupported'), clickRes && clickRes.delivery)
+  check('D2-A: delivery does NOT imply verified page effect', !!(clickRes && clickRes.delivery !== 'attested' || clickRes.verified !== true))
+  check('D2-A: unattested delivery reports a reason', !!(clickRes && typeof clickRes.deliveryReason === 'string' && clickRes.deliveryReason.length > 10), clickRes && clickRes.deliveryReason)
+}
+
+/* ---------- layer 4: dispatch-routing characterization (ADR-11 seam) ----------
+ * These tests are deliberately IMPLEMENTATION-AGNOSTIC: they assert the routing
+ * CONTRACT (which method reaches which command handler, and that unknown methods
+ * yield null) rather than the shape of the dispatcher. They must pass identically
+ * before and after the if-chain is replaced by a data table, which is what makes
+ * the extraction verifiable rather than merely plausible.
+ *
+ * Characterization for ADR-11: registry-as-data. Written BEFORE the code moved. */
+async function layer4 () {
+  const { api, stubs } = loadTarget()
+
+  /* 1. the registry the dispatcher must agree with */
+  const methods = api.AGENT_RPC_METHODS.slice().sort()
+  check('D4/ADR-11: method registry is a non-empty sorted-able list of unique names', Array.isArray(api.AGENT_RPC_METHODS) && methods.length === api.AGENT_RPC_METHODS.length && new Set(methods).size === methods.length, String(api.AGENT_RPC_METHODS.length))
+  check('D4/ADR-11: every registered method is a browser_* identifier', methods.every(m => /^browser_[a-z_]+$/.test(m)))
+
+  /* 2. unknown methods are not routed (the transport rejects them first; the
+   *    dispatcher's own fallthrough must still be null, not undefined/throw) */
+  check('D4/ADR-11: unknown method dispatches to null', api.agentRpcDispatch('browser_not_a_tool', {}) === null)
+  check('D4/ADR-11: prototype-ish name dispatches to null', api.agentRpcDispatch('constructor', {}) === null)
+
+  /* 3. no-argument handlers must be callable without params and must not be
+   *    routed with a params argument that changes their signature */
+  const status = api.agentRpcDispatch('browser_status', {})
+  check('D4/ADR-11: browser_status routes to a no-arg handler and returns a result', !!(status && typeof status === 'object' && status.bridge && status.app))
+  const health = api.agentRpcDispatch('browser_health', {})
+  check('D4/ADR-11: browser_health routes and returns an overall verdict', !!(health && ['healthy', 'degraded', 'unavailable'].indexOf(health.overall) !== -1))
+
+  /* 4. every registered method must be ROUTABLE — i.e. the dispatcher knows it,
+   *    even if the call itself fails later for want of a real view. This is the
+   *    core anti-regression for a table that could silently drop a row. */
+  const unrouted = []
+  const throwsFor = {}
+  for (const m of methods) {
+    let out = null
+    try {
+      out = api.agentRpcDispatch(m, {})
+      /* a handler returning a Promise is also "routed" */
+      if (out !== null && out !== undefined) continue
+    } catch (e) {
+      throwsFor[m] = (e && e.category) || 'throw'
+      continue
+    }
+    unrouted.push(m)
+  }
+  check('D4/ADR-11: every registered method is routed by the dispatcher', unrouted.length === 0, unrouted.join(','))
+  check('D4/ADR-11: routing never silently returns undefined for a known method', unrouted.length === 0)
+
+  /* 5. registry and dispatcher must stay in lockstep: a method in the registry
+   *    with no route, or a route for an unregistered method, is the exact bug a
+   *    data-table refactor can introduce. */
+  check('D4/ADR-11: dispatch table keys equal the method registry', (function () {
+    if (!api.AGENT_RPC_DISPATCH_TABLE) return true /* pre-extraction: chain has no table */
+    const keys = Object.keys(api.AGENT_RPC_DISPATCH_TABLE).sort()
+    return JSON.stringify(keys) === JSON.stringify(methods)
+  })(), (function () {
+    if (!api.AGENT_RPC_DISPATCH_TABLE) return 'no table yet (pre-extraction)'
+    const keys = Object.keys(api.AGENT_RPC_DISPATCH_TABLE).sort()
+    const missing = methods.filter(m => keys.indexOf(m) === -1)
+    const extra = keys.filter(k => methods.indexOf(k) === -1)
+    return 'missing=' + missing.join(',') + ' extra=' + extra.join(',')
+  })())
+
+  /* 6. a params-taking route must forward params (spot-check on a pure validator
+   *    path: an invalid tabId must produce the same structured rejection whether
+   *    reached through the chain or a table). */
+  const badTab = api.agentRpcDispatch('browser_snapshot', { tabId: 'not-a-tab' })
+  const badTabErr = await Promise.resolve(badTab).then(() => null, e => e)
+  check('D4/ADR-11: params are forwarded to the handler (structured error shape preserved)', !!(badTabErr && badTabErr.agentRpcCommandError === true && typeof badTabErr.category === 'string'), badTabErr && badTabErr.category)
+}
+
+/* ---------- layer 5: ADR-09 Option C built-in catalogue (gates C1-C10) ----------
+ * Deterministic/security assertions for the curated read-only built-ins. These
+ * lock the boundary (allowlist, fixed IDs, no arbitrary tool names, no mutating
+ * reachability) independently of any browser. */
+async function layer5 () {
+  const { api, stubs } = loadTarget()
+  const CAT = api.AGENT_RPC_HELPER_CATALOGUE
+  const ALLOW = api.AGENT_RPC_HELPER_ALLOWED_TOOLS
+  stubs.viewMap['1'] = stubs.viewMap['tab-1']
+
+  /* C1: only registered IDs exist, and the set is exactly the approved two */
+  check('C1: catalogue is frozen', !!(CAT && Object.isFrozen(CAT)))
+  check('C1: catalogue is exactly the approved two built-ins', JSON.stringify(Object.keys(CAT).sort()) === JSON.stringify(['form_control_inventory', 'page_summary']), Object.keys(CAT).join(','))
+  check('C1: every built-in declares readOnly:true', Object.keys(CAT).every(k => CAT[k].readOnly === true))
+
+  /* C2: fixed sequences, and no step may be outside the allowlist */
+  check('C2: page_summary sequence is exactly [browser_state, browser_snapshot]', JSON.stringify(CAT.page_summary.steps) === JSON.stringify(['browser_state', 'browser_snapshot']), CAT.page_summary.steps.join('>'))
+  check('C2: form_control_inventory sequence is exactly [browser_snapshot]', JSON.stringify(CAT.form_control_inventory.steps) === JSON.stringify(['browser_snapshot']), CAT.form_control_inventory.steps.join('>'))
+  check('C2: definitions and step arrays are frozen', Object.isFrozen(CAT.page_summary) && Object.isFrozen(CAT.page_summary.steps) && Object.isFrozen(CAT.form_control_inventory.steps))
+  check('C2: every catalogued step is on the allowlist', Object.keys(CAT).every(k => CAT[k].steps.every(s => ALLOW[s] === true)))
+
+  /* C4: mutating / privileged tools are NOT reachable through the catalogue */
+  const forbidden = ['browser_grant', 'browser_batch', 'browser_health', 'browser_eval', 'browser_click', 'browser_type', 'browser_press', 'browser_mouse', 'browser_scroll', 'browser_navigate', 'browser_transform', 'browser_viewport', 'browser_download_start', 'browser_screenshot', 'browser_pdf', 'browser_select', 'browser_check', 'browser_hover', 'browser_tab_open', 'browser_tab_close', 'browser_wait']
+  const leaked = forbidden.filter(f => ALLOW[f] === true)
+  check('C4: no mutating or privileged tool is on the allowlist', leaked.length === 0, leaked.join(','))
+  check('C4: allowlist is exactly the audited six read-only tools', JSON.stringify(Object.keys(ALLOW).sort()) === JSON.stringify(['browser_content', 'browser_snapshot', 'browser_state', 'browser_status', 'browser_tabs', 'browser_verify']), Object.keys(ALLOW).sort().join(','))
+
+  /* C1b: unknown / tampered IDs are rejected at the boundary */
+  const unknown = await api.agentRpcCommandHelper({ helper: 'browser_grant', tabId: '1' }).then(() => null, e => e)
+  check('C1: an unknown/tampered helper id is refused', !!(unknown && unknown.agentRpcCommandError === true && unknown.category === 'not_found'), unknown && unknown.category)
+  const inherited = await api.agentRpcCommandHelper({ helper: 'constructor', tabId: '1' }).then(() => null, e => e)
+  check('C1: a prototype-ish helper id is refused (own-property lookup)', !!(inherited && inherited.category === 'not_found'), inherited && inherited.category)
+  const badVer = await api.agentRpcCommandHelper({ helper: 'page_summary', tabId: '1', version: 9 }).then(() => null, e => e)
+  check('C2: a mismatched definition version is refused', !!(badVer && badVer.category === 'invalid_params'), badVer && badVer.category)
+
+  /* C3: argument bounds are enforced by the transport schema */
+  const base = { host: '127.0.0.1:41000', authorization: 'Bearer ' + 'a'.repeat(64), 'content-type': 'application/json' }
+  const V = body => api.agentRpcValidate({ method: 'POST', url: '/rpc', headers: base, port: 41000, expectedToken: 'a'.repeat(64) }, JSON.stringify(body))
+  const hb = p => ({ jsonrpc: '2.0', method: 'browser_helper', params: p })
+  check('C3: helper id is required', (V(hb({ tabId: '1' })).error.data || {}).field === 'helper')
+  check('C3: tabId is required (no implicit current tab)', (V(hb({ helper: 'page_summary' })).error.data || {}).field === 'tabId')
+  check('C3: maxNodes above 200 refused', V(hb({ helper: 'page_summary', tabId: '1', maxNodes: 201 })).error.category === 'invalid_params')
+  check('C3: limit above 60 refused', V(hb({ helper: 'form_control_inventory', tabId: '1', limit: 61 })).error.category === 'invalid_params')
+  check('C3: unknown parameter refused (no step injection)', (V(hb({ helper: 'page_summary', tabId: '1', steps: ['browser_grant'] })).error.data || {}).field === 'steps')
+  check('C3: valid helper request accepted', V(hb({ helper: 'page_summary', tabId: '1' })).ok === true)
+
+  /* C4b: helper is a registered dispatch route and behaves for a dead tab */
+  check('C4: browser_helper + browser_helper_list are registered methods', api.AGENT_RPC_METHODS.indexOf('browser_helper') !== -1 && api.AGENT_RPC_METHODS.indexOf('browser_helper_list') !== -1)
+  /* --- readonly gate (post-Option-C): tri-state, never a default false --- */
+  const src = fs.readFileSync(TARGET, 'utf8')
+  check('RO-1: snapshot base node initialises readOnly to null (unknown), not false', /disabled: false, readOnly: null/.test(src))
+  check('RO-2: snapshot result copy preserves tri-state (no === true coercion to false)', src.indexOf('readOnly: (n.readOnly === true || n.readOnly === false) ? n.readOnly : null') !== -1)
+  check('RO-3: helper projections preserve tri-state too', (src.match(/readOnly: \(n\.readOnly === true \|\| n\.readOnly === false\) \? n\.readOnly : null/g) || []).length >= 2)
+  check('RO-4: page fn marks readOnly unknown when the DOM does not establish it', src.indexOf("node.readOnly = ar === 'true' ? true : (ar === 'false' ? false : null)") !== -1)
+  check('RO-5: locate mode records an authoritative live readOnly for the action guard', src.indexOf('targetNode.readOnlyLive = liveReadOnly') !== -1)
+  check('RO-6: the type guard prefers the LIVE value over the cached snapshot flag', src.indexOf('if (t.readOnlyLive === true || (t.readOnlyLive === null && t.readOnly === true))') !== -1)
+  check('RO-8: the snapshot-mode node whitelist carries readOnly (the B4 loss point)', src.indexOf('valueLength: n.valueLength, readOnly: n.readOnly') !== -1)
+  check('RO-7: readOnly never trusts page text as authorization (property read only)', !/readOnly\s*=\s*[^;\n]*innerText/.test(src))
+  const list = api.agentRpcCommandHelperList()
+  check('C1: helper_list returns the two ids and the six-tool allowlist', !!(list && list.helpers.length === 2 && list.allowlist.length === 6), JSON.stringify(list && list.helpers.map(h => h.id)))
+  const deadRes = await api.agentRpcCommandHelper({ helper: 'page_summary', tabId: 'tab-dead' }).then(r => ({ ok: true, r: r }), e => ({ ok: false, e: e }))
+  const deadObj = deadRes.ok ? (deadRes.r && deadRes.r.obj) : null
+  check('C9: a dead/missing tab yields a structured error or an explicit unavailable status (never fabricated success)',
+    !!(deadRes.ok ? (deadObj && deadObj.status === 'unavailable') : (deadRes.e && deadRes.e.agentRpcCommandError === true)),
+    deadRes.ok ? ('status=' + (deadObj && deadObj.status)) : ('error=' + (deadRes.e && deadRes.e.category)))
+  check('C9: a dead-tab result never claims status=complete', !(deadObj && deadObj.status === 'complete'))
+}
+
+/* ---------- layer 6: ADR-11 seam 2 — error-contract matrix ----------
+ * Table-driven, one EXPLICITLY NAMED case per contract so a failure names the
+ * exact contract that broke. Asserts: stable category+code, HTTP mapping where
+ * the error is top-level, safe message shape, and no secret leakage. */
+function layer6 () {
+  const { api } = loadTarget()
+  const MAP = api.AGENT_RPC_COMMAND_HTTP_STATUS
+  const ERR = api.AGENT_RPC_ERRORS
+
+  /* every top-level category an agentRpcCommandError can emit must map */
+  const src = fs.readFileSync(TARGET, 'utf8')
+  const emitted = new Set([...src.matchAll(/agentRpcCommandError\(AGENT_RPC_ERRORS\.[a-z_]+, *'([a-z_]+)'/g)].map(m => m[1]))
+  emitted.add('eval_rejected'); emitted.add('eval_exception')
+  const unmapped = [...emitted].filter(c => !MAP[c])
+  check('SEAM2: every top-level emitted category has an HTTP status', unmapped.length === 0, unmapped.join(','))
+
+  /* error families the task enumerates: category -> expected stable code + status */
+  const CASES = [
+    ['unknown method/tool', 'not_found', ERR.not_found, 404],
+    ['schema-invalid args', 'invalid_params', ERR.invalid_params, 400],
+    /* VALIDATION-layer error: carries httpStatus directly, never via the command map */
+    ['authentication failure (validation layer)', 'unauthorized', ERR.unauthorized, 'validation-401'],
+    ['origin/host rejection', 'blocked', ERR.blocked, 403],
+    ['grant missing (risky action)', 'risky_action', ERR.risky_action, 403],
+    ['sensitive field (grant missing)', 'sensitive_field', ERR.sensitive_field, 403],
+    ['disabled target', 'disabled', ERR.disabled, 409],
+    ['readonly target', 'readonly', ERR.disabled, 409],
+    ['stale reference', 'ref_stale', ERR.ref_stale, 404],
+    ['stale-ref recovery failure (nested)', 'ref_stale_recovery_failed', null, null],
+    ['ambiguous target', 'ambiguous', ERR.ambiguous, 409],
+    ['ref from another tab', 'ref_mismatch', ERR.ref_mismatch, 404],
+    ['tab not found', 'not_found', ERR.not_found, 404],
+    ['view not attached', 'view_not_attached', ERR.view_not_attached, 409],
+    ['last tab close guard', 'last_tab', ERR.last_tab, 409],
+    ['unsupported action', 'unsupported', ERR.unsupported, 500],
+    ['verification failure (nested)', 'verification_failed', null, null],
+    ['transform target failure (nested)', 'transform_target_failed', null, null],
+    ['queue saturation', 'busy', ERR.busy, 429],
+    ['screenshot size limit', 'screenshot_too_large', ERR.screenshot_too_large, 413],
+    ['navigation load failure', 'load_failed', ERR.load_failed, 502],
+    ['eval rejection (page promise)', 'eval_rejected', ERR.timeout, 502],
+    ['captcha handoff', 'captcha_handoff_required', ERR.captcha_handoff_required, 409],
+    ['download not found', 'download_not_found', ERR.not_found, 404]
+  ]
+  CASES.forEach(function (c) {
+    const name = c[0]; const cat = c[1]; const code = c[2]; const status = c[3]
+    if (status === 'validation-401') {
+      /* unauthorized is produced by agentRpcValidate with an explicit 401; it is
+       * deliberately NOT in the command map (commands never emit it). */
+      check('SEAM2: ' + name + ' is a validation-layer 401, not a command category', code === ERR.unauthorized && MAP[cat] === undefined, 'map=' + String(MAP[cat]))
+      return
+    }
+    if (status === null) {
+      /* nested step/target category: must NOT be required to map, and must not
+       * collide with a transport status (it is payload, not an HTTP outcome). */
+      check('SEAM2 n/a: ' + name + ' is a nested result category (no HTTP status)', MAP[cat] === undefined, cat + ' mapped=' + String(MAP[cat]))
+      return
+    }
+    check('SEAM2: ' + name + ' -> ' + cat + ' (' + code + ') maps to HTTP ' + status, MAP[cat] === status && code !== undefined, 'status=' + String(MAP[cat]))
+  })
+
+  /* constructors produce a stable, safe shape */
+  const e1 = api.agentRpcJsonError(-32016, 'ref_stale', 'fixed message')
+  check('SEAM2: json error shape is {code,category,message,data}', e1.code === -32016 && e1.category === 'ref_stale' && e1.message === 'fixed message' && e1.data === null && Object.keys(e1).length === 4)
+  const e2 = api.agentRpcCommandError(-32016, 'ref_stale', 'fixed message')
+  check('SEAM2: command error carries the agentRpcCommandError discriminator', e2.agentRpcCommandError === true && e2.code === -32016)
+  check('SEAM2: command error data is null by default (no page payload attached)', e2.data === null)
+
+  /* messages never interpolate page content or secrets */
+  const badMsg = /message:\\s*'(?:[^'\\\\]|\\\\.)*'\\s*\\+\\s*(?:.*pageRes|.*textContent|.*innerText|.*\\.value\\b|.*token)/
+  check('SEAM2: no error message interpolates page content, values or the token', !badMsg.test(src))
+
+  /* codes are unique and in the -320xx/JSON-RPC ranges */
+  const vals = Object.keys(ERR).map(k => ERR[k])
+  check('SEAM2: error codes are unique', new Set(vals).size === vals.length)
+  check('SEAM2: every error code is a negative JSON-RPC-style integer', vals.every(v => typeof v === 'number' && v < 0 && Number.isInteger(v)))
+}
+
+/* ---------- layer 7: ADR-11 seam 3 — policy boundary ----------
+ * Characterization for the policy seam: grants, risky/sensitive policy and
+ * policy.json. Written BEFORE the extraction and expected to pass identically
+ * before and after, so the extraction is verifiable rather than plausible. */
+function layer7 () {
+  const { api, stubs } = loadTarget()
+  stubs.viewMap['1'] = stubs.viewMap['tab-1']
+
+  /* policy.json is the durable per-profile default; both flags default to FALSE */
+  const pol = api.agentRpcReadPolicy()
+  check('SEAM3: readPolicy returns the documented shape', !!(pol && typeof pol.allowRiskyClicks === 'boolean' && typeof pol.allowSensitiveTyping === 'boolean' && 'allowedSchemes' in pol))
+  check('SEAM3: risky clicks default to DENIED', pol.allowRiskyClicks === false)
+  check('SEAM3: sensitive typing defaults to DENIED', pol.allowSensitiveTyping === false)
+
+  /* policies can only RESTRICT the built-in scheme set */
+  const eff = api.agentRpcEffectiveProtocols()
+  check('SEAM3: default effective schemes are the built-in allowlist', !!(eff && eff['https:'] === 1 && eff['http:'] === 1))
+  check('SEAM3: dangerous schemes are never present', !eff['javascript:'] && !eff['data:'] && !eff['vbscript:'])
+
+  /* grants: single-use, action+tab bound, TTL'd */
+  const g1 = api.agentRpcCommandGrant({ tabId: '1', action: 'risky_click', ttlSeconds: 30 })
+  check('SEAM3: grant issues for a live tab', !!(g1 && g1.granted === true && g1.grantsActive === 1), JSON.stringify(g1 && { g: g1.granted, n: g1.grantsActive }))
+  check('SEAM3: grant is single-use (second consume fails)', api.agentRpcConsumeGrant('risky_click', '1') === true && api.agentRpcConsumeGrant('risky_click', '1') === false)
+  api.agentRpcCommandGrant({ tabId: '1', action: 'sensitive_type', ttlSeconds: 30 })
+  check('SEAM3: a grant for one action does not satisfy another', api.agentRpcConsumeGrant('risky_click', '1') === false)
+  check('SEAM3: grants are bound to the exact tab', api.agentRpcConsumeGrant('sensitive_type', '2') === false)
+  const gDead = api.agentRpcCommandGrant({ tabId: 'tab-dead', action: 'risky_click', ttlSeconds: 30 })
+  /* agentRpcCommandGrant RETURNS the structured error (it does not throw) */
+  check('SEAM3: grant refused for a non-live tab', !!(gDead && gDead.agentRpcCommandError === true && gDead.category === 'ref_not_found'), gDead && gDead.category)
+
+  /* the evaluator must be addressable as a unit (the seam's stated purpose) */
+  if (typeof api.agentRpcPolicyAllows === 'function') {
+    check('SEAM3: a single policy evaluator exists and denies by default', api.agentRpcPolicyAllows('risky_click', { tabId: '1' }) === false)
+    api.agentRpcCommandGrant({ tabId: '1', action: 'risky_click', ttlSeconds: 30 })
+  /* Contract split (important for single-use grants):
+   *   agentRpcPolicyAllows    -> policy FLAG only (no grant look-up)
+   *   agentRpcPolicyWouldAllow -> flag OR live grant, WITHOUT consuming
+   * The handlers call the flag evaluator and then consume the grant themselves,
+   * which is what keeps a grant one-shot. */
+  check('SEAM3: the flag evaluator ignores grants (policy only)', api.agentRpcPolicyAllows('risky_click', { tabId: '1' }) === false)
+  const beforePeek = api.agentRpcGrantsActive()
+  check('SEAM3: the dry-run evaluator honours a live grant', api.agentRpcPolicyWouldAllow('risky_click', { tabId: '1' }) === true)
+  check('SEAM3: the dry-run evaluator does not consume the grant', api.agentRpcPolicyWouldAllow('risky_click', { tabId: '1' }) === true && api.agentRpcGrantsActive() === beforePeek, beforePeek + ' -> ' + api.agentRpcGrantsActive())
+  check('SEAM3: the dry-run evaluator denies an unknown action', api.agentRpcPolicyWouldAllow('not_an_action', { tabId: '1' }) === false)
+  } else {
+    check('SEAM3: a single policy evaluator exists (ADR-11 seam-3 purpose)', false, 'agentRpcPolicyAllows not present')
+  }
+
+  /* risky-name policy is a bridge-side predicate on the accessible name */
+  check('SEAM3: risky-name regex matches purchase/payment wording', api.AGENT_RPC_RISKY_NAME.test('place order') && api.AGENT_RPC_RISKY_NAME.test('buy now'))
+  check('SEAM3: risky-name regex ignores ordinary wording', !api.AGENT_RPC_RISKY_NAME.test('read more') && !api.AGENT_RPC_RISKY_NAME.test('sign in'))
+
+  /* policy must not be reachable through the dispatch table */
+  check('SEAM3: no policy function is exposed as a dispatchable method', ['agentRpcReadPolicy', 'agentRpcConsumeGrant', 'agentRpcPolicyAllows'].every(f => api.AGENT_RPC_METHODS.indexOf(f) === -1))
+}
+
 async function main () {
   layer1()
   await layer2()
-  const passed = results.filter(r => r.pass).length
+  await layer3()
+  await layer4()
+    await layer5()
+    layer6()
+    layer7()
+    const passed = results.filter(r => r.pass).length
   console.log('\n' + passed + '/' + results.length + ' checks passed')
   try { fs.rmSync(TMP, { recursive: true, force: true }) } catch (e) { /* ignore */ }
   return results.every(r => r.pass) ? 0 : 1

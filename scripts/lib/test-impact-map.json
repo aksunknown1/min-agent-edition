@@ -1,0 +1,558 @@
+{
+  "_comment": "Machine-readable change-impact map for Min Agent Edition. Maintained by hand alongside docs/audit/TEST-IMPACT-MAP.md. A test selector is only as good as this file: if a path does not match any rule, the tool reports UNBOUNDED and demands the full suite rather than guessing.",
+  "version": 5,
+  "updated": "2026-10-20",
+  "suites": {
+    "rpc-unit": {
+      "cmd": "node scripts/agent-rpc-test.js",
+      "layer": "A",
+      "why": "pure validation + live loopback transport of main/agentRpc.js (no browser)"
+    },
+    "mcp-e2e": {
+      "cmd": "node scripts/mcp-e2e.js",
+      "layer": "B",
+      "why": "real Min + shipped MCP adapter over stdio; census, dispatch, batch, screenshot, eval, D2 acceptance"
+    },
+    "probe-eval": {
+      "cmd": "npm run probe:eval",
+      "layer": "B",
+      "why": "browser_eval contract on a real renderer"
+    },
+    "probe-captcha": {
+      "cmd": "npm run probe:captcha",
+      "layer": "B",
+      "why": "CAPTCHA detection vs clearance policy"
+    },
+    "probe-tabs": {
+      "cmd": "npm run probe:tabs",
+      "layer": "B",
+      "why": "tab model, attach/select/close"
+    },
+    "probe-inputs": {
+      "cmd": "npm run probe:inputs",
+      "layer": "B",
+      "why": "click/type/press/select delivery and verification"
+    },
+    "probe-waits": {
+      "cmd": "npm run probe:waits",
+      "layer": "B",
+      "why": "wait conditions, network_idle, bounded timeouts"
+    },
+    "probe-downloads": {
+      "cmd": "npm run probe:downloads",
+      "layer": "B",
+      "why": "managed download lifecycle and relPath policy"
+    },
+    "probe-transform": {
+      "cmd": "npm run probe:transform",
+      "layer": "B",
+      "why": "page transforms, drift detection, restore"
+    },
+    "probe-pav": {
+      "cmd": "npm run probe:pav",
+      "layer": "B",
+      "why": "provenance/attachment/verification across navigation"
+    },
+    "probe-mouse": {
+      "cmd": "npm run probe:mouse",
+      "layer": "B",
+      "why": "coordinate mouse; INTERMITTENT hover + known wheel drop"
+    },
+    "api-matrix": {
+      "cmd": "node scripts/p110-api-matrix.js",
+      "layer": "B",
+      "why": "declared API scenario matrix incl. CAPTCHA policy"
+    },
+    "proctools": {
+      "cmd": "node scripts/proctools-test.js",
+      "layer": "A",
+      "why": "process-ownership + readiness helper safety"
+    },
+    "updater": {
+      "cmd": "node scripts/p1-07-updater-test.js",
+      "layer": "A",
+      "why": "filter-list updater resilience"
+    },
+    "smoke": {
+      "cmd": "npm run smoke:baseline",
+      "layer": "D",
+      "why": "build + launch + window + tab + clean teardown"
+    },
+    "realweb": {
+      "cmd": "npm run probe:realweb",
+      "layer": "C",
+      "why": "REAL-WEB acceptance: every claimed capability proven on public pages through the shipped MCP adapter (network-dependent, opt-in). LIVE pass is the only evidence that closes a capability task."
+    },
+    "probe-keyboard": {
+      "cmd": "npm run probe:keyboard",
+      "layer": "B",
+      "why": "D3-A keyboard-event typing / framework-aware fill"
+    },
+    "probe-helper": {
+      "cmd": "npm run probe:helper",
+      "layer": "B",
+      "why": "ADR-09 Option C curated read-only built-ins"
+    },
+    "probe-r2": {
+      "cmd": "npm run probe:r2",
+      "layer": "B",
+      "why": "R2 D2 parity rows: C6 upload, C8 frames, D1 full-page capture, B4 AX tree"
+    },
+    "probe-r1": {
+      "cmd": "npm run probe:realweb -- --only=stale,transform",
+      "layer": "C",
+      "why": "R1 real-web cases: stale refs and reversible transforms on a public page"
+    },
+    "lint": {
+      "cmd": "npm run lint:style && npm run lint:js --silent",
+      "layer": "A",
+      "why": "read-only formatting/style gate (prettier --list-different + standard, no --write/--fix); may legitimately fail on pre-existing debt"
+    },
+    "probe-r4": {
+      "cmd": "npm run probe:r4",
+      "layer": "B",
+      "why": "R4 debug-click overlay: opt-in, redaction, lifecycle cleanup, and click-semantics equivalence (fixture)"
+    }
+  },
+  "impact": [
+    {
+      "match": [
+        "main/agentRpc.js"
+      ],
+      "suites": [
+        "rpc-unit",
+        "mcp-e2e",
+        "api-matrix",
+        "probe-eval",
+        "probe-captcha",
+        "probe-tabs",
+        "probe-inputs",
+        "probe-waits",
+        "probe-downloads",
+        "probe-transform",
+        "probe-pav",
+        "probe-keyboard",
+        "probe-helper",
+        "probe-r2"
+      ],
+      "realweb": true,
+      "full": true,
+      "why": "shared bridge: dispatch, auth, grants, batch, all tools"
+    },
+    {
+      "match": [
+        "js/preload/default.js"
+      ],
+      "suites": [
+        "mcp-e2e",
+        "probe-inputs",
+        "probe-mouse"
+      ],
+      "realweb": true,
+      "full": true,
+      "why": "isolated preload = delivery-attestation boundary AND page lifecycle hooks"
+    },
+    {
+      "match": [
+        "mcp/min-agent-mcp.js"
+      ],
+      "suites": [
+        "mcp-e2e",
+        "rpc-unit",
+        "probe-keyboard",
+        "probe-helper",
+        "probe-r2"
+      ],
+      "realweb": true,
+      "full": true,
+      "why": "tool catalogue / schema / dispatch surface of the shipped adapter"
+    },
+    {
+      "match": [
+        "main/filtering.js"
+      ],
+      "suites": [
+        "mcp-e2e",
+        "probe-waits"
+      ],
+      "realweb": true,
+      "full": true,
+      "why": "single onBeforeRequest owner; network counters; ad-block policy"
+    },
+    {
+      "match": [
+        "main/viewManager.js",
+        "main/main.js",
+        "main/download.js",
+        "main/permissionManager.js",
+        "main/prompt.js"
+      ],
+      "suites": [
+        "smoke",
+        "mcp-e2e",
+        "probe-tabs",
+        "probe-downloads"
+      ],
+      "realweb": false,
+      "full": true,
+      "why": "main-process lifecycle, tab composition, downloads, permissions"
+    },
+    {
+      "match": [
+        "scripts/lib/proctools.js",
+        "scripts/min-launch.js"
+      ],
+      "suites": [
+        "proctools",
+        "smoke"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "process ownership, readiness, profile launcher"
+    },
+    {
+      "match": [
+        "scripts/buildMain.js",
+        "scripts/buildPreload.js",
+        "scripts/buildWindows.js",
+        "package.json"
+      ],
+      "suites": [
+        "smoke"
+      ],
+      "realweb": false,
+      "full": true,
+      "why": "build/packaging wiring — changes what artifacts even contain"
+    },
+    {
+      "match": [
+        "filterUpdate.js",
+        "ext/**"
+      ],
+      "suites": [
+        "updater"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "filter-list updater / bundled extensions"
+    },
+    {
+      "match": [
+        "scripts/mcp-e2e.js",
+        "scripts/agent-rpc-test.js",
+        "scripts/proctools-test.js",
+        "scripts/realweb-accept.js",
+        "scripts/lib/test-impact-map.json"
+      ],
+      "suites": [
+        "rpc-unit",
+        "mcp-e2e",
+        "proctools"
+      ],
+      "realweb": false,
+      "full": true,
+      "why": "the harnesses themselves — a test change can silently weaken coverage"
+    },
+    {
+      "match": [
+        "SKILL.md",
+        "docs/**",
+        "mcp/README.md"
+      ],
+      "suites": [],
+      "realweb": false,
+      "full": false,
+      "why": "documentation only — no executable contract (verify no schema doc drift by eye)"
+    },
+    {
+      "match": [
+        "scripts/agent-captcha-probe.js"
+      ],
+      "suites": [
+        "probe-captcha"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "probe under change — rerun it plus CAPTCHA policy in the api-matrix"
+    },
+    {
+      "match": [
+        "scripts/agent-downloads-probe.js"
+      ],
+      "suites": [
+        "probe-downloads"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "probe under change"
+    },
+    {
+      "match": [
+        "scripts/agent-mouse-probe.js"
+      ],
+      "suites": [
+        "probe-mouse"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "probe under change (hover is intermittent; compare repeated runs, never one lucky pass)"
+    },
+    {
+      "match": [
+        "scripts/agent-pav-probe.js"
+      ],
+      "suites": [
+        "probe-pav"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "probe under change"
+    },
+    {
+      "match": [
+        "scripts/agent-tabs-probe.js"
+      ],
+      "suites": [
+        "probe-tabs"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "probe under change"
+    },
+    {
+      "match": [
+        "scripts/agent-eval-probe.js"
+      ],
+      "suites": [
+        "probe-eval"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "probe under change"
+    },
+    {
+      "match": [
+        "scripts/agent-inputs-probe.js"
+      ],
+      "suites": [
+        "probe-inputs"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "probe under change"
+    },
+    {
+      "match": [
+        "scripts/agent-waits-probe.js"
+      ],
+      "suites": [
+        "probe-waits"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "probe under change"
+    },
+    {
+      "match": [
+        "scripts/agent-transform-probe.js"
+      ],
+      "suites": [
+        "probe-transform"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "probe under change"
+    },
+    {
+      "match": [
+        "scripts/p110-api-matrix.js"
+      ],
+      "suites": [
+        "api-matrix"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "scenario matrix under change"
+    },
+    {
+      "match": [
+        "scripts/p111-coldstart-accept.js",
+        "scripts/p1131-packaged-captcha-check.js"
+      ],
+      "suites": [
+        "smoke"
+      ],
+      "realweb": false,
+      "full": true,
+      "why": "packaged/cold-start acceptance — needs a fresh build; Layer D"
+    },
+    {
+      "match": [
+        "scripts/p112-publish-set.js",
+        "scripts/p112-secret-scan.js",
+        "scripts/p112-fix-scanners.js"
+      ],
+      "suites": [],
+      "realweb": false,
+      "full": false,
+      "why": "publish/secret-scan tooling: no browser contract; run it manually before any publish"
+    },
+    {
+      "match": [
+        "scripts/p115-m1-bridge.js",
+        "scripts/p115-m1-eval-impl.js",
+        "scripts/p115-m2-e2e-consolidated.js",
+        "scripts/p115-m2-e2e-extension.js",
+        "scripts/p115-m2-e2e-fixture.js",
+        "scripts/p115-m3-screenshot-handler.js",
+        "scripts/p115-m3-screenshot-patch.js",
+        "scripts/p115-m4-dl-race.js"
+      ],
+      "suites": [],
+      "realweb": false,
+      "full": false,
+      "why": "one-shot patch-application provenance (already applied); no live contract"
+    },
+    {
+      "match": [
+        "scripts/mcp-e2e.js.patched",
+        "scripts/tmp-m4-grep.js"
+      ],
+      "suites": [],
+      "realweb": false,
+      "full": false,
+      "why": "disposable scratch/sentinel artifact"
+    },
+    {
+      "match": [
+        "scripts/p115-novellive-min-check.js",
+        "scripts/p115-novellive-chrome-check.js"
+      ],
+      "suites": [],
+      "realweb": false,
+      "full": false,
+      "why": "Novellive compatibility diagnostics (D6); manual, network/environment dependent"
+    },
+    {
+      "match": [
+        "scripts/test-impact.js"
+      ],
+      "suites": [
+        "rpc-unit",
+        "mcp-e2e",
+        "proctools"
+      ],
+      "realweb": false,
+      "full": true,
+      "why": "the selector itself"
+    },
+    {
+      "match": [
+        "CONTRIBUTING.md",
+        "RELEASE_NOTES.md"
+      ],
+      "suites": [],
+      "realweb": false,
+      "full": false,
+      "why": "documentation only"
+    },
+    {
+      "match": [
+        "scripts/agent-keyboard-probe.js"
+      ],
+      "suites": [
+        "probe-keyboard"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "D3-A probe under change"
+    },
+    {
+      "match": [
+        "scripts/agent-helper-probe.js"
+      ],
+      "suites": [
+        "probe-helper"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "ADR-09 Option C probe under change"
+    },
+    {
+      "match": [
+        "scripts/agent-r2-probe.js"
+      ],
+      "suites": [
+        "probe-r2"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "R2 probe under change"
+    },
+    {
+      "match": [
+        "js/menuRenderer.js",
+        "js/browserUI.js",
+        "js/tabState/**",
+        "js/webviews.js"
+      ],
+      "suites": [
+        "realweb",
+        "probe-tabs",
+        "mcp-e2e",
+        "smoke"
+      ],
+      "realweb": true,
+      "full": true,
+      "why": "renderer tab/view plumbing: the bridge asks the renderer to select tabs (agentSelectTab) and to add tabs in the background; view visibility decides which document page commands read"
+    },
+    {
+      "match": [
+        "scripts/lib/realweb-harness.js",
+        "scripts/realweb-accept.js"
+      ],
+      "suites": [
+        "realweb",
+        "rpc-unit",
+        "mcp-e2e"
+      ],
+      "realweb": true,
+      "full": true,
+      "why": "real-web harness under change — it IS the evidence for Layer C; weakening it must not silently pass"
+    },
+    {
+      "match": [
+        "scripts/lint-check.js"
+      ],
+      "suites": [
+        "lint"
+      ],
+      "realweb": false,
+      "full": false,
+      "why": "read-only lint gate: verifies it still detects findings, never writes, and propagates exit codes (0 pass / 1 findings / 2 tool error)"
+    },
+    {
+      "match": [
+        "scripts/agent-r4-overlay-probe.js"
+      ],
+      "suites": [
+        "probe-r4",
+        "probe-inputs",
+        "mcp-e2e"
+      ],
+      "realweb": true,
+      "full": false,
+      "why": "R4 overlay probe under change — it is the only evidence for the debug overlay contract; a weakening must not pass silently"
+    }
+  ],
+  "always_full": [
+    "Electron/Chromium version change (package.json electron pin)",
+    "any change that touches authentication, grants, batch dispatch, or the preload/renderer boundary",
+    "a tool-census or schema migration",
+    "profile/launcher/bridge lifecycle or isolation",
+    "shared test-helper or process-management code",
+    "packaging/release configuration",
+    "a refactor spanning more than one capability group",
+    "an incident suggesting a security-policy bypass or silent cross-tab action"
+  ]
+}

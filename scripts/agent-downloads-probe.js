@@ -14,6 +14,7 @@ const PROFILE = path.join(RUN_DIR, 'profile')
 const DISC = PROFILE + '-development/agent-rpc.json'
 const DL_ROOT = PROFILE + '-development' + path.sep + 'agent-downloads'
 const bin = require('electron')
+const pt = require(path.join(__dirname, 'lib', 'proctools.js'))
 const PAGE = '<!doctype html><html><head><title>DL Fixture</title></head><body>' +
   '<h1>Download Fixture</h1>' +
   '<a id="dl1" href="/small">download small</a>' +
@@ -118,29 +119,43 @@ function check (name, ok, detail) {
 }
 const appUrl = () => 'http://127.0.0.1:' + srvPort + '/'
 
+let procHandle = null
+const killTree = function () { try { pt.killTree(procHandle) } catch (e) { /* ignore */ } }
 ;(async () => {
   fs.mkdirSync(RUN_DIR, { recursive: true })
-  /* guarantee no stray Min instance absorbs this run (single-instance lock) */
-  const { execSync } = require('child_process')
-  for (let k = 0; k < 10; k++) {
-    let n = '0'
-    try { n = execSync('tasklist /FI "IMAGENAME eq electron.exe" | find /I /C "electron.exe"').toString().trim()[0] } catch (e) { break }
-    if (n === '0') break
-    try { execSync('taskkill /F /IM electron.exe /T') } catch (e2) { }
-    await sleep(1000)
-  }
+  /* P1-12-VPS reconciliation: no process-name-wide pre-kill. This probe uses a
+   * dedicated profile plus tracked-PID/targeted /PID cleanup on every exit path
+   * (see killTree below); the broad electron.exe kill loop was removed because it
+   * could terminate unrelated Electron applications (user sessions, the active
+   * VPS test session, other Min instances). */
   fs.rmSync(RUN_DIR, { recursive: true, force: true })
   fs.mkdirSync(RUN_DIR, { recursive: true })
   await new Promise(r => srv.listen(0, '127.0.0.1', r))
   srvPort = srv.address().port
+  /* P1-12-VPS reconciliation: process-leak fix. The Min process used to be spawned
+   * detached + unref'd and was never terminated on any exit path, leaving orphan
+   * Electron processes after every run. It is now spawned in-tree, tracked, and
+   * terminated with targeted /PID cleanup in both the success and failure paths. */
   const proc = spawn(bin, ['.', '--development-mode', '--user-data-dir=' + PROFILE, '--agent-rpc', '--', appUrl() + 'page.html'],
-    { cwd: ROOT, windowsHide: true, stdio: 'ignore', detached: true })
-  proc.unref()
-  for (let i = 0; i < 250; i++) { try { JSON.parse(fs.readFileSync(DISC, 'utf8')); break } catch (e) { await sleep(400) } }
-  await sleep(2500)
-  const tabsF = await rpc('browser_tabs', {})
-  tabId = (((tabsF.result || {}).tabs || []).find(t => t.active) || {}).tabId
-  check('bridge + fixture ready', !!tabId, JSON.stringify(tabsF.error || 'no tabs'))
+    { cwd: ROOT, windowsHide: true, stdio: 'ignore' })
+  procHandle = proc.pid /* tracked for targeted /PID cleanup on every exit path */
+  /* P1-12-VPS reconciliation (P1-14 migration): bounded readiness poll via the
+   * shared tested helper — tolerates transient empty/empty-shell tab reads and
+   * requires the launcher's start-URL tab enumerated and fully loaded; fails
+   * after the bound instead of masking a browser that never becomes ready. */
+  const tabsReady = await pt.pollReadiness(
+    async function () {
+      const frames = ((await rpc('browser_tabs', {})).result) || {}
+      return frames.tabs || []
+    },
+    pt.tabsStablePredicate('page.html'),
+    { timeoutMs: 30000, intervalMs: 400 }
+  ).then(r => r.value).catch(function (e) {
+    check('readiness poll: browser never became ready (PT_TIMEOUT)', false, String(e.code) + ' after ' + e.elapsedMs + 'ms')
+    return null
+  })
+  tabId = tabsReady ? ((tabsReady.find(t => t.active) || tabsReady[0] || {}).tabId) : null
+  check('bridge + fixture ready (bounded readiness poll)', !!tabId, JSON.stringify({ tabs: tabsReady ? tabsReady.length : 0 }))
 
   /* 1. policy: bad relPaths and URLs are rejected BEFORE any download starts */
   total += 9
@@ -264,11 +279,13 @@ const appUrl = () => 'http://127.0.0.1:' + srvPort + '/'
   const ids = new Set((listing2.managed || []).map(x => x.downloadId))
   check('all managed job ids unique (no state mixing)', ids.size === (listing2.managed || []).length, '')
   console.log('\\n' + passed + '/' + total + ' checks passed')
+  killTree() /* P1-12-VPS: process-leak fix - targeted Min tree termination on every exit path */
   srv.close()
   process.exit(passed === total ? 0 : 2)
 })().catch(e => {
   console.log('fatal ' + e.message)
   console.log(passed + '/' + total + ' checks passed before failure')
+  killTree() /* P1-12-VPS: process-leak fix - targeted Min tree termination on every exit path */
   srv.close()
   process.exit(2)
 })

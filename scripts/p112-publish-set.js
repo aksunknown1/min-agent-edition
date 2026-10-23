@@ -3,7 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const rules = fs.readFileSync('.gitignore', 'utf8').split('\n').map(l => l.trim())
+const rules = ['/.git/'].concat(fs.readFileSync('.gitignore', 'utf8').split('\n').map(l => l.trim()))
   .filter(l => l && !l.startsWith('#'))
 
 function ignored (rel) {

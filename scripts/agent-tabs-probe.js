@@ -12,6 +12,7 @@ const { spawn, spawnSync } = require('child_process')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
+const pt = require(path.join(__dirname, 'lib', 'proctools.js'))
 
 const ROOT = path.resolve(__dirname, '..')
 const RUN_DIR = path.join(os.tmpdir(), 'min-agent-tabs-probe')
@@ -57,8 +58,11 @@ const resultOf = r => JSON.parse(r.body).result
 const textOf = r => { try { return JSON.parse(resultOf(r).content[0].text) } catch (e) { return null } }
 
 async function main () {
-  try { spawnSync('taskkill.exe', ['/IM', 'electron.exe', '/F'], { windowsHide: true }) } catch (e) { /* ignore */ }
-  await sleep(2000)
+  /* P1-12-VPS reconciliation: no process-name-wide pre-kill. This probe uses a
+   * dedicated profile + a tracked launcher whose PID is terminated on every exit
+   * path (lines below), so unrelated Electron/Min instances are irrelevant and
+   * must NEVER be terminated by name (they may belong to the user or another
+   * test session). */
   rmrf(RUN_DIR)
   fs.mkdirSync(EFFECTIVE_PROFILE, { recursive: true })
   fs.writeFileSync(path.join(EFFECTIVE_PROFILE, 'settings.json'), JSON.stringify({ experimentalExtensionHost: false }), 'utf8')
@@ -230,10 +234,10 @@ process.on('exit', function () { try { rmrf(RUN_DIR) } catch (e) { /* ignore */ 
 main().then(function (end) {
   /* kill the launcher tree and exit with the probe verdict (Windows keeps the
    * child's stdio handles open, which would otherwise hold the loop alive) */
-  try { if (launcher && launcher.pid) spawnSync('taskkill.exe', ['/F', '/T', '/PID', String(launcher.pid)]) } catch (ignored) { /* ignore */ }
+  try { if (launcher && launcher.pid) pt.killTree(launcher.pid) } catch (ignored) { /* ignore */ }
   process.exit(end || 0)
 }).catch(function (e) {
   console.error('tabs probe error: ' + e.message)
-  try { if (launcher && launcher.pid) spawnSync('taskkill.exe', ['/F', '/T', '/PID', String(launcher.pid)]) } catch (ignored) { /* ignore */ }
+  try { if (launcher && launcher.pid) pt.killTree(launcher.pid) } catch (ignored) { /* ignore */ }
   process.exit(2)
 })
