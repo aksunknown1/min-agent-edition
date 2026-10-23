@@ -39,7 +39,7 @@ body[theme="dark"] #auto-redirect-banner {
 
 body[theme="sepia"] #auto-redirect-banner {
   color: rgba(0, 0, 0, 0.75);
-  border-color: rgba(0, 0, 0, 0.15)
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 #auto-redirect-button-area {

@@ -24,7 +24,7 @@ const statistics = {
       return
     }
 
-    //avoid duplicate uploads when multiple windows are open
+    // avoid duplicate uploads when multiple windows are open
     if (!document.body.classList.contains('focused')) {
       return
     }

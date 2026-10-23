@@ -11,7 +11,10 @@ artifacts are not code-signed.**
   MCP-capable agent client can drive the browser: tabs, navigation (with post-load URL
   stability verification), DOM-first interaction (click/type/press/select/check via
   snapshot refs), semantic scrolling (`browser_scroll`), real screenshots, reversible
-  page transforms, verification tools, CAPTCHA state reporting, and agent-managed
+  page transforms, verification tools, CAPTCHA state reporting (detection is
+  informational; challenge-control clicks go through the normal verified
+  interaction path, with human handoff and page-state-verified clearance for
+  genuine human challenges), and agent-managed
   downloads under `userData/agent-downloads/`.
 - **MCP screenshot image delivery**: `browser_screenshot` returns a real image content
   block plus `screenshotId`, viewport and `cssPerPixel` metadata for grounded coordinate
@@ -101,6 +104,7 @@ artifacts are not code-signed.**
   real screenshot image block, transform apply→verify→restore, managed download under
   `userData/agent-downloads/`, no dev extension fixtures, targeted cleanup, no orphans).
 - CPU-adjacent probes: RPC 182/182, MCP E2E 56/56, transform 18/18, downloads 33/33,
-  PAV 15/15 (isolated), inputs 20/20, waits 16/16, tabs 16/16, CAPTCHA 14/14, actions
+  PAV 15/15 (isolated), inputs 20/20, waits 16/16, tabs 16/16, CAPTCHA 19/19 (P1-13
+  policy-correction suite), actions
   33/33, snapshot 27/27, NPS 38/38, updater 18/18, smoke 6/6, mouse 26/27 (documented
   wheel limitation).

@@ -44,17 +44,17 @@ var webviewGestures = {
 }
 
 var swipeGestureDistanceResetTimeout = -1
-var swipeGestureScrollResetTimeout = -1;
+var swipeGestureScrollResetTimeout = -1
 var swipeGestureLowVelocityTimeout = -1
 var swipeGestureDelay = 100 // delay before gesture is complete
-var swipeGestureScrollDelay = 750;
+var swipeGestureScrollDelay = 750
 var swipeGestureVelocityDelay = 70 // the time (in ms) that can elapse without a minimum amount of movement before the gesture is considered almost completed
 
 var horizontalMouseMove = 0
 var verticalMouseMove = 0
 
-var leftMouseMove = 0;
-var rightMouseMove = 0;
+var leftMouseMove = 0
+var rightMouseMove = 0
 
 var beginningScrollLeft = null
 var beginningScrollRight = null
@@ -87,15 +87,15 @@ function resetScrollCounters () {
 }
 
 function onSwipeGestureLowVelocity () {
-  //we can't detect scroll position in an iframe, so never trigger a back gesture from it
+  // we can't detect scroll position in an iframe, so never trigger a back gesture from it
   if (isInFrame) {
     return
   }
 
-  webviews.callAsync(tabs.getSelected(), 'getZoomFactor', function(err, result) {
-    const minScrollDistance = 150 * result;
+  webviews.callAsync(tabs.getSelected(), 'getZoomFactor', function (err, result) {
+    const minScrollDistance = 150 * result
 
-      if ((leftMouseMove / rightMouseMove > 5) || (rightMouseMove / leftMouseMove > 5)) {
+    if ((leftMouseMove / rightMouseMove > 5) || (rightMouseMove / leftMouseMove > 5)) {
       // swipe to the left to go forward
       if (leftMouseMove - beginningScrollRight > minScrollDistance && Math.abs(horizontalMouseMove / verticalMouseMove) > 3) {
         if (beginningScrollRight < 5) {

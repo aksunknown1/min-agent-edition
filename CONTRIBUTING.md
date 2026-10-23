@@ -47,12 +47,24 @@ npm run probe:inputs        # 20    probe:waits 16    probe:captcha 14   probe:n
 node scripts/p1-07-updater-test.js   # filter updater resilience (18)
 npm run smoke:baseline      # app cold-start smoke (6)
 node scripts/extension-probe.js      # extension-host compatibility evidence
+node scripts/proctools-test.js       # shared process-cleanup/readiness helper tests (9)
 ```
+
+Probe safety contract (P1-14 hygiene): all probes terminate ONLY processes they
+spawned themselves (targeted `taskkill /PID <pid> /T` via `scripts/lib/proctools.js`);
+process-name-wide kills (`/IM electron.exe`) are forbidden — they can destroy
+unrelated user sessions. Readiness polls are bounded and fail when the browser never
+becomes ready.
 
 Known platform limitations (documented honestly, not bugs to "fix" here): mouse-wheel
 page delivery is unreliable on this Electron/OS build (use `browser_scroll`); durable
 synthetic hover is not guaranteed; the installer is unsigned; agent extension loading is
 an experimental development path.
+
+Known separate follow-up items (outside the runtime suite): `npm test` (standard lint)
+currently reports upstream style problems — separate hygiene task; `npm audit` reports
+inherited upstream advisories — evaluate on a dependency-update task, not during
+feature work.
 
 ## Repository layout notes
 

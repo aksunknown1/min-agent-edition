@@ -84,65 +84,65 @@ function create (options) {
   let generation = 0
   let lastStatus = { startedAt: null, lastSuccessAt: null, lastError: null, promoted: false }
 
-function fetchWithPolicy (urlStr, extraHeaders, timeoutMs, maxBytes, redirectsLeft, cb) {
-  let u
-  try { u = new URL(urlStr) } catch (e) { return cb(new Error('invalid url')) }
-  /* localhost http permitted (loopback-only, used by test fixtures and local
+  function fetchWithPolicy (urlStr, extraHeaders, timeoutMs, maxBytes, redirectsLeft, cb) {
+    let u
+    try { u = new URL(urlStr) } catch (e) { return cb(new Error('invalid url')) }
+    /* localhost http permitted (loopback-only, used by test fixtures and local
    * diagnostics); all non-loopback sources remain https-only. */
-  if (u.protocol !== 'https:' && u.hostname !== '127.0.0.1' && u.hostname !== 'localhost') return cb({ name: 'http-status', code: 0, message: 'non-https url rejected' })
-  const transport = (u.protocol === 'https:') ? https : require('http')
-  const req = transport.request({
-    hostname: u.hostname,
-    port: u.port || (u.protocol === 'https:' ? 443 : 80),
-    path: u.pathname + u.search,
-    method: 'GET',
-    headers: Object.assign({ 'user-agent': 'Min-Agent-Edition filter updater' }, extraHeaders || {})
-  })
-  req.setTimeout(timeoutMs, function () { req.destroy(new Error('timeout')) })
-  req.on('response', function (res) {
-    let settled = false
-    if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-      if (redirectsLeft <= 0) { res.resume(); return cb(new Error('too many redirects')) }
-      let next
-      try { next = new URL(res.headers.location, currentSafeUrl(u)) } catch (eR) { res.resume(); return cb(new Error('invalid redirect target')) }
-      const localTest = (u.hostname === '127.0.0.1' || u.hostname === 'localhost')
-      const sameHost = (next.hostname === u.hostname)
-      if (next.protocol !== 'https:' && !(localTest && sameHost)) { res.resume(); return cb(new Error('non-https redirect rejected')) }
-      if (next.hostname !== APPROVED_HOST && !sameHost) { res.resume(); return cb(new Error('redirect to unapproved host rejected')) }
-      res.resume()
-      return fetchWithPolicy(next.toString(), extraHeaders, timeoutMs, maxBytes, redirectsLeft - 1, cb)
-    }
-    if (res.statusCode !== 200) {
-      const code = res.statusCode
-      res.resume()
-      return cb({ name: 'http-status', code: code, message: 'http status ' + code })
-    }
-    const chunks = []
-    const seen = { size: 0 }
-    res.on('data', function (c) {
-      if (settled) return
-      seen.size += c.length
-      if (seen.size > maxBytes) {
-        settled = true
-        req.destroy(new Error('response exceeds byte limit'))
-        return cb(new Error('response exceeds byte limit'))
+    if (u.protocol !== 'https:' && u.hostname !== '127.0.0.1' && u.hostname !== 'localhost') return cb({ name: 'http-status', code: 0, message: 'non-https url rejected' })
+    const transport = (u.protocol === 'https:') ? https : require('http')
+    const req = transport.request({
+      hostname: u.hostname,
+      port: u.port || (u.protocol === 'https:' ? 443 : 80),
+      path: u.pathname + u.search,
+      method: 'GET',
+      headers: Object.assign({ 'user-agent': 'Min-Agent-Edition filter updater' }, extraHeaders || {})
+    })
+    req.setTimeout(timeoutMs, function () { req.destroy(new Error('timeout')) })
+    req.on('response', function (res) {
+      let settled = false
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        if (redirectsLeft <= 0) { res.resume(); return cb(new Error('too many redirects')) }
+        let next
+        try { next = new URL(res.headers.location, currentSafeUrl(u)) } catch (eR) { res.resume(); return cb(new Error('invalid redirect target')) }
+        const localTest = (u.hostname === '127.0.0.1' || u.hostname === 'localhost')
+        const sameHost = (next.hostname === u.hostname)
+        if (next.protocol !== 'https:' && !(localTest && sameHost)) { res.resume(); return cb(new Error('non-https redirect rejected')) }
+        if (next.hostname !== APPROVED_HOST && !sameHost) { res.resume(); return cb(new Error('redirect to unapproved host rejected')) }
+        res.resume()
+        return fetchWithPolicy(next.toString(), extraHeaders, timeoutMs, maxBytes, redirectsLeft - 1, cb)
       }
-      chunks.push(c)
-    })
-    res.on('end', function () {
-      cb(null, {
-        status: 'updated',
-        body: Buffer.concat(chunks),
-        etag: res.headers.etag || null,
-        lastModified: res.headers['last-modified'] || null,
-        bytes: seen.size
+      if (res.statusCode !== 200) {
+        const code = res.statusCode
+        res.resume()
+        return cb({ name: 'http-status', code: code, message: 'http status ' + code })
+      }
+      const chunks = []
+      const seen = { size: 0 }
+      res.on('data', function (c) {
+        if (settled) return
+        seen.size += c.length
+        if (seen.size > maxBytes) {
+          settled = true
+          req.destroy(new Error('response exceeds byte limit'))
+          return cb(new Error('response exceeds byte limit'))
+        }
+        chunks.push(c)
       })
+      res.on('end', function () {
+        cb(null, {
+          status: 'updated',
+          body: Buffer.concat(chunks),
+          etag: res.headers.etag || null,
+          lastModified: res.headers['last-modified'] || null,
+          bytes: seen.size
+        })
+      })
+      res.on('error', function (e2) { cb(e2) })
     })
-    res.on('error', function (e2) { cb(e2) })
-  })
-  req.on('error', function (e3) { cb(e3) })
-  req.end()
-}
+    req.on('error', function (e3) { cb(e3) })
+    req.end()
+  }
 
   function sourcesList () {
     if (cfg.sourcesOverride && cfg.sourcesOverride.length) return cfg.sourcesOverride

@@ -113,7 +113,7 @@
       class="theme-background-color theme-text-color windowDragHandle"
       tabindex="-1"
     >
-    <div id="mac-window-drag-area"></div>
+      <div id="mac-window-drag-area"></div>
       <button
         id="menu-button"
         class="navbar-action-button i carbon:overflow-menu-vertical"
@@ -121,18 +121,18 @@
         tabindex="-1"
       ></button>
       <div id="toolbar-navigation-buttons" hidden>
-          <button
+        <button
           id="back-button"
           class="navbar-action-button i carbon:chevron-left"
           data-label="goBack"
           tabindex="-1"
         ></button>
         <button
-        id="forward-button"
-        class="navbar-action-button i carbon:chevron-right"
-        data-label="goForward"
-        tabindex="-1"
-      ></button>
+          id="forward-button"
+          class="navbar-action-button i carbon:chevron-right"
+          data-label="goForward"
+          tabindex="-1"
+        ></button>
       </div>
       <div id="tabs">
         <div id="tab-editor" hidden>
@@ -201,11 +201,13 @@
       </div>
       <img id="webview-placeholder" hidden aria-hidden="true" />
       <div id="ntp-content">
-          <img id="ntp-background" hidden>
-          <div id="ntp-background-controls">
-            <button id="ntp-image-remove"><i class="i carbon:trash-can"></i></button>
-            <button id="ntp-image-picker"><i class="i carbon:camera"></i></button>
-          </div>
+        <img id="ntp-background" hidden />
+        <div id="ntp-background-controls">
+          <button id="ntp-image-remove">
+            <i class="i carbon:trash-can"></i>
+          </button>
+          <button id="ntp-image-picker"><i class="i carbon:camera"></i></button>
+        </div>
       </div>
     </div>
 
@@ -232,15 +234,12 @@
     </div>
 
     <div id="task-overlay" class="" hidden tabindex="-1">
-      <div
-        class="simulated-navbar windowDragHandle"
-        id="task-overlay-navbar"
-      >
-      <div class="task-search-input-container">
-        <i class="i carbon:search"></i>
-        <input type="search" id="task-search-input"/>
+      <div class="simulated-navbar windowDragHandle" id="task-overlay-navbar">
+        <div class="task-search-input-container">
+          <i class="i carbon:search"></i>
+          <input type="search" id="task-search-input" />
+        </div>
       </div>
-    </div>
       <div id="task-area"></div>
       <button id="add-task">
         <i class="i carbon:new-tab"></i>
@@ -323,8 +322,8 @@
         ></button>
       </span>
       <button
-      id="password-capture-never-save"
-      data-string="passwordCaptureNeverSave"
+        id="password-capture-never-save"
+        data-string="passwordCaptureNeverSave"
       ></button>
     </div>
 
@@ -338,9 +337,15 @@
       ></div>
       <div id="password-viewer-list"></div>
       <div id="password-viewer-import-container">
-        <button id="password-viewer-import"><span class="i carbon:document-import"></span><span data-string="importCredentials"></span></button>
-        <button id="password-viewer-export"><span class="i carbon:export"></span><span data-string="exportCredentials"></span></button>
-</div>
+        <button id="password-viewer-import">
+          <span class="i carbon:document-import"></span
+          ><span data-string="importCredentials"></span>
+        </button>
+        <button id="password-viewer-export">
+          <span class="i carbon:export"></span
+          ><span data-string="exportCredentials"></span>
+        </button>
+      </div>
     </div>
 
     <!-- add scripts in Gruntfile.js -->

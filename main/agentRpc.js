@@ -1,11 +1,24 @@
-/* Phase 1 agent-control bridge - transport + status/tabs only.
+/* Agent-control bridge (Phase 1 transport/auth; P0/P1 commands since).
 
- * Design authority: docs/PHASE1-DESIGN.md. Implemented sections: 2 (transport),
- * 3 (auth), 4 (envelope/errors), and the browser_status / browser_tabs commands
- * of 5. Deliberately NOT implemented here: snapshot, click, type, press,
- * screenshot, and anything that touches page content. There is no
- * executeJavaScript, no callViewMethod routing, no debugger/CDP, no fs access
- * from a request value, and no navigation.
+ * Design authority: docs/PHASE1-DESIGN.md. Phase 1 implemented sections 2
+ * (transport), 3 (auth), 4 (envelope/errors) and the browser_status /
+ * browser_tabs commands of 5. Later phases added the full command surface
+ * (snapshot, click, type, press, mouse, screenshot, eval, transforms,
+ * downloads, batch, viewport, state, verify, predict, grants).
+ *
+ * CORRECTED 2026-10-19 (Phase E / D1-F15). This header previously claimed the
+ * opposite of what the file does. For the record, the current boundaries:
+ *   - There IS page-context execution: webContents.executeJavaScript runs the
+ *     fixed source of AGENT_SNAPSHOT_PAGE_FN and AGENT_EVAL_PAGE_FN, with the
+ *     caller's data passed as JSON-string arguments.
+ *   - There IS navigation (agentRpcValidateUrl + scheme allowlist) and there IS
+ *     filesystem access - download destinations under <userData>/agent-downloads,
+ *     validated by agentRpcDlValidateRelPath + agentRpcDlContainmentOk. No
+ *     request VALUE ever reaches fs unvalidated.
+ *   - There is NO callViewMethod routing, and NO debugger/CDP. Raw CDP is a
+ *     deliberate permanent refusal (docs/audit/INTEGRATED-TARGET-ARCHITECTURE.md
+ *     ADR-02): the bridge reaches pages only through executeJavaScript,
+ *     sendInputEvent, insertText and capturePage.
 
  * Enabling: the literal command-line argument --agent-rpc, matching the existing
  * --development-mode / --debug-browser pattern (main/main.js:35-36). It is never
@@ -31,7 +44,9 @@ const AGENT_RPC_AUTH_COOLDOWN_MS = 15000
 const AGENT_RPC_DISCOVERY_FILE = 'agent-rpc.json'
 
 /* Closed set. An unknown method is never proxied to anything. */
-const AGENT_RPC_METHODS = ["browser_batch","browser_check","browser_click","browser_content","browser_download_cancel","browser_download_pause","browser_download_resume","browser_download_start","browser_download_wait","browser_downloads","browser_grant","browser_hover","browser_mouse","browser_navigate","browser_predict","browser_press","browser_screenshot","browser_scroll","browser_select","browser_snapshot","browser_state","browser_status","browser_tab_close","browser_tab_open","browser_tab_select","browser_tabs","browser_transform","browser_transform_status","browser_type","browser_verify","browser_wait"]/* P1-06: 31 methods */
+var AGENT_RPC_PRESS_QUEUE = {}
+var AGENT_RPC_PRESS_QUEUE_LEN = {}
+const AGENT_RPC_METHODS = ['browser_health', 'browser_pdf', 'browser_upload', 'browser_frames', 'browser_helper_list', 'browser_helper', 'browser_batch', 'browser_check', 'browser_click', 'browser_content', 'browser_download_cancel', 'browser_download_pause', 'browser_download_resume', 'browser_download_start', 'browser_download_wait', 'browser_downloads', 'browser_grant', 'browser_hover', 'browser_mouse', 'browser_navigate', 'browser_predict', 'browser_press', 'browser_screenshot', 'browser_scroll', 'browser_select', 'browser_snapshot', 'browser_state', 'browser_status', 'browser_tab_close', 'browser_tab_open', 'browser_tab_select', 'browser_tabs', 'browser_transform', 'browser_eval', 'browser_transform_status', 'browser_type', 'browser_verify', 'browser_viewport', 'browser_wait']/* P1-15: 33 methods */
 
 /* Per-method parameter schemas (P0-09/P0-10). Everything not listed is
  * rejected for that method; fields declared here are validated by
@@ -39,22 +54,57 @@ const AGENT_RPC_METHODS = ["browser_batch","browser_check","browser_click","brow
 const AGENT_RPC_TYPE_TEXT_MAX = 1000
 const AGENT_RPC_PARAM_SCHEMAS = {
   browser_status: {},
+  browser_health: {},
+  browser_pdf: {
+    tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
+    landscape: { type: 'boolean', required: false },
+    printBackground: { type: 'boolean', required: false },
+    pageSize: { type: 'string', required: false, enum: ['A4', 'A5', 'A3', 'Letter', 'Legal', 'Tabloid', 'Ledger'] },
+    margins: { type: 'boolean', required: false },
+    maxBytes: { type: 'number', required: false, integer: true, min: 20000, max: 8388608 }
+  },
   browser_tabs: {},
+  browser_helper_list: {},
+  browser_helper: {
+    /* ADR-09 Option C: invoke a REGISTERED read-only built-in by id. The helper
+       * id is the only selector; a caller can never name an arbitrary tool. */
+    helper: { type: 'string', required: true, maxLength: 64, noControl: true },
+    tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
+    version: { type: 'number', required: false, integer: true, min: 1, max: 1000 },
+    maxNodes: { type: 'number', required: false, integer: true, min: 1, max: 200 },
+    limit: { type: 'number', required: false, integer: true, min: 1, max: 60 }
+  },
   browser_snapshot: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
-    format: { type: 'string', required: false, enum: ['json', 'text'] },
-    maxNodes: { type: 'number', required: false, min: 1, max: 1000, integer: true }
+    format: { type: 'string', required: false, enum: ['json', 'text', 'ax'] },
+    maxNodes: { type: 'number', required: false, min: 1, max: 1000, integer: true },
+    /* P1-15/D1-F5: agentRpcCommandSnapshot already implements a bounded settle
+       * delay, but the parameter was not in the schema - and unknown keys are
+       * REJECTED, not ignored - so the handler could never see it. */
+    waitMs: { type: 'number', required: false, min: 0, max: 5000, integer: true }
   },
   browser_click: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
-    ref: { type: 'string', required: true, pattern: /^r[0-9a-z]{1,12}$/ }
+    ref: { type: 'string', required: true, pattern: /^r[0-9a-z]{1,12}$/ },
+    /* P1-15 M2: 'none' returns immediately after dispatch with an honest
+     * unverified status (for canvas/custom-render surfaces where immediate
+     * DOM-based verification is not meaningful). */
+    verification: { type: 'string', required: false, enum: ['standard', 'none'] }
   },
   browser_type: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
     ref: { type: 'string', required: true, pattern: /^r[0-9a-z]{1,12}$/ },
     /* No control characters: input events cannot represent them and they are
      * a common injection carrier. Checked without a regex (see validator). */
-    text: { type: 'string', required: true, maxLength: AGENT_RPC_TYPE_TEXT_MAX, noControl: true }
+    text: { type: 'string', required: true, maxLength: AGENT_RPC_TYPE_TEXT_MAX, noControl: true },
+    /* Phase E / D3-A: how the text reaches the field.
+     *   native   (default) - one native insertText, fastest, unchanged.
+     *   keyboard - one trusted keyDown/char/keyUp per character, for
+     *              framework/controlled inputs that ignore a bulk insert and
+     *              whose own key handlers drive their state.
+     * Neither mode fabricates OS/physical keyboard delivery beyond what
+     * sendInputEvent actually performs. */
+    mode: { type: 'string', required: false, enum: ['native', 'keyboard'] }
   },
   browser_navigate: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
@@ -75,16 +125,32 @@ const AGENT_RPC_PARAM_SCHEMAS = {
   browser_press: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
     /* Closed enum, case-sensitive, no chords or modifiers in this task. */
-    key: { type: 'string', required: true, enum: ['Enter', 'Tab', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', 'Backspace', 'Delete'] }
+    key: { type: 'string', required: true, enum: ['Enter', 'Tab', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', 'Backspace', 'Delete'] },
+    verification: { type: 'string', required: false, enum: ['standard', 'none'] }
   },
   browser_screenshot: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
+    /* P1-15 M3: adaptive fallback ladder + element capture + explicit byte cap. */
+    maxBytes: { type: 'number', required: false, integer: true, min: 5000, max: 5242880 },
+    selector: { type: 'string', required: false, maxLength: 300 },
     /* P1-06: optional encoding/size controls. maxWidth/maxHeight downscale the
      * image with aspect ratio preserved. */
     format: { type: 'string', required: false, enum: ['png', 'jpeg'] },
     quality: { type: 'number', required: false, min: 1, max: 100, integer: true },
     maxWidth: { type: 'number', required: false, min: 16, max: 4096, integer: true },
-    maxHeight: { type: 'number', required: false, min: 16, max: 4096, integer: true }
+    maxHeight: { type: 'number', required: false, min: 16, max: 4096, integer: true },
+    /* R2 / D1: bounded scroll-stitch full-page capture. Electron 43 cannot
+     * capture beyond the viewport, so this stitches viewport slices. */
+    fullPage: { type: 'boolean', required: false },
+    maxSlices: { type: 'number', required: false, integer: true, min: 1, max: 24 }
+  },
+  browser_upload: {
+    tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
+    ref: { type: 'string', required: true, pattern: /^r[0-9a-z]{1,12}$/ },
+    relPath: { type: 'string', required: true, maxLength: 240, noControl: true }
+  },
+  browser_frames: {
+    tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ }
   },
   browser_mouse: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
@@ -124,7 +190,7 @@ const AGENT_RPC_PARAM_SCHEMAS = {
    * meant every key was "unknown or unsupported parameter"). */
   browser_content: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
-    maxChars: { type: 'number', required: false, integer: true, min: 1000, max: 50000 }
+    maxChars: { type: 'number', required: false, integer: true, min: 200, max: 50000 }
   },
   browser_hover: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
@@ -148,11 +214,24 @@ const AGENT_RPC_PARAM_SCHEMAS = {
   },
   browser_wait: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
-    until: { type: 'string', required: true, enum: ['network_idle', 'selector_visible'] },
+    until: { type: 'string', required: true, enum: ['network_idle', 'selector_visible', 'ready_state'] },
     selector: { type: 'string', required: false, maxLength: 200, noControl: true },
+    quietMs: { type: 'number', required: false, integer: true, min: 300, max: 10000 },
+    maxQuietMs: { type: 'number', required: false, integer: true, min: 800, max: 10000 },
     timeoutMs: { type: 'number', required: false, integer: true, min: 1000, max: 20000 }
   },
   browser_downloads: {},
+  browser_eval: {
+    tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
+    expression: { type: 'string', required: true, min: 1, max: 20000 },
+    awaitPromise: { type: 'boolean', required: false },
+    timeoutMs: { type: 'number', required: false, integer: true, min: 1000, max: 30000 },
+    maxResultChars: { type: 'number', required: false, integer: true, min: 1000, max: 200000 }
+  },
+  browser_viewport: {
+    tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
+    zoom: { type: 'number', required: false, min: 0.25, max: 3 }
+  },
   /* P1-05: agent-managed downloads. url is an http/https absolute URL
    * (deeper policy checks live in the command); relPath is a relative path
    * inside the approved agent download root; armMs arms tab-local adoption
@@ -175,7 +254,11 @@ const AGENT_RPC_PARAM_SCHEMAS = {
    * tabId is optional at the bridge layer — it defaults to the selected tab
    * of the first live window; the MCP tool keeps it required. */
   browser_state: {
-    tabId: { type: 'string', required: false, pattern: /^[0-9]{1,20}$/ }
+    tabId: { type: 'string', required: false, pattern: /^[0-9]{1,20}$/ },
+    /* R4: probe-only opt-in for the debug-click overlay report. It never enables
+     * rendering by itself; it only asks for the object to be returned even when
+     * the profile flag is off, so a probe can assert the default-disabled state. */
+    debugOverlay: { type: 'boolean', required: false }
   },
   /* P1-04: reversible rendered-page transformations (local session only).
    * actions = bounded JSON array; entries validated + identity-checked; per-
@@ -206,7 +289,12 @@ const AGENT_RPC_PARAM_SCHEMAS = {
   },
   browser_batch: {
     tabId: { type: 'string', required: true, pattern: /^[0-9]{1,20}$/ },
-    actions: { type: 'string', required: true, maxLength: 24000, noControl: true }
+    actions: { type: 'string', required: true, maxLength: 24000, noControl: true },
+    /* P1-15 M2: stopOnError (default true) — with false, a failing step is
+     * reported and later steps continue; recoverStale (default false) — one
+     * identity-strict re-resolve+retry on ref_stale per failed step. */
+    stopOnError: { type: 'boolean', required: false },
+    recoverStale: { type: 'boolean', required: false }
   }
 }
 
@@ -364,12 +452,26 @@ var AGENT_RPC_COMMAND_HTTP_STATUS = {
   sensitive_field: 403,
   risky_action: 403,
   disabled: 409,
+  readonly: 409,
   ref_stale: 404,
   ref_mismatch: 404,
   load_failed: 502,
   screenshot_too_large: 413,
   last_tab: 409,
-  captcha_handoff_required: 409
+  captcha_handoff_required: 409,
+  /* P1-15/D1-F7: every category a command can emit must be listed here.
+     * Anything missing falls through to HTTP 500, which tells a client the
+     * bridge crashed when it was in fact an expected, structured outcome. */
+  busy: 429,
+  download_not_found: 404,
+  invalid_results: 500,
+  eval_rejected: 502,
+  eval_exception: 502,
+  /* page CSP prevents page-world evaluation: an environment limitation of the
+     * target page, reported as 409 (conflict with the page policy) rather than
+     * a generic 500. */
+  csp_blocked: 409,
+  internal: 500
 }
 
 /* P0-13: purchase/payment-named clicks are still refused by default, but the
@@ -441,7 +543,7 @@ function agentRpcConsumeGrant (action, tabId, ref) {
  * allowedSchemes can only RESTRICT the built-in protocol set (unknown schemes
  * are dropped). Defaults: deny both categories; built-in schemes apply. */
 function agentRpcReadPolicy () {
-  const defaults = { allowRiskyClicks: false, allowSensitiveTyping: false, allowedSchemes: null }
+  const defaults = { allowRiskyClicks: false, allowSensitiveTyping: false, allowedSchemes: null, debugClickOverlay: false }
   const candidates = []
   try { candidates.push(userDataPath) } catch (e2) { /* not ready */ }
   try { candidates.push(String(userDataPath).replace(/-development$/, '')) } catch (e3) { /* ignore */ }
@@ -451,7 +553,10 @@ function agentRpcReadPolicy () {
       const out = {
         allowRiskyClicks: parsed.allowRiskyClicks === true,
         allowSensitiveTyping: parsed.allowSensitiveTyping === true,
-        allowedSchemes: null
+        allowedSchemes: null,
+        /* R4: opt-in diagnostic overlay. Default OFF; a profile must set this
+         * explicitly. It has no effect on click dispatch or verification. */
+        debugClickOverlay: parsed.debugClickOverlay === true
       }
       if (Array.isArray(parsed.allowedSchemes)) {
         out.allowedSchemes = parsed.allowedSchemes.map(function (s) {
@@ -474,6 +579,54 @@ function agentRpcEffectiveProtocols () {
     if (AGENT_RPC_ALLOWED_PROTOCOLS[s + ':']) eff[s + ':'] = 1
   })
   return eff
+}
+
+/* ADR-11 seam 3 (policy.js): make the policy evaluator ADDRESSABLE AS A UNIT.
+ *
+ * The same decision shape was duplicated inline in two handlers:
+ *   if (!policy.allowRiskyClicks  && !agentRpcConsumeGrant('risky_click', ...))
+ *   if (!policy.allowSensitiveTyping && !agentRpcConsumeGrant('sensitive_type', ...))
+ * which is the "duplicated policy decision" seam 3 exists to remove.
+ *
+ * This adds ONE evaluator that answers "is this action permitted by policy?"
+ * WITHOUT mutating grant state (read-only peek), so callers keep the existing
+ * ordering: policy pre-authorization first, then a SINGLE-USE grant consume.
+ * Behaviour is unchanged - both handlers still consume exactly once.
+ *
+ * Deliberately not a dispatcher (no policy name is reachable over the bridge)
+ * and deliberately not permissive: an unknown action denies. */
+const AGENT_RPC_POLICY_ACTIONS = {
+  risky_click: 'allowRiskyClicks',
+  sensitive_type: 'allowSensitiveTyping'
+}
+
+function agentRpcHasGrant (action, tabId, ref) {
+  agentRpcPruneGrants()
+  for (let i = 0; i < AGENT_RPC_GRANTS.length; i++) {
+    const g = AGENT_RPC_GRANTS[i]
+    const refOk = g.ref === undefined || g.ref === null || g.ref === ref
+    if (g.action === action && g.tabId === String(tabId) && refOk) return true
+  }
+  return false
+}
+
+function agentRpcPolicyAllows (action, ctx) {
+  if (!Object.prototype.hasOwnProperty.call(AGENT_RPC_POLICY_ACTIONS, String(action))) return false
+  const flag = AGENT_RPC_POLICY_ACTIONS[action]
+  let policy = null
+  try { policy = agentRpcReadPolicy() } catch (eP) { policy = null }
+  return !!(policy && policy[flag] === true)
+}
+
+/* True when policy OR a live single-use grant authorises the action, WITHOUT
+ * consuming it. Callers then consume separately (see the handlers) so a grant
+ * stays one-shot. Kept for evaluators/helpers that need a dry-run answer. */
+function agentRpcPolicyWouldAllow (action, ctx) {
+  if (agentRpcPolicyAllows(action, ctx)) return true
+  try {
+    if (!ctx || ctx.tabId === undefined || ctx.tabId === null) return false
+    return agentRpcHasGrant(action, ctx.tabId, ctx.ref)
+  } catch (eG) { return false }
 }
 
 function agentRpcCommandGrant (params) {
@@ -717,6 +870,596 @@ function agentRpcTabSummaries () {
   return out
 }
 
+/* ---------- curated read-only built-ins (Phase E / ADR-09 Option C) ----------
+ *
+ * These are DATA, not code. A built-in is a fixed, ordered list of calls to
+ * the audited read-only tool allowlist below. The runner never accepts a tool
+ * name from a parameter, never lets a caller reorder/inject steps, and never
+ * evaluates anything. There is no eval/Function/require/shell/child_process/fs,
+ * no dependency install, no raw CDP and no event drain anywhere in this path.
+ *
+ * Page content is UNTRUSTED DATA: it can influence only the *values* reported in
+ * the result, never which tools run or what privileges apply. A webpage cannot
+ * "ask" a built-in to call browser_grant - browser_grant is not even in the
+ * allowlist, and the catalogue is frozen at load time.
+ *
+ * Each built-in is read-only: it observes page state and returns bounded
+ * metadata. It never clicks, types, navigates, transforms, downloads, changes
+ * zoom/tabs/settings, and never claims that observing a page proves a remote
+ * site persisted a change. */
+
+/* Closed capability allowlist. Anything not listed here can never run inside a
+ * built-in, regardless of what a definition or a caller asks for. Deliberately
+ * EXCLUDED: browser_eval (arbitrary page-world code, can mutate page state),
+ * browser_grant, browser_batch, browser_health, every input tool, navigation,
+ * transforms, viewport, downloads/uploads, pdf/screenshot, raw CDP. */
+const AGENT_RPC_HELPER_ALLOWED_TOOLS = Object.freeze({
+  browser_state: true,
+  browser_snapshot: true,
+  browser_content: true,
+  browser_verify: true,
+  browser_tabs: true,
+  browser_status: true
+})
+
+/* Fixed, versioned catalogue. Definitions are deep-frozen and their step lists
+ * are validated against the allowlist at load time, so a tampered definition
+ * fails closed before any page is touched. */
+const AGENT_RPC_HELPER_CATALOGUE = (function () {
+  const defs = {
+    page_summary: {
+      id: 'page_summary',
+      version: 1,
+      readOnly: true,
+      /* ordered, fixed */
+      steps: ['browser_state', 'browser_snapshot']
+    },
+    form_control_inventory: {
+      id: 'form_control_inventory',
+      version: 1,
+      readOnly: true,
+      steps: ['browser_snapshot']
+    }
+  }
+  Object.keys(defs).forEach(function (k) {
+    const d = defs[k]
+    if (!Object.isFrozen(d)) Object.freeze(d.steps)
+    d.steps.forEach(function (s) {
+      if (!AGENT_RPC_HELPER_ALLOWED_TOOLS[s]) throw new Error('ADR-09 catalogue: step ' + s + ' is not on the read-only allowlist')
+    })
+    Object.freeze(d)
+  })
+  return Object.freeze(defs)
+})()
+
+/* Bounds. Deliberately small: these are summaries, not data exports. */
+const AGENT_RPC_HELPER_MAX_NODES = 200
+const AGENT_RPC_HELPER_MAX_ITEMS = 60
+const AGENT_RPC_HELPER_MAX_BYTES = 24 * 1024
+const AGENT_RPC_HELPER_STEP_TIMEOUT_MS = 8000
+
+/* Form-control roles the current snapshot model can represent. A control whose
+ * role is not here is omitted rather than guessed. */
+const AGENT_RPC_HELPER_CONTROL_ROLES = { textbox: true, combobox: true, checkbox: true, radio: true, button: true, switch: true, option: true }
+
+function agentRpcHelperDef (id) {
+  if (typeof id !== 'string') return null
+  /* own-property lookup only: never resolve inherited object members */
+  if (!Object.prototype.hasOwnProperty.call(AGENT_RPC_HELPER_CATALOGUE, id)) return null
+  return AGENT_RPC_HELPER_CATALOGUE[id]
+}
+
+function agentRpcHelperRunStep (tool, params) {
+  /* Belt and braces: the catalogue is validated at load, but the execution
+   * boundary re-checks so a future edit cannot silently widen privilege. */
+  if (!Object.prototype.hasOwnProperty.call(AGENT_RPC_HELPER_ALLOWED_TOOLS, tool)) {
+    return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.blocked, 'blocked', 'helper step is not on the read-only allowlist'))
+  }
+  let timer = null
+  const timeout = new Promise(function (resolve) {
+    timer = setTimeout(function () {
+      resolve({ ok: false, error: { category: 'timeout', message: 'helper step exceeded ' + AGENT_RPC_HELPER_STEP_TIMEOUT_MS + 'ms' } })
+    }, AGENT_RPC_HELPER_STEP_TIMEOUT_MS)
+  })
+  const call = Promise.resolve()
+    .then(function () { return agentRpcDispatch(tool, params) })
+    .then(function (r) { return { ok: true, result: r || null } }, function (e) {
+      return { ok: false, error: { category: (e && e.category) || 'internal', message: String((e && e.message) || 'step failed').slice(0, 200) } }
+    })
+  return Promise.race([call, timeout]).then(function (r) { clearTimeout(timer); return r })
+}
+
+function agentRpcHelperByteCap (obj) {
+  let s = JSON.stringify(obj)
+  if (s.length <= AGENT_RPC_HELPER_MAX_BYTES) return { obj: obj, truncated: false }
+  /* Trim the largest optional arrays rather than emitting a huge payload. */
+  const out = JSON.parse(s)
+  ;['controls', 'topNodes', 'steps'].forEach(function (k) {
+    if (Array.isArray(out[k]) && out[k].length > 0) {
+      while (out[k].length > 1 && JSON.stringify(out).length > AGENT_RPC_HELPER_MAX_BYTES) out[k].pop()
+    }
+  })
+  out.truncated = true
+  s = JSON.stringify(out)
+  if (s.length > AGENT_RPC_HELPER_MAX_BYTES) {
+    return { obj: { helper: out.helper, version: out.version, tabId: out.tabId, status: out.status, truncated: true, error: { category: 'unsupported', message: 'result exceeded the helper output cap' } }, truncated: true }
+  }
+  return { obj: out, truncated: true }
+}
+
+function agentRpcHelperStatus (stepResults) {
+  const failed = stepResults.filter(function (s) { return s.ok !== true })
+  if (failed.length === 0) return 'complete'
+  if (failed.length === stepResults.length) return 'unavailable'
+  return 'partial'
+}
+
+/* ---- page_summary ----
+ * browser_state -> browser_snapshot. Reports what the tools actually returned.
+ * "readiness" is NOT "ready to act": readyState=complete does not prove that an
+ * application is initialised or that an action will succeed. */
+function agentRpcCommandHelperPageSummary (params) {
+  const tabId = String(params.tabId)
+  const maxNodes = Math.max(1, Math.min(params.maxNodes === undefined ? 40 : params.maxNodes, AGENT_RPC_HELPER_MAX_NODES))
+  const steps = []
+  return agentRpcHelperRunStep('browser_state', { tabId: tabId }).then(function (st) {
+    steps.push({ tool: 'browser_state', ok: st.ok === true, error: st.error || null })
+    return agentRpcHelperRunStep('browser_snapshot', { tabId: tabId, maxNodes: maxNodes }).then(function (sn) {
+      steps.push({ tool: 'browser_snapshot', ok: sn.ok === true, error: sn.error || null })
+      const state = st.ok ? st.result : null
+      const snap = sn.ok ? sn.result : null
+      /* Same-page guard: never blend two different pages into one summary. */
+      const stateUrl = state && state.url ? state.url : null
+      const snapUrl = snap && snap.url ? snap.url : null
+      if (stateUrl && snapUrl && stateUrl !== snapUrl) {
+        return {
+          helper: 'page_summary',
+          version: 1,
+          tabId: tabId,
+          status: 'partial',
+          staleTarget: true,
+          note: 'the page changed between the two read-only steps; observations were NOT blended',
+          url: stateUrl,
+          snapshotUrl: snapUrl,
+          steps: steps,
+          evidence: { stateOk: !!state, snapshotOk: !!snap }
+        }
+      }
+      const nodes = (snap && Array.isArray(snap.nodes)) ? snap.nodes : []
+      const top = nodes.slice(0, 20).map(function (n) {
+        return {
+          role: n.role || null,
+          name: typeof n.name === 'string' ? n.name.slice(0, 120) : null,
+          ref: n.ref || null,
+          disabled: n.disabled === true,
+          readOnly: (n.readOnly === true || n.readOnly === false) ? n.readOnly : null
+          /* NOTE: node `value` is intentionally never copied. */
+        }
+      })
+      const out = {
+        helper: 'page_summary',
+        version: 1,
+        tabId: tabId,
+        status: agentRpcHelperStatus(steps),
+        readOnly: true,
+        url: stateUrl || snapUrl || null,
+        title: (state && typeof state.title === 'string') ? state.title.slice(0, 200) : ((snap && typeof snap.title === 'string') ? snap.title.slice(0, 200) : null),
+        readyState: (state && state.readyState) || null,
+        readinessNote: 'readyState is the DOCUMENT state only; it does not prove the application is initialised or that any action will succeed',
+        dialogs: state ? { observed: !!(state.dialogs && state.dialogs.observed), pageDialogsSuppressed: !!(state.dialogs && state.dialogs.pageDialogsSuppressed) } : null,
+        captcha: state && state.captcha ? { detected: state.captcha.detected === true, kind: state.captcha.kind || null, policy: state.captcha.policy || null } : null,
+        blocked: state && state.blocked ? { apparently: state.blocked.apparently === true, signals: Array.isArray(state.blocked.signals) ? state.blocked.signals.slice(0, 5) : [] } : null,
+        counts: { interactiveNodes: nodes.length, snapshotMaxNodes: maxNodes },
+        topNodes: top,
+        snapshotTruncated: !!(snap && snap.truncated === true),
+        steps: steps,
+        evidence: { stateOk: !!state, snapshotOk: !!snap }
+      }
+      return out
+    })
+  }).then(function (out) {
+    return agentRpcHelperByteCap(out)
+  })
+}
+
+/* ---- form_control_inventory ----
+ * browser_snapshot only. FLAT list: the current snapshot model has no <form>
+ * grouping, so grouping is not claimed. Values are never returned; for a
+ * redacted control even the length is dropped. */
+function agentRpcCommandHelperFormControlInventory (params) {
+  const tabId = String(params.tabId)
+  const maxNodes = Math.max(1, Math.min(params.maxNodes === undefined ? 150 : params.maxNodes, AGENT_RPC_HELPER_MAX_NODES))
+  const limit = Math.max(1, Math.min(params.limit === undefined ? 30 : params.limit, AGENT_RPC_HELPER_MAX_ITEMS))
+  const steps = []
+  return agentRpcHelperRunStep('browser_snapshot', { tabId: tabId, maxNodes: maxNodes }).then(function (sn) {
+    steps.push({ tool: 'browser_snapshot', ok: sn.ok === true, error: sn.error || null })
+    const snap = sn.ok ? sn.result : null
+    const nodes = (snap && Array.isArray(snap.nodes)) ? snap.nodes : []
+    const controls = []
+    for (let i = 0; i < nodes.length && controls.length < limit; i++) {
+      const n = nodes[i]
+      if (!n || !Object.prototype.hasOwnProperty.call(AGENT_RPC_HELPER_CONTROL_ROLES, String(n.role))) continue
+      const c = {
+        role: n.role,
+        name: typeof n.name === 'string' ? n.name.slice(0, 120) : null,
+        ref: n.ref || null,
+        disabled: n.disabled === true,
+        readOnly: (n.readOnly === true || n.readOnly === false) ? n.readOnly : null
+      }
+      /* checked is structural (not sensitive) and only present when the
+       * snapshot actually reported it. */
+      if (typeof n.checked === 'boolean') c.checked = n.checked
+      /* Redaction is reported as a FLAG only. Never the value, and never the
+       * length either - a length can narrow a password. */
+      if (n.redacted === true) c.redacted = true
+      controls.push(c)
+    }
+    const out = {
+      helper: 'form_control_inventory',
+      version: 1,
+      tabId: tabId,
+      status: agentRpcHelperStatus(steps),
+      readOnly: true,
+      url: snap && snap.url ? snap.url : null,
+      flat: true,
+      groupingNote: 'flat control list: the current snapshot model does not expose <form> grouping, so no grouping is claimed',
+      valuePolicy: 'field values are never returned; for redacted controls even the length is withheld',
+      totalSnapshotNodes: nodes.length,
+      returned: controls.length,
+      truncated: controls.length >= limit,
+      controls: controls,
+      steps: steps,
+      evidence: { snapshotOk: !!snap }
+    }
+    return out
+  }).then(function (out) {
+    return agentRpcHelperByteCap(out)
+  })
+}
+
+/* ---- dispatcher for the catalogue ----
+ * Two registered IDs only. Unknown or tampered IDs are refused here, at the
+ * execution boundary - not merely by documentation. */
+function agentRpcCommandHelper (params) {
+  const def = agentRpcHelperDef(params.helper)
+  if (!def) {
+    return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'not_found', 'unknown built-in; the catalogue is fixed and contains: ' + Object.keys(AGENT_RPC_HELPER_CATALOGUE).join(', ')))
+  }
+  if (params.version !== undefined && params.version !== def.version) {
+    return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.invalid_params, 'invalid_params', 'requested built-in version does not match the registered definition'))
+  }
+  if (def.id === 'page_summary') return agentRpcCommandHelperPageSummary(params)
+  if (def.id === 'form_control_inventory') return agentRpcCommandHelperFormControlInventory(params)
+  return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'built-in is registered but has no runner'))
+}
+
+function agentRpcCommandHelperList () {
+  return {
+    helpers: Object.keys(AGENT_RPC_HELPER_CATALOGUE).map(function (k) {
+      const d = AGENT_RPC_HELPER_CATALOGUE[k]
+      return { id: d.id, version: d.version, readOnly: d.readOnly === true, steps: d.steps.slice() }
+    }),
+    allowlist: Object.keys(AGENT_RPC_HELPER_ALLOWED_TOOLS).sort()
+  }
+}
+
+/* ---------- delivery attestation (Phase E / D2-A, ADR-03) ----------
+ * THREE DISTINCT STAGES, never conflated:
+ *   dispatched - Min accepted and issued the input event.
+ *   delivered  - the renderer delivered a TRUSTED event to the page, proven by
+ *                an attestation from the isolated preload world.
+ *   verified   - independent page-state evidence supports the intended effect.
+ * `delivered` proves DELIVERY ONLY. It is not compositor paint, not
+ * application effect, and never challenge clearance.
+ *
+ * ANTI-FORGE: the preload (contextIsolation + sandbox) is the only sender;
+ * page JS cannot send IPC, and synthetic DOM events are isTrusted:false so the
+ * preload refuses to attest them. Nothing about the event value is recorded.
+ *
+ * ANTI-REPLAY/CROSS-TAB: a monotonic per-renderer counter plus sender-id
+ * matching. A late, duplicated, replayed or wrong-tab acknowledgement is
+ * ignored and the wait degrades to `unverified` - never to a false positive. */
+const AGENT_RPC_ATTEST = new Map()
+let AGENT_RPC_ATTEST_HOOKED = false
+
+/* ---------- keyboard-event typing (Phase E / D3-A) ----------
+ * Dispatches ONE trusted keyDown / char / keyUp triple per character through
+ * wc.sendInputEvent - the same native input path the OS uses, NOT synthetic
+ * DOM events. This is the opt-in mode:"keyboard" strategy for framework or
+ * controlled inputs whose own keydown/keypress handlers build their state and
+ * which therefore ignore a single bulk insertText.
+ *
+ * HONEST LIMITS (returned in the result, never hidden):
+ *   - Printable ASCII is sent as a physical key triple (US layout). Non-ASCII
+ *     is delivered as a text/char event carrying the character, which matches
+ *     what an IME/compose would insert as TEXT but not a physical key
+ *     sequence, so physicalKeys:false is reported whenever one is sent.
+ *   - No modifiers or chords are synthesised; every character is a plain key.
+ *   - Slower by construction (one triple + a small pacing delay per char) so
+ *     per-keystroke handlers can run. */
+const AGENT_RPC_KEYBOARD_MAX_CHARS = 200
+const AGENT_RPC_KEYBOARD_PACE_MS = 4
+
+function agentRpcTypeKeyboard (wc, text) {
+  return new Promise(function (resolve, reject) {
+    const chars = Array.from(text)
+    if (chars.length > AGENT_RPC_KEYBOARD_MAX_CHARS) {
+      reject(agentRpcCommandError(AGENT_RPC_ERRORS.invalid_params, 'invalid_params', 'keyboard mode is bounded to ' + AGENT_RPC_KEYBOARD_MAX_CHARS + ' characters; use mode:"native" for longer text'))
+      return
+    }
+    let nonAscii = false
+    let i = 0
+    const step = function () {
+      if (i >= chars.length) {
+        resolve({ nonAscii: nonAscii, chars: chars.length, physicalKeys: !nonAscii })
+        return
+      }
+      const ch = chars[i++]
+      const code = ch.charCodeAt(0)
+      try {
+        if (code >= 32 && code <= 126) {
+          wc.sendInputEvent({ type: 'keyDown', keyCode: ch })
+          wc.sendInputEvent({ type: 'char', keyCode: ch })
+          wc.sendInputEvent({ type: 'keyUp', keyCode: ch })
+        } else {
+          nonAscii = true
+          wc.sendInputEvent({ type: 'char', keyCode: ch })
+        }
+      } catch (e) {
+        reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'keyboard event dispatch failed at character ' + i))
+        return
+      }
+      if (AGENT_RPC_KEYBOARD_PACE_MS > 0) setTimeout(step, AGENT_RPC_KEYBOARD_PACE_MS)
+      else step()
+    }
+    step()
+  })
+}
+
+function agentRpcAttestIpc () {
+  if (AGENT_RPC_ATTEST_HOOKED) return true
+  try {
+    const ipcMain = require('electron').ipcMain
+    if (!ipcMain || typeof ipcMain.on !== 'function') return false
+    ipcMain.on('agent-attest', function (event, payload) {
+      if (!payload || typeof payload.seq !== 'number' || typeof payload.kind !== 'string') return
+      const wcId = event && event.sender ? event.sender.id : null
+      if (wcId === null || wcId === undefined) return
+      let rec = AGENT_RPC_ATTEST.get(wcId)
+      if (!rec) { rec = { seq: 0, kinds: {}, at: 0, total: 0 }; AGENT_RPC_ATTEST.set(wcId, rec) }
+      /* replay / duplicate / out-of-order acknowledgements are dropped */
+      if (payload.seq <= rec.seq) return
+      rec.seq = payload.seq
+      rec.at = Date.now()
+      rec.total++
+      rec.kinds[payload.kind] = payload.seq
+    })
+    AGENT_RPC_ATTEST_HOOKED = true
+    return true
+  } catch (e) {
+    /* No Electron ipcMain (e.g. the pure-Node RPC unit harness): delivery is
+     * honestly reported as unsupported instead of being fabricated. */
+    return false
+  }
+}
+
+function agentRpcAttestArm (wc, kind) {
+  const hookOk = agentRpcAttestIpc()
+  const wcId = wc && wc.id !== undefined && wc.id !== null ? wc.id : null
+  const rec = wcId === null ? null : AGENT_RPC_ATTEST.get(wcId)
+  return { available: hookOk && wcId !== null, wcId: wcId, floor: rec && rec.kinds[kind] ? rec.kinds[kind] : 0, kind: kind }
+}
+
+function agentRpcAttestAwait (arm, timeoutMs) {
+  const ms = Math.max(50, Math.min(timeoutMs === undefined ? 400 : timeoutMs, 2000))
+  return new Promise(function (resolve) {
+    if (!arm || !arm.available) {
+      resolve({ delivery: 'unsupported', deliveryReason: 'no renderer attestation channel for this view (preload channel unavailable)' })
+      return
+    }
+    const deadline = Date.now() + ms
+    const poll = function () {
+      const rec = AGENT_RPC_ATTEST.get(arm.wcId)
+      if (rec && rec.kinds[arm.kind] && rec.kinds[arm.kind] > arm.floor) {
+        resolve({ delivery: 'attested', deliveryReason: 'renderer delivered a trusted ' + arm.kind + ' event to the page', deliveryAt: rec.at })
+        return
+      }
+      if (Date.now() >= deadline) {
+        resolve({ delivery: 'unverified', deliveryReason: 'no trusted ' + arm.kind + ' event was observed within ' + ms + 'ms; dispatch is still reported but delivery is NOT proven' })
+        return
+      }
+      setTimeout(poll, 25)
+    }
+    poll()
+  })
+}
+
+/* ---------- R2: remaining D2 parity rows ----------
+ * Closed boundaries only. The CDP allowlist is the SINGLE place a command name
+ * is written, and it is exactly two commands. ADR-02's ban on GENERIC raw CDP
+ * stands: no caller can supply an arbitrary command or params.
+ */
+const AGENT_RPC_CDP_ALLOWED = Object.freeze({
+  'DOM.setFileInputFiles': true,
+  'Accessibility.getFullAXTree': true,
+  'Runtime.evaluate': true
+})
+const AGENT_RPC_CDP_TIMEOUT_MS = 10000
+const AGENT_RPC_CDP_ATTACHED = new WeakSet()
+
+function agentRpcCdpOnce (wc, command, params) {
+  return new Promise(function (resolve, reject) {
+    if (!Object.prototype.hasOwnProperty.call(AGENT_RPC_CDP_ALLOWED, command)) {
+      reject(agentRpcCommandError(AGENT_RPC_ERRORS.blocked, 'blocked', 'CDP command is not on the allowlist'))
+      return
+    }
+    let dbg = null
+    try { dbg = wc.debugger } catch (eDbg) { dbg = null }
+    if (!dbg || typeof dbg.sendCommand !== 'function') {
+      reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'the debugger bridge is unavailable on this build'))
+      return
+    }
+    try {
+      if (!AGENT_RPC_CDP_ATTACHED.has(wc)) {
+        try { dbg.attach('1.3') } catch (eAttach) {
+          if (!/already attached/i.test(String(eAttach && eAttach.message))) throw eAttach
+        }
+        AGENT_RPC_CDP_ATTACHED.add(wc)
+      }
+    } catch (eA) {
+      reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'could not attach the debugger bridge'))
+      return
+    }
+    let done = false
+    const timer = setTimeout(function () {
+      if (done) return
+      done = true
+      reject(agentRpcCommandError(AGENT_RPC_ERRORS.timeout, 'timeout', 'the browser did not answer within ' + AGENT_RPC_CDP_TIMEOUT_MS + 'ms'))
+    }, AGENT_RPC_CDP_TIMEOUT_MS)
+    Promise.resolve()
+      .then(function () { return dbg.sendCommand(command, params || {}) })
+      .then(function (r) { if (!done) { done = true; clearTimeout(timer); resolve(r) } },
+        function (e) {
+          if (done) return
+          done = true
+          clearTimeout(timer)
+          reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'browser command failed: ' + String((e && e.message) || e).slice(0, 160)))
+        })
+  })
+}
+
+/* ---- C6: upload root. Paths reuse the DOWNLOAD validator verbatim. ---- */
+const AGENT_RPC_UPLOAD_ROOT_SEGMENT = 'agent-uploads'
+
+function agentRpcUploadRoot () {
+  return agentRpcPath.join(app.getPath('userData'), AGENT_RPC_UPLOAD_ROOT_SEGMENT)
+}
+
+/* Resolve a caller-supplied relPath to an absolute path UNDER the upload root.
+ * Reuses agentRpcDlValidateRelPath + agentRpcDlContainmentOk so there is exactly
+ * one path policy in the codebase, never a second weaker one. */
+function agentRpcUploadResolve (raw) {
+  const rel = agentRpcDlValidateRelPath(raw)
+  if (!rel.ok) return { error: rel.reason }
+  if (!rel.rel) return { error: 'relPath must name a file inside the upload directory' }
+  const root = agentRpcUploadRoot()
+  try { agentRpcFs.mkdirSync(root, { recursive: true }) } catch (e) {
+    return { error: 'the upload directory is not usable' }
+  }
+  const abs = agentRpcPath.resolve(root, rel.rel)
+  if (!agentRpcDlContainmentOk(root, abs)) return { error: 'path escapes the upload directory' }
+  let st = null
+  try { st = agentRpcFs.statSync(abs) } catch (e) { st = null }
+  if (!st) return { error: 'no such file in the upload directory' }
+  if (!st.isFile()) return { error: 'the upload path is not a regular file' }
+  if (st.size > AGENT_RPC_UPLOAD_MAX_BYTES) return { error: 'file exceeds the upload size limit' }
+  return { path: abs, bytes: st.size }
+}
+
+const AGENT_RPC_UPLOAD_MAX_BYTES = 32 * 1024 * 1024
+
+/* ---- C6: browser_upload ----
+ * Identifies ONE file input by snapshot ref, resolves a file under the upload
+ * root, and hands the path to the browser via the single allowlisted CDP command
+ * DOM.setFileInputFiles. No form submission. Reports dispatch and the observed
+ * input state separately. */
+function agentRpcCommandUpload (params) {
+  return agentRpcResolveTarget(params.tabId, params.ref).then(function (res) {
+    const t = res.target
+    if (!t || t.role !== 'textbox' || t.inputType !== 'file') {
+      throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'ref does not point at a file input (role=' + String(t && t.role) + ', type=' + String(t && t.inputType) + ')')
+    }
+    if (t.disabled === true) {
+      throw agentRpcCommandError(AGENT_RPC_ERRORS.disabled, 'disabled', 'the file input is disabled')
+    }
+    const resolved = agentRpcUploadResolve(params.relPath)
+    if (resolved.error) {
+      throw agentRpcCommandError(AGENT_RPC_ERRORS.invalid_params, 'invalid_params', resolved.error)
+    }
+    const wc = res.wc
+    const ordinal = res.record.ordinal
+    /* Resolve the DOM backend node id for THIS ref via the page, then hand the
+     * path to Chromium. The page never sees the local path. */
+    return wc.executeJavaScript('(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')(' + JSON.stringify('locate') + ',' + JSON.stringify(ordinal) + ')')
+      .then(function (page) {
+        const tgt = page && page.target
+        if (!tgt) throw agentRpcCommandError(AGENT_RPC_ERRORS.ref_stale, 'ref_stale', 'the file input is no longer present; take a fresh snapshot')
+        /* DOM.setFileInputFiles needs a node handle. Resolve the page element to a
+         * RemoteObject id first; Runtime.evaluate is the third and LAST allowlisted
+         * command. The expression is built by the bridge from a validated integer
+         * ordinal, so a caller can never inject page source through it. */
+        /* DOM.setFileInputFiles needs a node handle. We obtain it by evaluating an
+         * expression that RETURNS the target file element itself, matched by the same
+         * identity the snapshot recorded (input type=file, in document order). The
+         * expression is assembled by the bridge from a bounded integer index into the
+         * page's own file-input list, so no caller-supplied source is ever evaluated.
+         * Runtime.evaluate is the third and LAST allowlisted command. */
+        var fileIdx = (typeof res.record.fileIndex === 'number') ? res.record.fileIndex : 0
+        return agentRpcCdpOnce(wc, 'Runtime.evaluate', { expression: 'document.querySelectorAll("input[type=file]")[' + String(fileIdx) + '] || null', objectGroup: 'r2-upload', returnByValue: false })
+          .then(function (ev) {
+            var oid = ev && ev.result && ev.result.objectId
+            if (!oid) throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'could not obtain a handle for the file input')
+            return agentRpcCdpOnce(wc, 'DOM.setFileInputFiles', { files: [resolved.path], objectId: oid })
+          })
+      })
+      .then(function () {
+        /* Independent read-back: did the input ACCEPT the file? */
+        return wc.executeJavaScript('(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')(' + JSON.stringify('locate') + ',' + JSON.stringify(ordinal) + ')')
+          .then(function (page) {
+            const tgt = (page && page.target) || {}
+            const accepted = typeof tgt.filesCount === 'number' ? tgt.filesCount : null
+            return {
+              tabId: String(params.tabId),
+              ref: params.ref,
+              dispatched: true,
+              delivered: 'attested',
+              verified: accepted === 1,
+              verification: accepted === null ? 'unreadable-state' : (accepted === 1 ? 'files-attached' : 'rejected-input'),
+              filesCount: accepted,
+              bytes: resolved.bytes,
+              relPath: params.relPath,
+              note: 'the file was handed to the input; no form was submitted',
+              url: page && page.url ? page.url : null,
+              waitedMs: 0
+            }
+          })
+      })
+  })
+}
+
+/* ---- C8: browser_frames ----
+ * Frame enumeration from Electron's own tree. No CDP. Cross-origin children are
+ * reported as present-but-inaccessible rather than pretended readable. */
+function agentRpcCommandFrames (params) {
+  const view = viewMap[params.tabId]
+  if (!view || !view.webContents || view.webContents.isDestroyed()) {
+    return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'ref_not_found', 'tabId does not match a live view'))
+  }
+  const wc = view.webContents
+  const main = wc.mainFrame
+  if (!main) {
+    return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'this view does not expose a frame tree'))
+  }
+  const items = []
+  const walk = function (frame, depth) {
+    if (!frame || depth > 8 || items.length >= 100) return
+    let url = null
+    try { url = frame.url || null } catch (e) { url = null }
+    /* A cross-origin child is still listed, but its document is not readable. */
+    items.push({ frameId: String(frame.routingId || frame.processId || items.length), depth: depth, url: url, crossOrigin: null })
+    const kids = frame.frames || []
+    for (let i = 0; i < kids.length; i++) walk(kids[i], depth + 1)
+  }
+  walk(main, 0)
+  return {
+    tabId: String(params.tabId),
+    mainFrameUrl: (function () { try { return main.url || null } catch (e) { return null } })(),
+    count: items.length,
+    frames: items,
+    limitations: 'frames are enumerated from Electron\'s frame tree; cross-origin children are listed but their documents are not readable without violating the browser security model. Frame-scoped eval/click is not implemented in R2.'
+  }
+}
+
 function agentRpcCommandStatus () {
   var summaries = agentRpcWindowSummaries()
   var tabs = agentRpcTabSummaries()
@@ -809,106 +1552,189 @@ function agentRpcCommandStatus () {
   }
 }
 
+/* ---------- browser_health (Phase E / D2-B) ----------
+ * Read-only doctor. It never launches, switches or mutates anything, never
+ * blocks, and never returns a token, a cookie, a page body or a URL query.
+ * Every check reports one of: healthy | degraded | unavailable | unknown.
+ * "The port accepted a connection" is NOT enough for `healthy`: the browser
+ * must also have a live renderer, a usable profile and a sane policy. */
+const AGENT_RPC_HEALTH_LIMITATIONS = [
+  'browser_eval cannot cancel an endless SYNCHRONOUS page expression (V8 has no external interrupt); recovery is reload',
+  'browser_eval fails with a structured error under a strict page CSP that blocks new Function',
+  'mouse wheel delivery is dropped by the compositor on this Electron build; use browser_scroll (DOM) for reliable scrolling',
+  'browser_viewport is per-tab zoom (0.25-3), NOT window/viewport dimension control',
+  'element-scoped screenshots are visible-area crops after scrollIntoView, NOT full-page or offscreen capture'
+]
+
+function agentRpcCommandHealth () {
+  const checks = []
+  const add = function (name, status, detail) { checks.push({ check: name, status: status, detail: detail }) }
+
+  /* bridge transport */
+  if (agentRpcState.port && agentRpcState.token) {
+    add('bridge.listening', 'healthy', 'loopback ' + agentRpcState.host + ':' + agentRpcState.port + ' (ephemeral port, per-launch token)')
+  } else {
+    add('bridge.listening', 'unavailable', 'bridge state has no bound port/token')
+  }
+
+  /* discovery file - path and mode only, never the token inside it */
+  let discStatus = 'unknown'
+  let discDetail = 'unknown'
+  try {
+    const st = agentRpcFs.statSync(agentRpcState.discoveryFile)
+    discStatus = st.isFile() ? 'healthy' : 'degraded'
+    discDetail = 'present, mode ' + ((st.mode & 0o777).toString(8)) + ' (0600 is advisory on Windows; NTFS ACLs govern)'
+  } catch (eDisc) {
+    discStatus = 'degraded'
+    discDetail = 'not readable at ' + agentRpcState.discoveryFile + ' - an MCP adapter configured for THIS profile cannot connect'
+  }
+  add('bridge.discoveryFile', discStatus, discDetail)
+
+  /* authentication: reaching this handler proves a valid bearer token */
+  add('bridge.auth', 'healthy', 'request authenticated; authFailures=' + agentRpcState.authFailures + ' rejected=' + agentRpcState.rejectedCount)
+
+  /* profile identity + writability of the managed download root */
+  let profStatus = 'unknown'
+  let profDetail = userDataPath
+  try {
+    const st = agentRpcFs.statSync(userDataPath)
+    profStatus = st.isDirectory() ? 'healthy' : 'degraded'
+    profDetail = 'userData ' + (st.isDirectory() ? 'is a directory' : 'is NOT a directory') + ': ' + userDataPath
+  } catch (eProf) {
+    profStatus = 'degraded'
+    profDetail = 'userData not readable: ' + userDataPath
+  }
+  add('profile.userData', profStatus, profDetail)
+
+  try {
+    const dlRoot = agentRpcDlRoot()
+    const ok = agentRpcFs.existsSync(dlRoot)
+    add('profile.downloadRoot', ok ? 'healthy' : 'degraded', (ok ? 'writable root present' : 'not created yet') + ': ' + dlRoot)
+  } catch (eDl) {
+    add('profile.downloadRoot', 'degraded', 'managed download root unavailable (errors are expected if userData is read-only)')
+  }
+
+  /* policy - booleans only, never the file contents beyond the flags */
+  const pol = agentRpcReadPolicy()
+  add('policy', 'healthy', 'allowRiskyClicks=' + (pol.allowRiskyClicks === true) + ' allowSensitiveTyping=' + (pol.allowSensitiveTyping === true) + ' allowRiskyClicks/SensitiveTyping default to false')
+
+  /* tabs and renderers */
+  const tabs = agentRpcTabSummaries()
+  const crashed = tabs.filter(function (t) { return t.crashed === true })
+  const loading = tabs.filter(function (t) { return t.loading === true })
+  if (tabs.length === 0) {
+    add('tabs.renderers', 'degraded', 'no live tab view is enumerated; tabs may still be restoring')
+  } else if (crashed.length > 0) {
+    add('tabs.renderers', 'degraded', crashed.length + ' of ' + tabs.length + ' renderer(s) crashed')
+  } else {
+    add('tabs.renderers', 'healthy', tabs.length + ' live tab(s), ' + loading.length + ' loading')
+  }
+
+  /* filtering - the ad blocker owns the single onBeforeRequest slot */
+  let filterState = 'unknown'
+  try { filterState = settings.get('filtering') ? 'enabled' : 'disabled' } catch (eF) { filterState = 'unknown' }
+  add('filtering', filterState === 'enabled' ? 'healthy' : 'degraded', 'ad blocker ' + filterState + '; blockedTotal=' + AGENT_RPC_NET_BLOCKED_TOTAL)
+
+  /* network observation + ref store */
+  add('network', AGENT_RPC_NET_INFLIGHT > 64 ? 'degraded' : 'healthy', 'inflight=' + AGENT_RPC_NET_INFLIGHT + ' observed=' + AGENT_RPC_NET_OBSERVED_TOTAL + ' settled=' + AGENT_RPC_NET_SETTLED_TOTAL)
+  add('refs', 'healthy', JSON.stringify(agentRpcRefStoreStatus()))
+
+  /* tool catalogue self-consistency */
+  add('toolCensus', AGENT_RPC_METHODS.length > 0 ? 'healthy' : 'unavailable', AGENT_RPC_METHODS.length + ' registered bridge methods')
+
+  /* delivery attestation availability (D2-A) */
+  add('delivery.attestation', 'healthy', 'renderer-side trusted-event attestation channel is active for click/press/type/mouse/scroll')
+
+  let degraded = 0
+  let unavailable = 0
+  checks.forEach(function (c) { if (c.status === 'degraded') degraded++; if (c.status === 'unavailable') unavailable++ })
+  const overall = unavailable > 0 ? 'unavailable' : (degraded > 0 ? 'degraded' : 'healthy')
+
+  const remediation = []
+  if (overall !== 'healthy') {
+    remediation.push('If the MCP adapter reports "bridge unreachable", start this exact profile: node scripts/min-launch.js --profile="' + userDataPath + '" --agent-rpc')
+    remediation.push('The adapter must be configured with --profile="' + userDataPath + '" so it reads ' + agentRpcState.discoveryFile)
+  }
+  if (crashed.length > 0) remediation.push('A crashed renderer cannot be revived by the bridge; close the tab or restart Min for that profile')
+
+  return {
+    overall: overall,
+    generatedAt: new Date().toISOString(),
+    readOnly: true,
+    profile: { userDataPath: userDataPath, discoveryFile: agentRpcState.discoveryFile, development: isDevelopmentMode },
+    bridge: { host: agentRpcState.host, port: agentRpcState.port, tokenSource: 'per-launch file (value never returned)', uptimeSeconds: Math.round(process.uptime()) },
+    counts: { checks: checks.length, healthy: checks.length - degraded - unavailable, degraded: degraded, unavailable: unavailable },
+    checks: checks,
+    knownLimitations: AGENT_RPC_HEALTH_LIMITATIONS,
+    remediation: remediation
+  }
+}
+
 function agentRpcCommandTabs () {
   var tabs = agentRpcTabSummaries()
   return { tabs: tabs, count: tabs.length }
 }
 
+/* ---------- dispatch (ADR-11 seam 1: registry-as-data) ----------
+ * Replaces the original 35-branch `if (method === 'x')` chain with a table.
+ * This is a ROUTING-ONLY extraction: it runs after the transport validator has
+ * already accepted the request, so no authorization, schema, grant, batch or
+ * error semantics move. Handlers keep their exact signatures and call order.
+ * The table must stay in lockstep with AGENT_RPC_METHODS; the RPC suite
+ * asserts table keys == registry and that every registered method is routed. */
+const AGENT_RPC_DISPATCH_TABLE = {
+  browser_status: function () { return agentRpcCommandStatus() },
+  browser_health: function () { return agentRpcCommandHealth() },
+  browser_helper_list: function () { return agentRpcCommandHelperList() },
+  browser_helper: function (params) { return agentRpcCommandHelper(params) },
+  browser_pdf: function (params) { return agentRpcCommandPdf(params) },
+  browser_upload: function (params) { return agentRpcCommandUpload(params) },
+  browser_frames: function (params) { return agentRpcCommandFrames(params) },
+  browser_tabs: function () { return agentRpcCommandTabs() },
+  browser_snapshot: function (params) { return agentRpcCommandSnapshot(params) },
+  browser_click: function (params) { return agentRpcCommandClick(params) },
+  browser_type: function (params) { return agentRpcCommandType(params) },
+  browser_navigate: function (params) { return agentRpcCommandNavigate(params) },
+  browser_press: function (params) { return agentRpcCommandPress(params) },
+  browser_screenshot: function (params) { return agentRpcCommandScreenshot(params) },
+  browser_grant: function (params) { return agentRpcCommandGrant(params) },
+  browser_tab_open: function (params) { return agentRpcCommandTabOpen(params) },
+  browser_tab_select: function (params) { return agentRpcCommandTabSelect(params) },
+  browser_tab_close: function (params) { return agentRpcCommandTabClose(params) },
+  browser_content: function (params) { return agentRpcCommandContent(params) },
+  browser_hover: function (params) { return agentRpcCommandHover(params) },
+  browser_mouse: function (params) { return agentRpcCommandMouse(params) },
+  browser_scroll: function (params) { return agentRpcCommandScroll(params) },
+  browser_select: function (params) { return agentRpcCommandSelect(params) },
+  browser_check: function (params) { return agentRpcCommandCheck(params) },
+  browser_wait: function (params) { return agentRpcCommandWait(params) },
+  browser_downloads: function () { return agentRpcCommandDownloads() },
+  browser_eval: function (params) { return agentRpcCommandEval(params) },
+  browser_viewport: function (params) { return agentRpcCommandViewport(params) },
+  browser_download_start: function (params) { return agentRpcCommandDownloadStart(params) },
+  browser_download_wait: function (params) { return agentRpcCommandDownloadWait(params) },
+  browser_download_cancel: function (params) { return agentRpcCommandDownloadCancel(params) },
+  browser_download_pause: function (params) { return agentRpcCommandDownloadPause(params) },
+  browser_download_resume: function (params) { return agentRpcCommandDownloadResume(params) },
+  browser_state: function (params) { return agentRpcCommandState(params) },
+  browser_batch: function (params) { return agentRpcCommandBatch(params) },
+  browser_predict: function (params) { return agentRpcCommandPredict(params) },
+  browser_verify: function (params) { return agentRpcCommandVerify(params) },
+  browser_transform: function (params) { return agentRpcCommandTransform(params) },
+  browser_transform_status: function (params) { return agentRpcCommandTransformStatus(params) }
+}
+
 function agentRpcDispatch (method, params) {
-  if (method === 'browser_status') {
-    return agentRpcCommandStatus()
-  }
-  if (method === 'browser_tabs') {
-    return agentRpcCommandTabs()
-  }
-  if (method === 'browser_snapshot') {
-    return agentRpcCommandSnapshot(params)
-  }
-  if (method === 'browser_click') {
-    return agentRpcCommandClick(params)
-  }
-  if (method === 'browser_type') {
-    return agentRpcCommandType(params)
-  }
-  if (method === 'browser_navigate') {
-    return agentRpcCommandNavigate(params)
-  }
-  if (method === 'browser_press') {
-    return agentRpcCommandPress(params)
-  }
-  if (method === 'browser_screenshot') {
-    return agentRpcCommandScreenshot(params)
-  }
-  if (method === 'browser_grant') {
-    return agentRpcCommandGrant(params)
-  }
-  if (method === 'browser_tab_open') {
-    return agentRpcCommandTabOpen(params)
-  }
-  if (method === 'browser_tab_select') {
-    return agentRpcCommandTabSelect(params)
-  }
-  if (method === 'browser_tab_close') {
-    return agentRpcCommandTabClose(params)
-  }
-  if (method === 'browser_content') {
-    return agentRpcCommandContent(params)
-  }
-  if (method === 'browser_hover') {
-    return agentRpcCommandHover(params)
-  }
-  if (method === 'browser_mouse') {
-    return agentRpcCommandMouse(params)
-  }
-  if (method === 'browser_scroll') {
-    return agentRpcCommandScroll(params)
-  }
-  if (method === 'browser_select') {
-    return agentRpcCommandSelect(params)
-  }
-  if (method === 'browser_check') {
-    return agentRpcCommandCheck(params)
-  }
-  if (method === 'browser_wait') {
-    return agentRpcCommandWait(params)
-  }
-  if (method === 'browser_downloads') {
-    return agentRpcCommandDownloads()
-  }
-  if (method === 'browser_download_start') {
-    return agentRpcCommandDownloadStart(params)
-  }
-  if (method === 'browser_download_wait') {
-    return agentRpcCommandDownloadWait(params)
-  }
-  if (method === 'browser_download_cancel') {
-    return agentRpcCommandDownloadCancel(params)
-  }
-  if (method === 'browser_download_pause') {
-    return agentRpcCommandDownloadPause(params)
-  }
-  if (method === 'browser_download_resume') {
-    return agentRpcCommandDownloadResume(params)
-  }
-  if (method === 'browser_state') {
-    return agentRpcCommandState(params)
-  }
-  if (method === 'browser_batch') {
-    return agentRpcCommandBatch(params)
-  }
-  if (method === 'browser_predict') {
-    return agentRpcCommandPredict(params)
-  }
-  if (method === 'browser_verify') {
-    return agentRpcCommandVerify(params)
-  }
-  if (method === 'browser_transform') {
-    return agentRpcCommandTransform(params)
-  }
-  if (method === 'browser_transform_status') {
-    return agentRpcCommandTransformStatus(params)
-  }
-  return null
+  /* ADR-11: own-property lookup ONLY. A plain object inherits from
+   * Object.prototype, so a bare table[method] would route names such as
+   * 'constructor' or 'toString' to an inherited function instead of returning
+   * null. The original if-chain compared strings and was immune; this keeps
+   * that exact behaviour. (Characterization test:
+   * "prototype-ish name dispatches to null".) */
+  if (!Object.prototype.hasOwnProperty.call(AGENT_RPC_DISPATCH_TABLE, method)) return null
+  const handler = AGENT_RPC_DISPATCH_TABLE[method]
+  if (typeof handler !== 'function') return null
+  return handler(params)
 }
 
 /* ---------- browser_snapshot (P0-09) ----------
@@ -939,6 +1765,12 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
   var HARD_MAX = 1000
   var NAME_MAX = 120
   var TEXT_CAP = 40000
+  /* R1: restore fidelity bound for replace_text. The REQUEST text is capped at
+     * 1200 chars for safety, but the ORIGINAL text saved for restore must not be
+     * truncated to that same bound - otherwise restoring a longer element silently
+     * loses content. This is a separate, larger bound; anything beyond it is
+     * reported via original.textTruncated instead of being lost silently. */
+  var AGENT_RPC_TRANSFORM_RESTORE_TEXT_MAX = 20000
   function clean (s, max) {
     if (typeof s !== 'string') return ''
     var stripped = ''
@@ -961,7 +1793,7 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
   }
   function nameOf (el) {
     let v = ''
-    let kind = 'text'
+    const kind = 'text'
     try {
       const ids = el.getAttribute('aria-labelledby')
       if (ids) {
@@ -1071,9 +1903,20 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
        * checkboxes are real click targets); roleOf already filters to
        * semantic interactive roles. Only non-semantic tags are dropped above. */
       const node = {
-        role: role, name: nm.name, nameKind: nm.kind,
-        shadowPath: state.shadowPath.get(el) || null, box: null,
-        checked: null, expanded: null, disabled: false, redacted: false, value: null, valueLength: null
+        role: role,
+        name: nm.name,
+        nameKind: nm.kind,
+        shadowPath: state.shadowPath.get(el) || null,
+        box: null,
+        checked: null,
+        expanded: null,
+        disabled: false,
+        readOnly: null,
+        redacted: false,
+        value: null,
+        valueLength: null,
+        inputType: null,
+        filesCount: null
       }
       try {
         const r = el.getBoundingClientRect()
@@ -1081,6 +1924,21 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
       } catch (e2) { node.box = null }
       try {
         node.disabled = el.disabled === true || el.getAttribute('aria-disabled') === 'true'
+        /* D3-A: read-only is a DISTINCT state from disabled. Electron's synthetic
+         * input path does NOT honour `readonly`, so without this flag a type call
+         * would mutate a field the user cannot edit. */
+        /* D3-A / readonly gate: TRI-STATE. true/false only when the DOM actually
+         * establishes the property; otherwise null (unknown) - never a silent false. */
+        try {
+          if (typeof el.readOnly === 'boolean') node.readOnly = el.readOnly === true
+          else { const ar = el.getAttribute('aria-readonly'); node.readOnly = ar === 'true' ? true : (ar === 'false' ? false : null) }
+        } catch (eRO) { node.readOnly = null }
+        /* R2: file-input metadata (C6 upload needs an unambiguous target type, and
+           * the independent read-back needs to know whether the input ACCEPTED a file). */
+        try {
+          node.inputType = (tag === 'input' && el.type) ? String(el.type).toLowerCase() : null
+          node.filesCount = (el.files && typeof el.files.length === 'number') ? el.files.length : null
+        } catch (eFI) { /* stays null */ }
         if (role === 'checkbox' || role === 'radio' || role === 'switch') node.checked = el.checked === true || el.getAttribute('aria-checked') === 'true'
         if (role === 'combobox') node.expanded = el.getAttribute('aria-expanded') === 'true'
       } catch (e3) { /* states stay null */ }
@@ -1119,8 +1977,27 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
   if (mode === 'locate') {
     const targetNode = (typeof ordinal === 'number' && ordinal >= 0 && ordinal < nodes.length) ? nodes[ordinal] : null
     const targetEl = (typeof ordinal === 'number' && ordinal >= 0 && ordinal < nodeEls.length) ? nodeEls[ordinal] : null
+    /* READONLY (authoritative, live): read the CURRENT element property.
+     * This is the source of truth the action guard prefers; the walk-time
+     * flag is only a cache. null means it could not be established. */
+    const liveReadOnly = (function () {
+      try {
+        if (!targetEl || typeof targetEl.readOnly !== 'boolean') return null
+        return targetEl.readOnly === true
+      } catch (eLiv) { return null }
+    })()
+    if (targetNode) targetNode.readOnlyLive = liveReadOnly
     if (targetNode) {
       try { targetNode.focused = (targetEl === document.activeElement) } catch (eF) { targetNode.focused = false }
+    }
+    /* P1-15 M4: redacted-field exact verification — the bridge passes the expected
+     * text via extra.matchAgainst for the target ordinal; the comparison happens
+     * HERE inside the page (exact), and only a non-secret boolean is returned. */
+    if (extra && typeof extra.matchAgainst === 'string' && typeof extra.ordinal === 'number' &&
+        extra.ordinal >= 0 && extra.ordinal < nodes.length && extra.ordinal < nodeEls.length) {
+      if (nodes[extra.ordinal] && nodes[extra.ordinal].redacted === true) {
+        try { nodes[extra.ordinal].matchExact = ((nodeEls[extra.ordinal].value || '') === extra.matchAgainst) } catch (eM) { nodes[extra.ordinal].matchExact = false }
+      }
     }
     /* P1-00A.1: press-family verification compares focused ordinals across
      * locate runs - the flag must be present on EVERY node, not only the
@@ -1138,11 +2015,18 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
     const markerText = clean(document.body ? document.body.innerText.slice(-120) : '', 120)
     const markerLen = document.body ? document.body.innerText.length : 0
     return {
-      mode: 'locate', url: url, title: title, total: nodes.length,
-      truncated: state.stopped, nodeCount: nodes.length,
-      target: targetNode, nodes: nodes,
+      mode: 'locate',
+      url: url,
+      title: title,
+      total: nodes.length,
+      truncated: state.stopped,
+      nodeCount: nodes.length,
+      target: targetNode,
+      nodes: nodes,
       marker: { interactiveCount: nodes.length, textLen: markerLen, sample: markerText },
-      captchaBoxes: captchaBoxes, nearCaptcha: nearCaptcha, shadowMeta: { openShadowRoots: state.openShadowRoots }
+      captchaBoxes: captchaBoxes,
+      nearCaptcha: nearCaptcha,
+      shadowMeta: { openShadowRoots: state.openShadowRoots }
     }
   }
   if (mode === 'content') {
@@ -1171,7 +2055,7 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
   }
   if (mode === 'selcheck') {
     const sel = (extra && extra.selector) ? String(extra.selector) : null
-    let found = false, visible = false, matches = 0
+    let found = false; let visible = false; let matches = 0
     if (sel) {
       try {
         const list = document.querySelectorAll(sel)
@@ -1224,7 +2108,7 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
       const r = siEl.getBoundingClientRect()
       const vw = window.innerWidth || 0
       const vh = window.innerHeight || 0
-      const nx = Math.round(r.x), ny = Math.round(r.y)
+      const nx = Math.round(r.x); const ny = Math.round(r.y)
       const inViewport = nx >= 0 && ny >= 0 && nx < vw && ny < vh
       return { mode: 'scrollinto', ok: true, boxVp: { x: nx, y: ny, w: Math.round(r.width), h: Math.round(r.height) }, inViewport: inViewport, scrollY: Math.round(window.scrollY || 0) }
     } catch (eSI) {
@@ -1254,7 +2138,7 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
         el2 = nodeEls[dc.ordinal]
         n2 = nodes[dc.ordinal] || null
       }
-      let entryDC = { transformId: dc.transformId, op: dc.op, drift: false, reason: null }
+      const entryDC = { transformId: dc.transformId, op: dc.op, drift: false, reason: null }
       if (!el2) {
         entryDC.drift = true
         entryDC.reason = 'target no longer enumerable'
@@ -1340,7 +2224,7 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
           } else {
             el.textContent = op2.text
           }
-          outOps.push({ ordinal: op2.ordinal, sel: op2.sel || null, op: op2.op, ok: true, original: { text: prev.slice(0, 1200) }, appliedText: op2.text, rendered: { text: String(el.textContent || '').slice(0, 200), children: el.children.length } })
+          outOps.push({ ordinal: op2.ordinal, sel: op2.sel || null, op: op2.op, ok: true, original: { text: prev.slice(0, AGENT_RPC_TRANSFORM_RESTORE_TEXT_MAX), textTruncated: prev.length > AGENT_RPC_TRANSFORM_RESTORE_TEXT_MAX }, appliedText: op2.text, rendered: { text: String(el.textContent || '').slice(0, 200), children: el.children.length } })
         } else if (op2.op === 'set_style' || op2.op === 'hide' || op2.op === 'highlight') {
           const styleEntries = op2.op === 'set_style' ? (op2.style || []) : []
           const appliedProps = []
@@ -1420,7 +2304,8 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
       }
     } catch (eF2) { /* ignore */ }
     return {
-      mode: 'predict', ok: true,
+      mode: 'predict',
+      ok: true,
       tag: tag,
       role: prNode.role,
       name: prNode.name,
@@ -1432,7 +2317,7 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
       isContentEditable: prEl.isContentEditable === true,
       currentUrl: url,
       parentTag: (function () { try { const pc2 = prEl.parentElement; return pc2 ? (pc2.tagName || '').toLowerCase() : 'none' } catch (eP) { return 'err' } })(),
-      insideFormRaw: (function () { try { return prEl.closest && prEl.closest('form') ? true : false } catch (eC) { return 'err' } })()
+      insideFormRaw: (function () { try { return !!(prEl.closest && prEl.closest('form')) } catch (eC) { return 'err' } })()
     }
   }
   /* P1-03: cheap post-action verification (no full snapshot). Callable
@@ -1503,7 +2388,9 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
       }
     } catch (eF) { /* ignore */ }
     return {
-      mode: 'state', url: url, title: title,
+      mode: 'state',
+      url: url,
+      title: title,
       readyState: String(document.readyState || ''),
       captcha: { detected: kind !== null, kind: kind, confidence: confidence, basis: basis, widgetCount: widgetCount, docWidth: Math.round(document.documentElement ? document.documentElement.scrollWidth || 0 : 0) },
       focus: { isBody: focusIsBody, tag: focusTag, isTextField: focusIsTextField, isPasswordField: focusIsPasswordField },
@@ -1531,12 +2418,16 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
       const desc = Object.getOwnPropertyDescriptor(proto, 'value') ||
         Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') ||
         Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')
-      if (desc && desc.set) { desc.set.call(svEl, svText); usedNativeSetter = true }
-      else svEl.value = svText
+      if (desc && desc.set) { desc.set.call(svEl, svText); usedNativeSetter = true } else svEl.value = svText
       svEl.dispatchEvent(new Event('input', { bubbles: true }))
       svEl.dispatchEvent(new Event('change', { bubbles: true }))
       const finalLen = (svEl.value || '').length
-      return { mode: 'setvalue', ok: true, usedNativeSetter: usedNativeSetter, valueLength: finalLen, value: redacted ? null : clean(svEl.value || '', NAME_MAX), redacted: redacted }
+      /* P1-15 M4: for redacted (password/sensitive) fields, verify by exact internal
+       * comparison and report ONLY a non-secret boolean — the value itself is never
+       * returned, and length alone is not treated as proof. */
+      var match = null
+      if (redacted) match = (svEl.value || '') === (svText || '')
+      return { mode: 'setvalue', ok: true, usedNativeSetter: usedNativeSetter, valueLength: finalLen, value: redacted ? null : clean(svEl.value || '', NAME_MAX), redacted: redacted, match: match }
     } catch (eSet) {
       return { mode: 'setvalue', ok: false, reason: String(eSet && eSet.message ? eSet.message : eSet) }
     }
@@ -1544,14 +2435,30 @@ function AGENT_SNAPSHOT_PAGE_FN (mode, ordinal, extra) {
   /* snapshot mode (default) */
   const sNodes = nodes.map(function (n) {
     return {
-      role: n.role, name: n.name, nameKind: n.nameKind, nameIndex: n.nameIndex,
-      shadowPath: n.shadowPath || null, box: n.box, checked: n.checked, expanded: n.expanded,
-      disabled: n.disabled, redacted: n.redacted, value: n.value, valueLength: n.valueLength
+      role: n.role,
+      name: n.name,
+      nameKind: n.nameKind,
+      nameIndex: n.nameIndex,
+      shadowPath: n.shadowPath || null,
+      box: n.box,
+      checked: n.checked,
+      expanded: n.expanded,
+      disabled: n.disabled,
+      redacted: n.redacted,
+      value: n.value,
+      valueLength: n.valueLength,
+      readOnly: n.readOnly,
+      inputType: n.inputType || null,
+      filesCount: typeof n.filesCount === 'number' ? n.filesCount : null
     }
   })
   return {
-    mode: 'snapshot', url: url, title: title, nodes: sNodes,
-    truncated: state.stopped || nodes.length >= HARD_MAX, scanned: state.scanned,
+    mode: 'snapshot',
+    url: url,
+    title: title,
+    nodes: sNodes,
+    truncated: state.stopped || nodes.length >= HARD_MAX,
+    scanned: state.scanned,
     shadowMeta: { openShadowRoots: state.openShadowRoots },
     captchaBoxes: captchaBoxes
   }
@@ -1610,7 +2517,117 @@ function agentRpcRefStoreStatus () {
   return { tabs: liveTabs, refCount: total, ttlMs: AGENT_RPC_REF_TTL_MS, sweepRuns: AGENT_SNAPSHOT_SWEEP_RUNS }
 }
 
+/* ---------- R2 / B4: accessibility-tree snapshot (format:'ax') ----------
+ * A GENUINE Chromium accessibility tree via the single allowlisted CDP command
+ * Accessibility.getFullAXTree. Deliberately NOT a renamed DOM dump.
+ *
+ * Honesty rules:
+ *  - properties are reported only when Chromium actually returned them;
+ *  - unsupported/absent properties stay null, never invented false/empty;
+ *  - sensitive text is redacted by the same rules used elsewhere;
+ *  - output is bounded by node count, depth and characters, and says so.
+ */
+const AGENT_RPC_AX_MAX_NODES = 400
+const AGENT_RPC_AX_MAX_DEPTH = 24
+const AGENT_RPC_AX_MAX_CHARS = 32 * 1024
+
+function agentRpcAxProp (node, name) {
+  const props = (node && node.properties) || []
+  for (let i = 0; i < props.length; i++) {
+    if (props[i] && props[i].name === name) return props[i].value
+  }
+  return null
+}
+
+/* Chromium wraps scalars as {type,value}; unwrap without inventing values. */
+function agentRpcAxValue (v) {
+  if (v === null || v === undefined) return null
+  if (typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) {
+    return v.value === undefined ? null : v.value
+  }
+  return v
+}
+
+function agentRpcCommandAxTree (params) {
+  const view = viewMap[params.tabId]
+  if (!view || !view.webContents || view.webContents.isDestroyed()) {
+    return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'ref_not_found', 'tabId does not match a live view'))
+  }
+  const wc = view.webContents
+  return agentRpcCdpOnce(wc, 'Accessibility.getFullAXTree', {}).then(function (res) {
+    const raw = (res && res.nodes) || []
+    if (!raw.length) {
+      throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'the accessibility tree returned no nodes for this view')
+    }
+    /* index by nodeId so parent/child links survive */
+    const byId = new Map()
+    raw.forEach(function (n) { if (n && n.nodeId) byId.set(n.nodeId, n) })
+
+    const out = []
+    let truncated = false
+    const walk = function (node, depth) {
+      if (!node || out.length >= AGENT_RPC_AX_MAX_NODES) { truncated = true; return }
+      if (depth > AGENT_RPC_AX_MAX_DEPTH) { truncated = true; return }
+      const role = agentRpcAxValue(node.role)
+      const nameVal = agentRpcAxValue(node.name)
+      let name = typeof nameVal === 'string' ? agentRpcSafeText(nameVal, AGENT_RPC_SNAPSHOT_NAME_MAX) : null
+      const valueVal = agentRpcAxValue(node.value)
+      /* Redaction: never emit a value for a sensitive role. Chromium marks these
+       * as 'textbox' with an inputType of password/email, or exposes no value. */
+      const inputType = agentRpcAxValue(agentRpcAxProp(node, 'inputType'))
+      const sensitive = inputType === 'password' || inputType === 'email' || inputType === 'tel'
+      if (sensitive && typeof name === 'string') name = name
+      out.push({
+        nodeId: String(node.nodeId || ''),
+        parentId: node.parentId ? String(node.parentId) : null,
+        depth: depth,
+        role: role ? String(role) : null,
+        roleKind: role ? 'chromium-ax' : null,
+        name: name,
+        value: sensitive ? null : (typeof valueVal === 'string' ? agentRpcSafeText(valueVal, AGENT_RPC_SNAPSHOT_NAME_MAX) : null),
+        redacted: sensitive ? true : null,
+        /* only what Chromium reports; null means unknown, never false */
+        disabled: agentRpcAxValue(agentRpcAxProp(node, 'disabled')) === true ? true : (agentRpcAxProp(node, 'disabled') === null ? null : false),
+        required: agentRpcAxValue(agentRpcAxProp(node, 'required')) === true ? true : (agentRpcAxProp(node, 'required') === null ? null : false),
+        readonly: (function () {
+          const p = agentRpcAxProp(node, 'readonly')
+          if (p === null) return null
+          return agentRpcAxValue(p) === true
+        })(),
+        checked: (function () {
+          const p = agentRpcAxProp(node, 'checked')
+          if (p === null) return null
+          return agentRpcAxValue(p)
+        })(),
+        ignored: node.ignored === true
+      })
+      const kids = node.childIds || []
+      for (let i = 0; i < kids.length; i++) walk(byId.get(kids[i]), depth + 1)
+    }
+    walk(raw[0], 0)
+    let bounded = out
+    let text = JSON.stringify(bounded)
+    while (bounded.length > 1 && text.length > AGENT_RPC_AX_MAX_CHARS) {
+      bounded = bounded.slice(0, Math.ceil(bounded.length * 0.9))
+      truncated = true
+      text = JSON.stringify(bounded)
+    }
+    return {
+      tabId: String(params.tabId),
+      format: 'ax',
+      source: 'chromium-accessibility-tree',
+      nodes: bounded,
+      nodeCount: bounded.length,
+      totalNodes: raw.length,
+      truncated: truncated,
+      note: 'roles/names/states come from Chromium\'s own accessibility tree; a null property means Chromium did not report it (never assumed false). Cross-platform AX parity is NOT claimed from Windows-only evidence.'
+    }
+  })
+}
+
 function agentRpcCommandSnapshot (params) {
+  /* R2 / B4: the ax format returns a genuine Chromium accessibility tree. */
+  if (params.format === 'ax') return agentRpcCommandAxTree(params)
   return new Promise(function (resolve, reject) {
     const waitMs = Math.max(0, Math.min(params.waitMs === undefined ? 0 : params.waitMs, 5000))
     if (waitMs > 0) {
@@ -1622,128 +2639,137 @@ function agentRpcCommandSnapshot (params) {
 }
 
 function agentRpcCommandSnapshotBody (params, resolve, reject) {
-    var tabId = params.tabId
-    var view = typeof viewMap !== 'undefined' ? viewMap[tabId] : null
-    if (!view || !view.webContents || view.webContents.isDestroyed()) {
-      reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'not_found', 'tabId does not match a live view'))
-      return
-    }
-    if (view.webContents.getURL() === '') {
-      reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'view has no page loaded yet (about to show the start page)'))
-      return
-    }
-    /* Single-window scope (P0-09): report attribution rather than guessing. */
-    var selectedIn = null
-    try {
-      windows.openWindows.forEach(function (entry) {
-        if (!entry.closed && entry.win && !entry.win.isDestroyed() && windows.getState(entry.win).selectedView === String(tabId)) {
-          selectedIn = entry.id
-        }
-      })
-    } catch (e) { selectedIn = null }
+  var tabId = params.tabId
+  var view = typeof viewMap !== 'undefined' ? viewMap[tabId] : null
+  if (!view || !view.webContents || view.webContents.isDestroyed()) {
+    reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'not_found', 'tabId does not match a live view'))
+    return
+  }
+  if (view.webContents.getURL() === '') {
+    reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'view has no page loaded yet (about to show the start page)'))
+    return
+  }
+  /* Single-window scope (P0-09): report attribution rather than guessing. */
+  var selectedIn = null
+  try {
+    windows.openWindows.forEach(function (entry) {
+      if (!entry.closed && entry.win && !entry.win.isDestroyed() && windows.getState(entry.win).selectedView === String(tabId)) {
+        selectedIn = entry.id
+      }
+    })
+  } catch (e) { selectedIn = null }
 
-    var wc = view.webContents
-    var source = '(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')()'
+  var wc = view.webContents
+  var source = '(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')()'
 
-    var timedOut = false
-    var timer = setTimeout(function () {
-      timedOut = true
-      reject(agentRpcCommandError(AGENT_RPC_ERRORS.timeout, 'timeout', 'snapshot did not return within ' + AGENT_RPC_SNAPSHOT_TIMEOUT + 'ms'))
-    }, AGENT_RPC_SNAPSHOT_TIMEOUT)
+  var timedOut = false
+  var timer = setTimeout(function () {
+    timedOut = true
+    reject(agentRpcCommandError(AGENT_RPC_ERRORS.timeout, 'timeout', 'snapshot did not return within ' + AGENT_RPC_SNAPSHOT_TIMEOUT + 'ms'))
+  }, AGENT_RPC_SNAPSHOT_TIMEOUT)
 
-    wc.executeJavaScript(source)
-      .then(function (pageRes) {
-        if (timedOut) return
-        clearTimeout(timer)
-        if (!pageRes || !Array.isArray(pageRes.nodes)) {
-          reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'page returned no snapshot data'))
-          return
-        }
-        var maxNodes = params.maxNodes === undefined ? AGENT_RPC_SNAPSHOT_DEFAULT_NODES : params.maxNodes
-        var taken = pageRes.nodes.slice(0, Math.min(maxNodes, AGENT_RPC_SNAPSHOT_HARD_NODES))
+  wc.executeJavaScript(source)
+    .then(function (pageRes) {
+      if (timedOut) return
+      clearTimeout(timer)
+      if (!pageRes || !Array.isArray(pageRes.nodes)) {
+        reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'page returned no snapshot data'))
+        return
+      }
+      var maxNodes = params.maxNodes === undefined ? AGENT_RPC_SNAPSHOT_DEFAULT_NODES : params.maxNodes
+      var taken = pageRes.nodes.slice(0, Math.min(maxNodes, AGENT_RPC_SNAPSHOT_HARD_NODES))
 
-        var nodes = []
-        taken.forEach(function (n) {
-          var ref = 'r' + (AGENT_SNAPSHOT_REF_COUNTER++).toString(36)
-          nodes.push({
-            ref: ref,
-            role: n.role,
-            name: agentRpcSafeText(n.name, AGENT_RPC_SNAPSHOT_NAME_MAX),
-            value: (n.value === null || n.value === undefined) ? null : agentRpcSafeText(n.value, AGENT_RPC_SNAPSHOT_NAME_MAX),
-            valueLength: typeof n.valueLength === 'number' ? n.valueLength : null,
-            redacted: n.redacted === true,
-            checked: typeof n.checked === 'boolean' ? n.checked : null,
-            expanded: typeof n.expanded === 'boolean' ? n.expanded : null,
-            disabled: n.disabled === true,
-            box: n.box && typeof n.box.x === 'number' ? n.box : null,
-            shadowPath: (typeof n.shadowPath === 'string' && n.shadowPath) ? n.shadowPath : null,
-            locator: { kind: n.nameKind || 'text', role: n.role, nameIndex: n.nameIndex || 0 }
-          })
+      var nodes = []
+      taken.forEach(function (n) {
+        var ref = 'r' + (AGENT_SNAPSHOT_REF_COUNTER++).toString(36)
+        nodes.push({
+          ref: ref,
+          role: n.role,
+          name: agentRpcSafeText(n.name, AGENT_RPC_SNAPSHOT_NAME_MAX),
+          value: (n.value === null || n.value === undefined) ? null : agentRpcSafeText(n.value, AGENT_RPC_SNAPSHOT_NAME_MAX),
+          valueLength: typeof n.valueLength === 'number' ? n.valueLength : null,
+          redacted: n.redacted === true,
+          checked: typeof n.checked === 'boolean' ? n.checked : null,
+          expanded: typeof n.expanded === 'boolean' ? n.expanded : null,
+          disabled: n.disabled === true,
+          readOnly: (n.readOnly === true || n.readOnly === false) ? n.readOnly : null,
+          /* R2: file-input metadata for C6 upload target identification and the
+             * independent read-back (filesCount). */
+          inputType: n.inputType || null,
+          filesCount: typeof n.filesCount === 'number' ? n.filesCount : null,
+          box: n.box && typeof n.box.x === 'number' ? n.box : null,
+          shadowPath: (typeof n.shadowPath === 'string' && n.shadowPath) ? n.shadowPath : null,
+          locator: { kind: n.nameKind || 'text', role: n.role, nameIndex: n.nameIndex || 0 }
         })
+      })
 
-        var result = {
-          tabId: String(tabId),
-          url: agentRpcSafeUrl(pageRes.url),
-          title: agentRpcSafeText(pageRes.title, AGENT_RPC_MAX_TITLE_CHARS),
-          active: selectedIn !== null,
-          windowId: selectedIn,
-          format: params.format === 'text' ? 'text' : 'json',
-          requestedMaxNodes: maxNodes,
-          pageTruncated: pageRes.truncated === true,
-          truncated: false,
-          nodeCount: nodes.length
-        }
+      var result = {
+        tabId: String(tabId),
+        url: agentRpcSafeUrl(pageRes.url),
+        title: agentRpcSafeText(pageRes.title, AGENT_RPC_MAX_TITLE_CHARS),
+        active: selectedIn !== null,
+        windowId: selectedIn,
+        format: params.format === 'text' ? 'text' : 'json',
+        requestedMaxNodes: maxNodes,
+        pageTruncated: pageRes.truncated === true,
+        truncated: false,
+        nodeCount: nodes.length
+      }
 
-        var bounded = agentRpcBoundSnapshot(result, nodes)
-        var finalNodes = bounded.nodes
-        result.bytes = bounded.bytes
-        result.truncated = bounded.truncated
-        result.nodeCount = finalNodes.length
+      var bounded = agentRpcBoundSnapshot(result, nodes)
+      var finalNodes = bounded.nodes
+      result.bytes = bounded.bytes
+      result.truncated = bounded.truncated
+      result.nodeCount = finalNodes.length
 
-        /* Ref records carry everything the action resolver needs to re-locate
+      /* Ref records carry everything the action resolver needs to re-locate
          * the element WITHOUT trusting a stale DOM handle: role + accessible
          * name + nameIndex + the snapshot-time ordinal and enumeration length. */
-        var refRecords = []
-        finalNodes.forEach(function (n, idx) {
-          refRecords.push({ ref: n.ref, role: n.role, name: n.name, nameIndex: n.locator.nameIndex, ordinal: idx, enumLen: finalNodes.length })
+      /* R2 / C6: file inputs are addressed by their own document-order index.
+         * The snapshot ordinal indexes ALL interactive nodes, so it must never be
+         * used to index a file-input-only list. */
+      var fileInputSeq = 0
+      var refRecords = []
+      finalNodes.forEach(function (n, idx) {
+        refRecords.push({ ref: n.ref, role: n.role, name: n.name, nameIndex: n.locator.nameIndex, ordinal: idx, enumLen: finalNodes.length, fileIndex: (n.inputType === 'file' ? fileInputSeq++ : null) })
+      })
+      AGENT_SNAPSHOT_REFS.set(String(tabId), { born: Date.now(), refs: refRecords, enumLen: finalNodes.length })
+      result.refsStored = refRecords.length
+
+      if (result.format === 'text') {
+        var textLines = finalNodes.map(function (n) {
+          var attrs = []
+          if (n.disabled) attrs.push('disabled')
+          if (n.checked !== null) attrs.push('checked=' + n.checked)
+          if (n.redacted) attrs.push('redacted')
+          attrs.push('ref=' + n.ref)
+          return n.role + ' ' + JSON.stringify(n.name) + (n.value !== null ? ' value=' + JSON.stringify(n.value) : (n.valueLength !== null ? ' len=' + n.valueLength : '')) + ' [' + attrs.join(' ') + ']'
         })
-        AGENT_SNAPSHOT_REFS.set(String(tabId), { born: Date.now(), refs: refRecords, enumLen: finalNodes.length })
-        result.refsStored = refRecords.length
-
-        if (result.format === 'text') {
-          var textLines = finalNodes.map(function (n) {
-            var attrs = []
-            if (n.disabled) attrs.push('disabled')
-            if (n.checked !== null) attrs.push('checked=' + n.checked)
-            if (n.redacted) attrs.push('redacted')
-            attrs.push('ref=' + n.ref)
-            return n.role + ' ' + JSON.stringify(n.name) + (n.value !== null ? ' value=' + JSON.stringify(n.value) : (n.valueLength !== null ? ' len=' + n.valueLength : '')) + ' [' + attrs.join(' ') + ']'
-          })
+        result.text = 'url ' + JSON.stringify(result.url) + '\ntitle ' + JSON.stringify(result.title) + '\n' + textLines.join('\n')
+        while (result.text.length > AGENT_RPC_SNAPSHOT_BYTES && textLines.length > 1) {
+          textLines.pop()
+          result.truncated = true
           result.text = 'url ' + JSON.stringify(result.url) + '\ntitle ' + JSON.stringify(result.title) + '\n' + textLines.join('\n')
-          while (result.text.length > AGENT_RPC_SNAPSHOT_BYTES && textLines.length > 1) {
-            textLines.pop()
-            result.truncated = true
-            result.text = 'url ' + JSON.stringify(result.url) + '\ntitle ' + JSON.stringify(result.title) + '\n' + textLines.join('\n')
-          }
-        } else {
-          result.nodes = finalNodes
         }
-        resolve(result)
-      })
-      .catch(function () {
-        if (timedOut) return
-        clearTimeout(timer)
-        reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'snapshot could not be collected from this view'))
-      })
+      } else {
+        result.nodes = finalNodes
+      }
+      resolve(result)
+    })
+    .catch(function () {
+      if (timedOut) return
+      clearTimeout(timer)
+      reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'snapshot could not be collected from this view'))
+    })
 
-    /* Navigation clears the ref store for this tab immediately. Min already
+  /* Navigation clears the ref store for this tab immediately. Min already
      * attaches its own did-navigate listeners to every tab webContents
      * (viewManager createView), so listenerCount cannot decide this - track
      * our own attachment by webContents id. */
-    if (!AGENT_SNAPSHOT_NAV_ATTACHED.has(wc.id)) {
-      AGENT_SNAPSHOT_NAV_ATTACHED.add(wc.id)
-      wc.on('did-navigate', function () { agentRpcClearSnapshotRefs(String(tabId)); agentRpcClearTransforms(String(tabId)); agentRpcMouseAbort(String(tabId)) })
-    }
+  if (!AGENT_SNAPSHOT_NAV_ATTACHED.has(wc.id)) {
+    AGENT_SNAPSHOT_NAV_ATTACHED.add(wc.id)
+    wc.on('did-navigate', function () { agentRpcClearSnapshotRefs(String(tabId)); agentRpcClearTransforms(String(tabId)); agentRpcMouseAbort(String(tabId)) })
+  }
 }
 
 function agentRpcBoundSnapshot (result, nodes) {
@@ -1791,12 +2817,36 @@ function agentRpcAttachView (win, id) {
     content.children.slice(1).forEach(function (child) { content.removeChildView(child) })
     content.addChildView(view)
   }
-  /* bounds: refresh either way (renderer bounds events don't cover our attach). */
+  /* bounds: refresh either way (renderer bounds events don't cover our attach).
+   * A degenerate band (a 0-height UI slot, or the stale placeholder rectangle
+   * a view is created with) yields a view too small for the renderer to run in;
+   * Chromium then refuses executeJavaScript with 'Script failed to execute',
+   * which left a brand-new tab permanently un-evaluable until some unrelated
+   * resize repaired it. Never accept an unusable band. */
   const ui = content.children[0]
-  const uiB = (ui && ui.getBounds) ? ui.getBounds() : { y: 0, height: 0 }
+  let uiB = { y: 0, height: 0 }
+  try { uiB = (ui && ui.getBounds) ? ui.getBounds() : uiB } catch (eUB) { uiB = { y: 0, height: 0 } }
   const wb = win.getContentBounds()
-  view.setBounds({ x: 0, y: uiB.y + uiB.height, width: wb.width, height: Math.max(200, wb.height - uiB.y - uiB.height) })
+  const bandH = (uiB && uiB.height > 0) ? uiB.height : 0
+  const top = Math.max(0, Math.min(((uiB && uiB.y) || 0) + bandH, Math.floor(wb.height / 2)))
+  view.setBounds({ x: 0, y: top, width: wb.width, height: Math.max(200, wb.height - top) })
   windows.getState(win).selectedView = id
+  /* Repair pass: a view created moments ago can still report its placeholder
+   * size after the first setBounds. Re-apply once on the next turns while the
+   * tab is still the selected one. */
+  ;[80, 260].forEach(function (delay) {
+    setTimeout(function () {
+      try {
+        const v = viewMap[id]
+        if (!v || !v.getBounds || !win || win.isDestroyed()) return
+        if (windows.getState(win).selectedView !== id) return
+        const cb = v.getBounds()
+        if (cb && cb.width > 1 && cb.height > 400) return
+        const w2 = win.getContentBounds()
+        v.setBounds({ x: 0, y: top, width: w2.width, height: Math.max(200, w2.height - top) })
+      } catch (eRepair) { /* best effort */ }
+    }, delay)
+  })
   return true
 }
 
@@ -1810,10 +2860,39 @@ function agentRpcWaitForNewView (beforeKeys, timeoutMs) {
   })
 }
 
+/* The window a tab-level command must act on: the window that currently owns
+ * one of the given tab ids, else the MRU window. Using getCurrent blindly made
+ * tab commands act on whichever window was last FOCUSED, which on this build is
+ * not necessarily the window driving the session: a selected tab was attached
+ * to another window, and page commands kept reading the previous document. */
+function agentRpcWindowForTabs (ids) {
+  const wanted = (Array.isArray(ids) ? ids : [ids]).filter(function (x) { return x !== undefined && x !== null }).map(String)
+  try {
+    if (wanted.length > 0) {
+      const live = windows.openWindows.filter(function (entry) {
+        return !entry.closed && entry.win && !entry.win.isDestroyed()
+      })
+      const owner = live.find(function (entry) {
+        const content = entry.win.getContentView()
+        return wanted.some(function (id) { return content.children.indexOf(viewMap[id]) !== -1 })
+      })
+      if (owner) return owner.win
+      const denoted = live.find(function (entry) {
+        const st = windows.getState(entry.win)
+        return st && wanted.indexOf(String(st.selectedView)) !== -1
+      })
+      if (denoted) return denoted.win
+    }
+  } catch (e) { /* fall through to the MRU window */ }
+  return windows.getCurrent()
+}
+
 function agentRpcCommandTabOpen (params) {
   return new Promise(function (resolve, reject) {
     const win = windows.getCurrent()
     if (!win || win.isDestroyed()) {
+    /* Bring the window we are acting on to the front. Chromium does not run page script in an occluded/minimized window on this build, and the test/user expectation is that an agent-opened tab is actually displayed. */
+      try { if (!win.isVisible()) win.show(); if (!win.isFocused()) win.focus() } catch (eFocus) { /* best effort */ }
       reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'ref_not_found', 'no open window'))
       return
     }
@@ -1826,8 +2905,13 @@ function agentRpcCommandTabOpen (params) {
     }
     const before = Object.keys(viewMap)
     const attachedPromise = agentRpcWaitForNewView(before, 8000)
+    /* What was on screen before. The renderer creates the tab's view as a side
+     * effect of browserUI.addTab -> webviews.add, and for a foreground open it
+     * also switches; the main process must end in the SAME state or page
+     * commands read one document while another one is displayed. */
+    const prevShown = (function () { try { return windows.getState(win).selectedView || null } catch (e) { return null } })()
     try {
-      sendIPCToWindow(win, 'addTab', { url: params.url || '' })
+      sendIPCToWindow(win, 'addTab', { url: params.url || '', background: params.background === true })
     } catch (e) {
       reject(agentRpcCommandError(AGENT_RPC_ERRORS.internal, 'internal', 'tab could not be opened'))
       return
@@ -1837,22 +2921,60 @@ function agentRpcCommandTabOpen (params) {
         reject(agentRpcCommandError(AGENT_RPC_ERRORS.timeout, 'timeout', 'tab did not open within 8s'))
         return
       }
-      /* A tab opened without a URL has no page loaded at all (empty wc) —
-       * snapshot/act on it would crash the renderer chain; give it the start
-       * page through the existing funnel. */
-      const viewNew = viewMap[newId]
-      if (viewNew && viewNew.webContents && !viewNew.webContents.isDestroyed() && viewNew.webContents.getURL() === '') {
-        try { loadURLInView(newId, 'min://newtab') } catch (eLoad) { /* renderer load is best-effort */ }
+      /* Measured on Electron 43 (real-web acceptance): the renderer announces
+       * the new view through addTab BEFORE its first URL loads, and the view is
+       * not attached to any window until that load completes
+       * (viewManager.loadURLInView attaches the selected view on first
+       * navigation). Resolving immediately returned a tabId that every other
+       * command rejected with view_not_attached. Wait, bounded, until usable. */
+      const readyDeadline = Date.now() + AGENT_RPC_TAB_OPEN_READY_MS
+      const finishOpen = function () {
+        /* The renderer creates the view asynchronously; when this fires after
+         * our navigation won the race the view already has its page. */
+        const v = viewMap[newId]
+        if (v && v.webContents && !v.webContents.isDestroyed() && v.webContents.getURL() === '') {
+          try { loadURLInView(newId, 'min://newtab') } catch (eLoad) { /* renderer load is best-effort */ }
+        }
+        const winNow = (win && !win.isDestroyed()) ? win : windows.getCurrent()
+        const shownNow = winNow && !winNow.isDestroyed() && windows.getState(winNow).selectedView
+        if (params.background === true) {
+          /* Background open: leave the previous view on screen, but keep the
+           * main-process record honest (attach without selecting when the
+           * renderer did not display the new tab). */
+          if (shownNow === String(newId)) {
+            try { sendIPCToWindow(winNow, 'agentSelectTab', { id: String(prevShown) }) } catch (eBg) {}
+            if (prevShown && viewMap[prevShown]) agentRpcAttachView(winNow, prevShown)
+          } else if (prevShown && viewMap[prevShown] && winNow && windows.getState(winNow).selectedView !== prevShown) {
+            windows.getState(winNow).selectedView = prevShown
+          }
+        } else if (!shownNow || shownNow === String(newId)) {
+          /* Foreground open: the new tab must be the displayed, selected view
+           * on BOTH sides. agentSelectTab is the renderer-owned switch. */
+          try { sendIPCToWindow(winNow, 'agentSelectTab', { id: String(newId) }) } catch (eFg) {}
+          agentRpcAttachView(winNow, newId)
+        }
+        const attachedFinal = isViewAttachedToAnyWindow(viewMap[newId]) === true
+        resolve({ tabId: String(newId), attached: attachedFinal, background: params.background === true, ready: true })
       }
-      const winNow = windows.getCurrent()
-      const attachedNow = winNow && !winNow.isDestroyed() && windows.getState(winNow).selectedView === newId
-      if (!attachedNow && params.background !== true) {
-        agentRpcAttachView(winNow, newId)
+      /* Wait until the view can be trusted: it exists, is attached to a window,
+       * and (for a foreground open) holds a document. Timing out still resolves
+       * with the honest attached/ready state instead of hanging. */
+      const pollReady = function () {
+        const v = viewMap[newId]
+        if (!v || !v.webContents || v.webContents.isDestroyed()) { finishOpen(); return }
+        const attached = isViewAttachedToAnyWindow(v) === true
+        const hasDoc = v.webContents.getURL() !== ''
+        if ((attached && (params.background === true || hasDoc)) || Date.now() >= readyDeadline) { finishOpen(); return }
+        setTimeout(pollReady, AGENT_RPC_TAB_OPEN_POLL_MS)
       }
-      resolve({ tabId: String(newId), attached: params.background === true ? false : true, background: params.background === true })
+      pollReady()
     })
   })
 }
+
+/* Bounded readiness wait for a freshly opened tab (agentRpcCommandTabOpen). */
+const AGENT_RPC_TAB_OPEN_READY_MS = 6000
+const AGENT_RPC_TAB_OPEN_POLL_MS = 100
 
 function agentRpcCommandTabSelect (params) {
   return new Promise(function (resolve, reject) {
@@ -1861,19 +2983,28 @@ function agentRpcCommandTabSelect (params) {
       reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'ref_not_found', 'tabId does not match a live view'))
       return
     }
-    /* single-window scope: use the currently focused window. */
-    const win = windows.getCurrent()
+    /* single-window scope: the window that owns (or is intended to own) this
+     * tab, not whichever window happens to have focus. */
+    const win = agentRpcWindowForTabs([id])
     if (!win || win.isDestroyed()) {
       reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'ref_not_found', 'no open window'))
       return
     }
+    /* The renderer owns view visibility (it may be showing a placeholder such
+     * as edit mode). Ask it to perform the real switch, then make sure the
+     * main-process side is attached too. */
+    let answered = false
+    try {
+      sendIPCToWindow(win, 'agentSelectTab', { id: String(id) })
+      answered = true
+    } catch (eSel) { answered = false }
     const attached = agentRpcAttachView(win, id)
     if (!attached) {
       reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'view is not ready for attachment (first URL not loaded yet)'))
       return
     }
     try { viewMap[id].webContents.focus() } catch (e2) { /* focus is best-effort */ }
-    resolve({ tabId: String(id), attached: true })
+    resolve({ tabId: String(id), attached: true, rendererNotified: answered })
   })
 }
 
@@ -1890,6 +3021,8 @@ function agentRpcCommandTabClose (params) {
       return
     }
     agentRpcClearSnapshotRefs(String(id))
+    /* R4: drop overlay records + DOM when the tab goes away. */
+    agentRpcOverlayForget(id)
     agentRpcClearTransforms(String(id))
     /* P1-00A: the P0-08 wedge family wraps destroy()/post-detach operations.
      * Instead of wc.destroy(), use the graceful wc.close() and clean the maps
@@ -1932,6 +3065,11 @@ var AGENT_RPC_DOWNLOADS = []
 var AGENT_RPC_DOWNLOAD_SEQ = 0
 var AGENT_RPC_DOWNLOAD_SESSIONS = new WeakSet()
 var AGENT_RPC_NET_INFLIGHT = 0
+/* Phase E / D2-D: per-renderer network accounting. The global counters above stay for
+ * compatibility; waits use THIS map so one tab's traffic cannot satisfy or block
+ * another tab's wait. No new webRequest slot is taken - the existing hooks in
+ * main/filtering.js and onCompleted/onErrorOccurred simply forward webContentsId. */
+var AGENT_RPC_NET_BY_WC = new Map()
 var AGENT_RPC_SESSION_HOOKED = new WeakSet()
 
 function agentRpcEnsureDownloadTracking (ses) {
@@ -1941,9 +3079,13 @@ function agentRpcEnsureDownloadTracking (ses) {
     ses.on('will-download', function (event, item, webContents) {
       const id = 'dl' + (++AGENT_RPC_DOWNLOAD_SEQ)
       const rec = {
-        id: id, filename: item.getFilename(), mimeType: item.getMimeType(),
-        received: item.getReceivedBytes(), total: item.getTotalBytes(),
-        state: 'started', startedAt: new Date().toISOString()
+        id: id,
+        filename: item.getFilename(),
+        mimeType: item.getMimeType(),
+        received: item.getReceivedBytes(),
+        total: item.getTotalBytes(),
+        state: 'started',
+        startedAt: new Date().toISOString()
       }
       AGENT_RPC_DOWNLOADS.push(rec)
       if (AGENT_RPC_DOWNLOADS.length > 50) AGENT_RPC_DOWNLOADS.shift()
@@ -2007,7 +3149,7 @@ function agentRpcDlValidateRelPath (raw) {
       const code = seg.charCodeAt(ci)
       if (code < 32 || code === 127) return { ok: false, reason: 'control characters are not allowed in relPath' }
     }
-    if (/[<>:"|?*]/.test(seg)) return { ok: false, reason: "invalid path characters (< > : \" | ? *)" }
+    if (/[<>:"|?*]/.test(seg)) return { ok: false, reason: 'invalid path characters (< > : " | ? *)' }
     if (/[. ]$/.test(seg)) return { ok: false, reason: 'segments must not end with a dot or space' }
   }
   return { ok: true, rel: segs.join('/') }
@@ -2045,7 +3187,7 @@ function agentRpcDlUniqueDest (absPath) {
 /* Containment proof beyond string prefixes: resolve and compare relative
  * parts case-insensitively (Windows), and refuse symlink/junction members. */
 function agentRpcDlContainmentOk (root, absPath) {
-  let rel = agentRpcPath.relative(root, absPath)
+  const rel = agentRpcPath.relative(root, absPath)
   if (!rel || rel === '') return false
   if (agentRpcPath.isAbsolute(rel) || rel.split(agentRpcPath.sep)[0] === '..') return false
   if (process.platform === 'win32' && /^\.\.([\\/]|$)/i.test(rel)) return false
@@ -2079,7 +3221,9 @@ function agentRpcDlPrune () {
   const caps = Array.from(AGENT_RPC_DL_MANAGED.keys())
   while (caps.length > 100) { AGENT_RPC_DL_MANAGED.delete(caps.shift()) }
 }
-setInterval(agentRpcDlPrune, 60000).unref()
+/* P1-15/D1-F11: gated on --agent-rpc. This file is concatenated into every Min
+ * build, so a load-time timer started even when the bridge was never enabled. */
+if (agentRpcEnabledByArgv()) setInterval(agentRpcDlPrune, 60000).unref()
 
 /* resolve the tabId pinned to a webContents (null when not a known view) */
 function agentRpcDlTabIdFor (wc) {
@@ -2215,6 +3359,25 @@ function agentRpcDownloadManagedHook (event, item, wc) {
         agentRpcDlFlushWaiters(rec)
       })
       item.once('done', function (e3, st3) {
+        /* P1-15 M4: done-race hardening - if the item finished BEFORE our events
+         * attached (fast downloads), the 'done' event never fires and the record
+         * would stay 'progressing' forever. Re-check the item state right away. */
+        process.nextTick(function () {
+          try {
+            if (rec.terminal) return
+            var stNow = null
+            try { stNow = item.getState ? item.getState() : (item.isDone && item.isDone() ? 'completed' : null) } catch (eState) { return }
+            if (item.isDone && item.isDone()) stNow = stNow === 'interrupted' ? 'interrupted' : 'completed'
+            if (!stNow || stNow === 'progressing') return
+            rec.received = item.getReceivedBytes()
+            rec.state = stNow
+            rec.terminal = true
+            rec.endedAt = Date.now()
+            rec.canResume = rec.state === 'interrupted' && item.canResume()
+            rec.item = null
+            agentRpcDlFlushWaiters(rec)
+          } catch (eRace) { /* ignore */ }
+        })
         rec.received = item.getReceivedBytes()
         rec.state = st3 === 'completed' ? 'completed' : (st3 === 'cancelled' ? 'cancelled' : (st3 === 'interrupted' ? 'interrupted' : st3))
         rec.terminal = true
@@ -2425,9 +3588,6 @@ function agentRpcCommandDownloadResume (params) {
   }
 }
 
-
-
-
 function agentRpcDerivedBounds (bwin) {
   try {
     const cb = bwin.getContentBounds()
@@ -2445,11 +3605,16 @@ function agentRpcEnsureViewAttachedAndSelected (tabId) {
   try {
     const view = viewMap[tabId]
     if (!view) return false
-    const wasAttached = (typeof isViewAttachedToAnyWindow === 'function') ? isViewAttachedToAnyWindow(view) : true
+    /* Activation means "this tab is on screen": the window that owns the view
+     * displays it, with real bounds. Healthy geometry alone is NOT active -
+     * the renderer may show a different view (measured on Electron 43), which
+     * made page commands keep reading the previous document. */
+    const bwin0 = agentRpcWindowForTabs([tabId])
+    const shownNow = !!(bwin0 && !bwin0.isDestroyed() && windows.getState(bwin0).selectedView === String(tabId))
     let curB = null
     try { curB = (typeof view.getBounds === 'function') ? view.getBounds() : null } catch (eB0) { curB = null }
-    if (wasAttached && agentRpcBoundsHealthy(curB)) return true
-    const bwin = windows.getCurrent()
+    if (shownNow && agentRpcBoundsHealthy(curB)) return true
+    const bwin = bwin0 || windows.getCurrent()
     if (!bwin) return false
     if (agentRpcBoundsHealthy(curB)) { AGENT_RPC_BOUNDS_STORE.set(String(tabId), curB) }
     bwin.getContentView().children.slice(1).forEach(function (child) { bwin.getContentView().removeChildView(child) })
@@ -2458,12 +3623,12 @@ function agentRpcEnsureViewAttachedAndSelected (tabId) {
     }
     windows.getState(bwin).selectedView = tabId
     const stored = AGENT_RPC_BOUNDS_STORE.get(String(tabId))
-    if (stored) { try { view.setBounds(stored) } catch (eSB) { } }
-    else { const dv = agentRpcDerivedBounds(bwin); if (dv) { try { view.setBounds(dv) } catch (eSB2) { } } }
+    if (stored) { try { view.setBounds(stored) } catch (eSB) { } } else { const dv = agentRpcDerivedBounds(bwin); if (dv) { try { view.setBounds(dv) } catch (eSB2) { } } }
     const isAttachedNow = (typeof isViewAttachedToAnyWindow === 'function') ? isViewAttachedToAnyWindow(view) : true
     if (isAttachedNow) {
       try {
         const uiwc = (typeof getWindowWebContents === 'function') ? getWindowWebContents(bwin) : null
+        if (!shownNow) sendIPCToWindow(bwin, 'agentSelectTab', { id: String(tabId) })
         if (uiwc) { uiwc.executeJavaScript("window.dispatchEvent(new Event('resize'))") }
       } catch (eRz) { /* best effort */ }
     }
@@ -2472,8 +3637,6 @@ function agentRpcEnsureViewAttachedAndSelected (tabId) {
     return false
   }
 }
-
-
 
 /* ---------- P1-06: typed mouse (viewport CSS px; explicit tabId) ---------- *
  * sendInputEvent dispatch is ELECTRON PAGE-LEVEL input: it does NOT move the
@@ -2585,7 +3748,7 @@ function agentRpcCommandMouse (params) {
        * literal source — no request data) */
       try {
         const uiwc = getWindowWebContents(bwin2)
-        if (uiwc) { uiwc.executeJavaScript("window.dispatchEvent(new Event('resize'))") } 
+        if (uiwc) { uiwc.executeJavaScript("window.dispatchEvent(new Event('resize'))") }
       } catch (eRz) { /* best effort */ }
     }
   } catch (eAttach) { /* best-effort; failures surface as structured errors below */ }
@@ -2601,7 +3764,6 @@ function agentRpcCommandMouse (params) {
   const btn = AGENT_RPC_MOUSE_BTN[params.button || 'left'] ? (params.button || 'left') : null
   const startedAt = Date.now()
   const tabIdS = String(params.tabId)
-
 
   /* staleness gate: explicit screenshotId coordinates are only valid while the
    * tab, document, viewport, zoom and scroll state are unchanged */
@@ -2744,27 +3906,48 @@ function agentRpcCommandMouse (params) {
  * handleRequest calls the hoisted bridgeside hook below (single concatenated
  * bundle scope), and the bridge only adds onCompleted/onErrorOccurred
  * decoders, which nobody else in this codebase registers. */
-var AGENT_RPC_NET_INFLIGHT = 0
 var AGENT_RPC_NET_OBSERVED_TOTAL = 0
 var AGENT_RPC_NET_SETTLED_TOTAL = 0
-function agentRpcNetworkRequestObserved () {
+function agentRpcNetFor (wcId) {
+  const key = String(wcId)
+  let rec = AGENT_RPC_NET_BY_WC.get(key)
+  if (!rec) {
+    rec = { inflight: 0, observed: 0, settled: 0, blocked: 0, lastStart: 0, openBeforeWaitBaseline: 0 }
+    AGENT_RPC_NET_BY_WC.set(key, rec)
+  }
+  return rec
+}
+
+function agentRpcNetworkRequestObserved (wcId) {
   AGENT_RPC_NET_OBSERVED_TOTAL++
   AGENT_RPC_NET_INFLIGHT++
+  if (wcId !== undefined && wcId !== null) {
+    const rec = agentRpcNetFor(wcId)
+    rec.observed++
+    rec.inflight++
+    rec.lastStart = Date.now()
+  }
 }
 var AGENT_RPC_NET_BLOCKED_TOTAL = 0
-function agentRpcNetworkRequestBlocked () {
+function agentRpcNetworkRequestBlocked (wcId) {
   AGENT_RPC_NET_BLOCKED_TOTAL++
+  if (wcId !== undefined && wcId !== null) agentRpcNetFor(wcId).blocked++
 }
-function agentRpcNetworkRequestSettled () {
+function agentRpcNetworkRequestSettled (wcId) {
   AGENT_RPC_NET_INFLIGHT = Math.max(0, AGENT_RPC_NET_INFLIGHT - 1)
   AGENT_RPC_NET_SETTLED_TOTAL++
+  if (wcId !== undefined && wcId !== null) {
+    const rec = agentRpcNetFor(wcId)
+    rec.inflight = Math.max(0, rec.inflight - 1)
+    rec.settled++
+  }
 }
 function agentRpcEnsureWebRequestCounters (ses) {
   if (AGENT_RPC_SESSION_HOOKED.has(ses)) return
   AGENT_RPC_SESSION_HOOKED.add(ses)
   const filter = { urls: ['http://*/*', 'https://*/*'] }
   try {
-    const dec = function () { AGENT_RPC_NET_INFLIGHT = Math.max(0, AGENT_RPC_NET_INFLIGHT - 1); AGENT_RPC_NET_SETTLED_TOTAL++ }
+    const dec = function (details) { const id = details && details.webContentsId; AGENT_RPC_NET_INFLIGHT = Math.max(0, AGENT_RPC_NET_INFLIGHT - 1); AGENT_RPC_NET_SETTLED_TOTAL++; if (id !== undefined && id !== null) { const rec = agentRpcNetFor(id); rec.inflight = Math.max(0, rec.inflight - 1); rec.settled++ } }
     ses.webRequest.onCompleted(filter, dec)
     ses.webRequest.onErrorOccurred(filter, dec)
   } catch (e) { /* counting unavailable */ }
@@ -2788,7 +3971,9 @@ function agentRpcCommandContent (params) {
     if (dropped) text = text.slice(0, maxChars)
     return {
       tabId: String(params.tabId),
-      url: page.url, title: page.title, text: text,
+      url: page.url,
+      title: page.title,
+      text: text,
       truncated: page.truncated === true || dropped
     }
   }).catch(function () {
@@ -2808,10 +3993,15 @@ var AGENT_SNAPSHOT_SWEEP = null
 var AGENT_SNAPSHOT_PENDING_DESTROYS = []
 var AGENT_SNAPSHOT_SWEEP_RUNS = 0
 
-app.on('session-created', function (ses) {
-  agentRpcEnsureDownloadTracking(ses)
-  agentRpcEnsureWebRequestCounters(ses)
-})
+/* P1-15/D1-F11: gated on --agent-rpc so a Min launch without the bridge does not
+ * install agent listeners at all. Both hooks are also ensured lazily on the
+ * command path and at server start, so nothing is lost when it IS enabled. */
+if (agentRpcEnabledByArgv()) {
+  app.on('session-created', function (ses) {
+    agentRpcEnsureDownloadTracking(ses)
+    agentRpcEnsureWebRequestCounters(ses)
+  })
+}
 
 function agentRpcCommandHover (params) {
   return agentRpcResolveTarget(params.tabId, params.ref).then(function (res) {
@@ -2872,8 +4062,14 @@ function agentRpcCommandSelect (params) {
       throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'ref does not point at a combobox (select) element (role=' + t.role + ')')
     }
     const pre = {
-      mode: 'click', url: res.page.url, title: res.page.title, marker: res.page.marker,
-      enumLen: res.page.total, targetRole: t.role, targetName: t.name, targetNameIndex: t.nameIndex,
+      mode: 'click',
+      url: res.page.url,
+      title: res.page.title,
+      marker: res.page.marker,
+      enumLen: res.page.total,
+      targetRole: t.role,
+      targetName: t.name,
+      targetNameIndex: t.nameIndex,
       ordinal: res.page.nodes.indexOf(t) >= 0 ? res.page.nodes.indexOf(t) : res.record.ordinal,
       dispatchedAt: Date.now()
     }
@@ -2885,11 +4081,16 @@ function agentRpcCommandSelect (params) {
       agentRpcLog('action dispatched', 'select', 'ref=' + params.ref)
       return agentRpcRunVerification(res.wc, params.tabId, params.ref, pre, true, selRes.selectedText).then(function (v) {
         return {
-          tabId: String(params.tabId), ref: params.ref,
+          tabId: String(params.tabId),
+          ref: params.ref,
           target: { role: t.role, name: t.name },
-          dispatched: true, verified: v.verified, verification: v.kind,
-          value: selRes.value, selectedText: selRes.selectedText,
-          url: res.page.url, waitedMs: Date.now() - pre.dispatchedAt
+          dispatched: true,
+          verified: v.verified,
+          verification: v.kind,
+          value: selRes.value,
+          selectedText: selRes.selectedText,
+          url: res.page.url,
+          waitedMs: Date.now() - pre.dispatchedAt
         }
       })
     })
@@ -2951,10 +4152,14 @@ function agentRpcCommandCheck (params) {
       agentRpcLog('action dispatched', 'check', 'ref=' + params.ref)
       return agentRpcAwaitCheck(res.wc, checkOrdinal, params.checked).then(function (v) {
         return {
-          tabId: String(params.tabId), ref: params.ref,
+          tabId: String(params.tabId),
+          ref: params.ref,
           target: { role: t.role, name: t.name },
-          dispatched: true, verified: v.verified, verification: v.kind,
-          checked: v.state, waitedMs: Date.now() - dispatchedAt
+          dispatched: true,
+          verified: v.verified,
+          verification: v.kind,
+          checked: v.state,
+          waitedMs: Date.now() - dispatchedAt
         }
       })
     })
@@ -2986,28 +4191,88 @@ function agentRpcCommandWait (params) {
   if (ses) agentRpcEnsureWebRequestCounters(ses)
   const timeoutMs = Math.max(500, Math.min(params.timeoutMs === undefined ? 8000 : params.timeoutMs, 20000))
   if (params.until === 'network_idle') {
+    /* Phase E / D2-D - EXPLICIT semantics.
+     *
+     * "network idle" here means: NO NEW request has STARTED in this tab for
+     * `quietMs` (default 1000 ms, overridable via quietMs). It deliberately
+     * does NOT mean "all network activity stopped":
+     *   - Requests already in flight when the wait began are baselined and are
+     *     IGNORED. A server-sent-events stream, a long poll, or a websocket
+     *     opened before the wait therefore can never make this wait fail - the
+     *     stream itself is not expected to end.
+     *   - They are reported as `openLongLived` so the caller can see the truth.
+     *   - State comes from webRequest EVENTS (onBeforeRequest via the existing
+     *     filtering hook, plus onCompleted/onErrorOccurred); the interval is
+     *     only a bounded deadline check, not a fixed sleep.
+     *   - Counters are per-webContents, so another tab's traffic neither
+     *     satisfies nor blocks this wait. No raw CDP and no event drain. */
+    const quietMs = Math.max(300, Math.min(params.quietMs === undefined ? 1000 : params.quietMs, 10000))
+    const maxQuietMs = Math.max(quietMs + 500, Math.min(params.maxQuietMs === undefined ? 3000 : params.maxQuietMs, 10000))
+    const wcId = (wc && wc.id !== undefined && wc.id !== null) ? wc.id : null
+    const rec = wcId === null ? null : agentRpcNetFor(wcId)
+    const baselineInflight = rec ? rec.inflight : AGENT_RPC_NET_INFLIGHT
+    const baselineObserved = rec ? rec.observed : AGENT_RPC_NET_OBSERVED_TOTAL
     return new Promise(function (resolve) {
       const t0 = Date.now()
       const deadline = t0 + timeoutMs
-      let lastStart = Date.now() /* time of the last NEW request start (anchored at wait begin) */
-      let lastObserved = AGENT_RPC_NET_OBSERVED_TOTAL
+      /* The quiet window is anchored at THIS wait's start and only re-anchors
+       * when a request actually starts during the wait. Using the tab's
+       * historical lastStart would let a long-idle tab satisfy immediately. */
+      let lastObserved = baselineObserved
+      let lastStart = t0
       const poll = function () {
-        const inflight = AGENT_RPC_NET_INFLIGHT
         const now = Date.now()
-        if (AGENT_RPC_NET_OBSERVED_TOTAL !== lastObserved) {
-          lastObserved = AGENT_RPC_NET_OBSERVED_TOTAL
-          lastStart = now
-        }
-        /* idle = no new request started for 1000ms AND in-flight drained; OR
-         * no new activity at all for 3000ms (tolerates deliveries that never
-         * produce onCompleted, e.g. long-poll/SSE or counter leaks from other
-         * tabs; the reason string discloses remaining in-flight count). */
-        const quietMs = now - lastStart
-        if ((quietMs >= 1000 && inflight === 0) || quietMs >= 3000) {
-          resolve({ satisfied: true, waitedMs: now - t0, reason: inflight > 0 ? 'no new activity for ' + quietMs + 'ms; in-flight=' + inflight + ' (pre-existing)' : 'no request activity for ' + quietMs + 'ms' })
+        const inflight = rec ? rec.inflight : AGENT_RPC_NET_INFLIGHT
+        const observed = rec ? rec.observed : AGENT_RPC_NET_OBSERVED_TOTAL
+        if (observed !== lastObserved) { lastObserved = observed; lastStart = now }
+        const openLongLived = Math.max(0, inflight - 0)
+        const quietFor = now - lastStart
+        /* Primary: genuinely drained after a quiet window.
+         * Fallback: still noisy after maxQuietMs - satisfied but DISCLOSED as
+         * quiet-by-timeout with the remaining in-flight count, so "quiet" is
+         * never silently upgraded to "stopped". */
+        if (observed === baselineObserved && quietFor >= quietMs && inflight === 0) {
+          resolve({
+            satisfied: true,
+            drained: true,
+            waitedMs: now - t0,
+            quietMs: quietMs,
+            semantics: 'no NEW request started in this tab for the quiet window and the tab is drained; requests already in flight when the wait began are ignored and are NOT expected to end (SSE/long-poll/websocket)',
+            openLongLived: openLongLived,
+            inFlight: inflight,
+            baselineInFlight: baselineInflight,
+            reason: 'quiet for ' + quietFor + 'ms and fully drained; ' + openLongLived + ' pre-existing long-lived connection(s) were open and correctly ignored'
+          })
           return
         }
-        if (now >= deadline) { resolve({ satisfied: false, waitedMs: now - t0, reason: inflight + ' in-flight request(s) remain' }); return }
+        if (quietFor >= maxQuietMs) {
+          resolve({
+            satisfied: true,
+            drained: false,
+            waitedMs: now - t0,
+            quietMs: quietMs,
+            maxQuietMs: maxQuietMs,
+            semantics: 'no request started for maxQuietMs, but the tab was NOT drained - this is a quiet-by-timeout result, NOT proof that network activity stopped',
+            openLongLived: openLongLived,
+            inFlight: inflight,
+            baselineInFlight: baselineInflight,
+            reason: 'new traffic kept arriving for ' + quietFor + 'ms (exceeded quietMs=' + quietMs + '); ' + inflight + ' request(s) still in flight'
+          })
+          return
+        }
+        if (now >= deadline) {
+          resolve({
+            satisfied: false,
+            waitedMs: now - t0,
+            quietMs: quietMs,
+            semantics: 'no NEW request started in this tab for the quiet window',
+            openLongLived: openLongLived,
+            inFlight: inflight,
+            baselineInFlight: baselineInflight,
+            reason: 'timeout after ' + timeoutMs + 'ms with ' + openLongLived + ' request(s) in flight and new traffic still arriving'
+          })
+          return
+        }
         setTimeout(poll, 200)
       }
       poll()
@@ -3038,7 +4303,47 @@ function agentRpcCommandWait (params) {
       poll()
     })
   }
-  return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.invalid_params, 'invalid_params', 'until must be network_idle or selector_visible'))
+  if (params.until === 'ready_state') {
+    /* Phase E / D2-C: explicit document.readyState wait, separate from
+     * network_idle and from selector_visible. Bounded; never blocks on a
+     * dialog; a navigation mid-wait simply re-reads the live state. */
+    const targets = ['interactive', 'complete']
+    const stateSource = '(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')(' + JSON.stringify('state') + ')'
+    return new Promise(function (resolve) {
+      const t0 = Date.now()
+      const deadline = t0 + timeoutMs
+      let last = 'unavailable'
+      let lastUrl = null
+      const poll = function () {
+        if (wc.isDestroyed()) {
+          resolve({ satisfied: false, waitedMs: Date.now() - t0, readyState: last, url: lastUrl, reason: 'renderer was destroyed while waiting for ready_state' })
+          return
+        }
+        wc.executeJavaScript(stateSource).then(function (page) {
+          last = (page && page.readyState) || 'unavailable'
+          lastUrl = (page && page.url) || null
+          if (targets.indexOf(last) !== -1) {
+            resolve({ satisfied: true, waitedMs: Date.now() - t0, readyState: last, url: lastUrl, reason: 'document.readyState reached ' + last })
+            return
+          }
+          if (Date.now() >= deadline) {
+            resolve({ satisfied: false, waitedMs: Date.now() - t0, readyState: last, url: lastUrl, reason: 'timeout after ' + timeoutMs + 'ms with document.readyState=' + last })
+            return
+          }
+          setTimeout(poll, 250)
+        }).catch(function (eSt) {
+          last = 'unavailable'
+          if (Date.now() >= deadline) {
+            resolve({ satisfied: false, waitedMs: Date.now() - t0, readyState: 'unavailable', url: null, reason: 'timeout after ' + timeoutMs + 'ms; page state could not be collected from this view' })
+            return
+          }
+          setTimeout(poll, 300)
+        })
+      }
+      poll()
+    })
+  }
+  return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.invalid_params, 'invalid_params', 'until must be network_idle, selector_visible or ready_state'))
 }
 
 /* ---------- browser_downloads (read-only listing) ---------- */
@@ -3053,6 +4358,251 @@ function agentRpcCommandWait (params) {
 const AGENT_RPC_BATCH_BUDGET_MS = 60000
 const AGENT_RPC_BATCH_MAX_STEPS = 20
 const AGENT_RPC_BATCH_EXCLUDED = ['browser_grant', 'browser_batch']
+
+'use strict'
+/* P1-15 M1 — page-context evaluation (browser_eval) + per-tab viewport scale.
+ * AGENT_EVAL_PAGE_FN is transported to the page via Function.prototype.toString()
+ * (same mechanism as AGENT_SNAPSHOT_PAGE_FN). It ALWAYS executes in the target
+ * tab's main world — never in Node/MCP/server context.
+ *
+ * Serialization: results are JSON-serialized INSIDE the page with explicit
+ * handling for cycles, functions, DOM nodes, ImageData, oversized strings/objects
+ * (two-tier caps: full then tight) and non-JSON types.
+ *
+ * Timeout honesty: the bridge races this call against a bounded timer. An endless
+ * SYNCHRONOUS expression keeps the renderer busy even after the call rejects —
+ * real V8 cancellation does not exist from outside; the rejection message says so
+ * and includes a recovery hint. Awaiting promises whose fulfillment never arrives is the
+ * same category. */
+var AGENT_RPC_EVAL_QUEUES = {}
+var AGENT_RPC_EVAL_QUEUE_LEN = {}
+
+var AGENT_EVAL_PAGE_FN = function (evalExprString, awaitPromise, maxChars) {
+  'use strict'
+  function safe (v, depth, seen, tight) {
+    depth = depth || 0
+    seen = seen || new Set()
+    var t = typeof v
+    if (v === undefined) return { __t: 'undefined' }
+    if (v === null || t === 'number' || t === 'boolean') return { __t: t, v: Number.isNaN(v) ? 'NaN' : v }
+    if (t === 'string') return { __t: 'string', len: v.length, v: (tight ? v.slice(0, 200) : v.slice(0, 2000)) }
+    if (t === 'bigint') return { __t: 'bigint', v: String(v) }
+    if (t === 'function') return { __t: 'function', name: v.name || 'anonymous' }
+    if (v instanceof Error) return { __t: 'error', name: String(v.name || 'Error'), mess: String(v.message || '').slice(0, 300) }
+    if (typeof Node !== 'undefined' && v instanceof Node) {
+      var box = null
+      try {
+        if (v.getBoundingClientRect) {
+          var bb = v.getBoundingClientRect()
+          box = { x: Math.round(bb.x), y: Math.round(bb.y), w: Math.round(bb.width), h: Math.round(bb.height) }
+        }
+      } catch (eBox) { /* detached */ }
+      return { __t: 'node', nodeType: v.nodeType, tag: (v.tagName || '').toLowerCase() || null, id: v.id || null, text: (v.textContent || '').slice(0, 120), box: box }
+    }
+    if (typeof ImageData !== 'undefined' && v instanceof ImageData) {
+      var pv = Math.min(v.data.length, tight ? 64 : 4096)
+      return { __t: 'imagedata', width: v.width, height: v.height, dataLength: v.data.length, dataPreview: Array.prototype.slice.call(v.data, 0, pv) }
+    }
+    if (depth > 6) return { __t: 'maxdepth' }
+    if (seen.has(v)) return { __t: 'circular' }
+    seen.add(v)
+    if (Array.isArray(v)) return { __t: 'array', length: v.length, items: v.slice(0, tight ? 15 : 300).map(function (x) { return safe(x, depth + 1, seen, tight) }) }
+    if (v instanceof Map) return { __t: 'map', size: v.size }
+    if (v instanceof Set) return { __t: 'set', size: v.size }
+    var ks = Object.keys(v).slice(0, tight ? 10 : 100)
+    var out = { __t: 'object', ctor: (v.constructor && v.constructor.name) || 'Object' }
+    for (var i = 0; i < ks.length; i++) out[String(ks[i]).slice(0, 120)] = safe(v[ks[i]], depth + 1, seen, tight)
+    return out
+  }
+  function jsonOut (v) {
+    var full = JSON.stringify({ ok: true, value: safe(v, 0, new Set(), false) })
+    if (full.length <= maxChars) return full
+    var tj = JSON.stringify({ ok: true, truncated: true, fullChars: full.length, value: safe(v, 0, new Set(), true) })
+    if (tj.length <= maxChars) return tj
+    return JSON.stringify({ ok: true, truncated: true, errorNote: 'result exceeds maxResultChars even at minimum detail', fullChars: full.length })
+  }
+  var RUN = new Function('EPS', 'return (async function () { "use strict";\ntry {\n  return await (' + evalExprString + ');\n} catch (eEval) {\n  return { __rejected: true, name: (eEval && eEval.name) || "Error", message: String((eEval && eEval.message) || "").slice(0, 500) };\n} })()')
+  try {
+    var resultPromise = RUN(evalExprString)
+    if (!awaitPromise) {
+      /* synchronous mode: a promise result is reported as-is (unresolved) */
+      return resultPromise.then(function (r) {
+        if (r && r.__rejected === true) return JSON.stringify({ ok: false, error: { name: r.name, message: r.message, isRejection: true } })
+        if (r && typeof r.then === 'function') return JSON.stringify({ ok: true, awaitPromise: false, unresolvedPromise: true, value: { __t: 'promise' } })
+        return jsonOut(r)
+      }).catch(function (eSync) {
+        return JSON.stringify({ ok: false, error: { name: String(eSync && eSync.name || 'Error'), message: String(eSync && eSync.message || '').slice(0, 500) } })
+      })
+    }
+    return resultPromise.then(function (r) {
+      if (r && r.__rejected === true) return JSON.stringify({ ok: false, awaitedPromise: true, error: { name: r.name, message: r.message, isRejection: true } })
+      return jsonOut(r)
+    }).catch(function (eAwait) {
+      return JSON.stringify({ ok: false, awaitedPromise: true, error: { name: String(eAwait && eAwait.name || 'Error'), message: String(eAwait && eAwait.message || '').slice(0, 500), isRejection: true } })
+    })
+  } catch (eMake) {
+    return Promise.resolve(JSON.stringify({ ok: false, error: { name: String(eMake && eMake.name || 'Error'), message: String(eMake && eMake.message || '').slice(0, 500) } }))
+  }
+}
+
+/* Page CSP vs page evaluation.
+ *
+ * Electron's executeJavaScript runs in the MAIN world, where the page's own
+ * Content-Security-Policy applies. A site that ships `script-src 'self'`
+ * (measured: news.ycombinator.com and any page with a strict CSP) therefore
+ * rejects the injected source and Chromium reports the opaque "Script failed
+ * to execute". Every page-reading capability (eval, snapshot, content, state,
+ * click/type verification, transforms) goes through this same door, so it is
+ * a first-class product condition rather than an edge case.
+ *
+ * The bridge keeps its main-world contract (page state must be the state the
+ * user sees) and reports a structured, documented error instead: category
+ * `csp_blocked` naming the origin. Navigation, screenshots and PDF stay
+ * available because they never execute in the page world. */
+function agentRpcLooksLikeCspBlock (eExec) {
+  return /Script failed to execute/i.test(String((eExec && eExec.message) || ''))
+}
+
+function agentRpcCspBlockedError (wc, what) {
+  let origin = ''
+  try { origin = new URL(wc.getURL()).origin } catch (e) { origin = '' }
+  return agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'csp_blocked',
+    what + ' could not run in the page world because this page\'s Content-Security-Policy blocks injected script' +
+    (origin ? ' (' + origin + ')' : '') +
+    '. Navigation, screenshots and PDF still work; page-level reads and actions need a page whose CSP allows evaluation.')
+}
+
+function agentRpcCommandEval (params) {
+  return new Promise(function (resolve, reject) {
+    var tabId = params.tabId
+    var view = typeof viewMap !== 'undefined' ? viewMap[tabId] : null
+    if (!view || !view.webContents || view.webContents.isDestroyed()) {
+      reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'ref_not_found', 'tabId does not match a live view'))
+      return
+    }
+    var wc = view.webContents
+    var expr = String(params.expression || '')
+    var awaitPromise = params.awaitPromise !== false
+    var timeoutMs = params.timeoutMs === undefined ? 10000 : params.timeoutMs
+    var maxChars = params.maxResultChars === undefined ? 60000 : params.maxResultChars
+    if (expr.length === 0) {
+      reject(agentRpcCommandError(AGENT_RPC_ERRORS.invalid_params, 'invalid_params', 'expression is required (an expression, not a statement list — wrap statements in an IIFE)'))
+      return
+    }
+    /* serialize evaluations per webContents: two engines must not interleave on
+     * the same renderer; the queue is bounded so a stalled stream surfaces as
+     * busy instead of growing forever. */
+    var qKey = String(wc.id)
+    AGENT_RPC_EVAL_QUEUES[qKey] = AGENT_RPC_EVAL_QUEUES[qKey] || Promise.resolve()
+    if ((AGENT_RPC_EVAL_QUEUE_LEN[qKey] || 0) >= 24) {
+      reject(agentRpcCommandError(AGENT_RPC_ERRORS.timeout, 'busy', 'too many queued page evaluations for this tab'))
+      return
+    }
+    AGENT_RPC_EVAL_QUEUE_LEN[qKey] = (AGENT_RPC_EVAL_QUEUE_LEN[qKey] || 0) + 1
+    var run = function () {
+      var settled = false
+      return new Promise(function (done) {
+        var raceTimer = setTimeout(function () {
+          if (settled) return
+          settled = true
+          done(JSON.stringify({ ok: false, timeout: true, error: { name: 'TimeoutError', message: 'page evaluation exceeded ' + timeoutMs + 'ms. If the expression contains an endless synchronous loop the renderer may still be busy; reload the page (browser_navigate) to recover.', awaitPromise: awaitPromise } }))
+        }, timeoutMs)
+        var src = '(' + AGENT_EVAL_PAGE_FN.toString() + ')(' +
+          JSON.stringify(String(expr)) + ',' + (awaitPromise ? 'true' : 'false') + ',' + JSON.stringify(maxChars) + ')'
+        wc.executeJavaScript(src)
+          .then(function (outJson) {
+            if (settled) return
+            settled = true
+            clearTimeout(raceTimer)
+            done(String(outJson))
+          })
+          .catch(function (eExec) {
+            if (settled) return
+            settled = true
+            clearTimeout(raceTimer)
+            if (agentRpcLooksLikeCspBlock(eExec)) {
+              done(JSON.stringify({ ok: false, cspBlocked: true, error: { name: 'CspBlocked', message: agentRpcCspBlockedError(wc, 'browser_eval').message } }))
+              return
+            }
+            done(JSON.stringify({ ok: false, error: { name: String((eExec && eExec.name) || 'Error'), message: String((eExec && eExec.message) || '').slice(0, 500) } }))
+          })
+      })
+    }
+    AGENT_RPC_EVAL_QUEUES[qKey] = AGENT_RPC_EVAL_QUEUES[qKey]
+      .then(run)
+      .then(function (outJson) {
+        AGENT_RPC_EVAL_QUEUE_LEN[qKey] = (AGENT_RPC_EVAL_QUEUE_LEN[qKey] || 1) - 1
+        var parsed = null
+        try { parsed = JSON.parse(outJson) } catch (eParse) {
+          reject(agentRpcCommandError(AGENT_RPC_ERRORS.internal, 'invalid_results', 'evaluation returned a non-JSON result'))
+          return
+        }
+        if (parsed && parsed.ok === false) {
+          if (parsed.cspBlocked === true) {
+            reject(agentRpcCspBlockedError(wc, 'browser_eval'))
+            return
+          }
+          var cat = parsed.timeout ? 'timeout' : (parsed.awaitedPromise ? 'eval_rejected' : 'eval_exception')
+          reject(agentRpcCommandError(AGENT_RPC_ERRORS.timeout, cat, (parsed.error && parsed.error.name || 'Error') + ': ' + (parsed.error && parsed.error.message || '')))
+          return
+        }
+        resolve({
+          tabId: String(tabId),
+          executionContext: 'main-frame-page-world',
+          awaitedPromise: !!awaitPromise,
+          truncated: parsed.truncated === true,
+          unresolvedPromise: parsed.unresolvedPromise === true,
+          value: parsed.value
+        })
+      }, function (eQ) {
+        AGENT_RPC_EVAL_QUEUE_LEN[qKey] = (AGENT_RPC_EVAL_QUEUE_LEN[qKey] || 1) - 1
+        reject(eQ)
+      })
+  })
+}
+
+function agentRpcCommandViewport (params) {
+  var view = typeof viewMap !== 'undefined' ? viewMap[params.tabId] : null
+  if (!view || !view.webContents || view.webContents.isDestroyed()) {
+    return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'ref_not_found', 'tabId does not match a live view'))
+  }
+  var wc = view.webContents
+  var previousZoom = wc.getZoomFactor()
+  var zoom = params.zoom === undefined ? 1 : params.zoom
+  if (typeof zoom !== 'number' || isNaN(zoom) || zoom < 0.25 || zoom > 3) {
+    return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.invalid_params, 'invalid_params', 'zoom must be a number between 0.25 and 3'))
+  }
+  wc.setZoomFactor(zoom)
+  return agentRplFetchViewportMeta(wc).then(function (meta) {
+    return {
+      tabId: String(params.tabId),
+      zoom: zoom,
+      previousZoom: previousZoom,
+      viewport: { width: meta ? meta.iw : null, height: meta ? meta.ih : null, dpr: meta ? meta.dpr : null },
+      note: 'per-tab viewport scale (zoom); cssPerPixel and screenshots reflect it; restore with zoom=previousZoom'
+    }
+  })
+}
+
+/* P1-15 M2: identity-strict stale-ref recovery. Resolves oldRef by its original
+ * (role, name, nameIndex) identity against a FRESH snapshot. Requires EXACTLY ONE
+ * match; ambiguity or absence raises an actionable ref_stale-family error. Never
+ * applies an expired reference to a different element. */
+function agentRpcReResolveRef (tabId, oldRef) {
+  const store = AGENT_SNAPSHOT_REFS.get(String(tabId))
+  const old = store && (store.refs || []).filter(function (r2) { return r2.ref === oldRef })[0]
+  if (!old || typeof old.role !== 'string') {
+    throw agentRpcCommandError(AGENT_RPC_ERRORS.ref_stale, 'ref_stale', 'original ref record has no identity to re-resolve; take a fresh snapshot and re-target explicitly')
+  }
+  return agentRpcDispatch('browser_snapshot', { tabId: String(tabId) }).then(function () {
+    const st2 = AGENT_SNAPSHOT_REFS.get(String(tabId))
+    const cands = ((st2 && st2.refs) || []).filter(function (r3) {
+      return r3.role === old.role && r3.name === old.name && (r3.nameIndex || 0) === (old.nameIndex || 0)
+    })
+    if (cands.length === 1) return { ref: cands[0].ref }
+    throw agentRpcCommandError(AGENT_RPC_ERRORS.ref_stale, 'ref_stale', 'ref expired; identity (role=' + old.role + ', name=' + String(old.name || '').slice(0, 60) + ') did not re-resolve uniquely (' + cands.length + ' candidates) — take a fresh snapshot and re-target explicitly')
+  })
+}
 
 function agentRpcCommandBatch (params) {
   return new Promise(function (resolve) {
@@ -3078,6 +4628,12 @@ function agentRpcCommandBatch (params) {
     }
 
     async function run () {
+      /* P1-15 M2: stopOnError defaults to true; with false a failing step is reported
+       * and later steps continue. recoverStale triggers ONE identity-strict
+       * re-resolve+retry for ref_stale steps (never applies an expired ref to a
+       * different element: identity = role+name+nameIndex must match uniquely). */
+      const stopOnError = params.stopOnError !== false
+      const recoverStale = params.recoverStale === true
       const steps = []
       for (let i = 0; i < plan.length; i++) {
         if (Date.now() - startedAt > AGENT_RPC_BATCH_BUDGET_MS) {
@@ -3086,22 +4642,35 @@ function agentRpcCommandBatch (params) {
         }
         const entry = plan[i]
         if (AGENT_RPC_BATCH_EXCLUDED.indexOf(entry.tool) !== -1) {
-          /* per-step enforcement: an excluded tool fails AT its own step, so
-           * earlier steps still run and stop-on-error halts the rest. */
+          /* P1-15/D1-F1 SECURITY BOUNDARY: an excluded tool must NEVER execute
+           * inside a batch. `stopOnError:false` changes only whether LATER steps
+           * continue after a failure - it must never allow a denied tool to run.
+           * The `continue` below is load-bearing: without it, execution falls
+           * through to the dispatch below and browser_grant/browser_batch run
+           * despite being on the exclusion list. */
           steps.push({ step: i, tool: entry.tool, ok: false, error: { category: 'invalid_params', message: entry.tool + ' cannot run inside a batch (excluded tool)' } })
-          break
+          if (stopOnError) break
+          continue
         }
         const mergedParams = Object.assign({}, entry.params || {})
         const schemaTakesTabId = Object.prototype.hasOwnProperty.call(AGENT_RPC_PARAM_SCHEMAS[entry.tool] || {}, 'tabId')
         if (schemaTakesTabId && mergedParams.tabId === undefined) mergedParams.tabId = params.tabId
         const verdict = agentRpcValidate({
-          method: 'POST', url: '/rpc',
+          method: 'POST',
+          url: '/rpc',
           headers: { host: '127.0.0.1:' + agentRpcState.port, authorization: 'Bearer ' + agentRpcState.token, 'content-type': 'application/json' },
-          port: agentRpcState.port, expectedToken: agentRpcState.token
+          port: agentRpcState.port,
+          expectedToken: agentRpcState.token
         }, JSON.stringify({ jsonrpc: '2.0', id: 'batch-step', method: entry.tool, params: mergedParams }))
         if (!verdict.ok) {
           steps.push({ step: i, tool: entry.tool, ok: false, error: verdict.error })
-          break
+          if (stopOnError) break
+          /* P1-15/D1-F1: same fall-through hazard as the exclusion check above.
+           * A step the validator REJECTED must never reach agentRpcDispatch -
+           * otherwise stopOnError:false would bypass the transport's own schema
+           * machinery, which is the last line of defence for authorization
+           * parameters (grants, refs, selectors, paths). */
+          continue
         }
         try {
           const outcome = agentRpcDispatch(entry.tool, mergedParams)
@@ -3113,15 +4682,71 @@ function agentRpcCommandBatch (params) {
            * in the step entry for re-planning. */
           if (result && typeof result === 'object' && result.verified === false) {
             steps.push({ step: i, tool: entry.tool, ok: false, result: result, error: { category: 'verification_failed', message: 'step completed but its verification did not pass' } })
-            break
+            if (stopOnError) break
+            /* The step DID execute, so it must not also be reported ok:true:
+             * one entry per step index, always. */
+            continue
           }
           steps.push({ step: i, tool: entry.tool, ok: true, result: result })
         } catch (eStep) {
-          steps.push({
-            step: i, tool: entry.tool, ok: false,
-            error: (eStep && eStep.agentRpcCommandError) ? { category: eStep.category, message: eStep.message, code: eStep.code } : { category: 'internal', message: 'command failed' }
-          })
-          break
+          var errEntry = { step: i, tool: entry.tool, ok: false, error: (eStep && eStep.agentRpcCommandError) ? { category: eStep.category, message: eStep.message, code: eStep.code } : { category: 'internal', message: 'command failed' } }
+          steps.push(errEntry)
+          /* P1-15 M2: opt-in stale-ref recovery — re-snapshot once, re-resolve the
+           * ORIGINAL target by its unique identity (role+name+nameIndex), and retry
+           * the step once with the fresh ref. If identity does not re-resolve
+           * uniquely, the failure stands with an actionable message (never applies
+           * an expired reference to a different element). */
+          if (recoverStale && errEntry.error && errEntry.error.category === 'ref_stale' &&
+              entry.params && typeof entry.params.ref === 'string') {
+            try {
+              /* P1-15/D1-F2: agentRpcReResolveRef is ASYNC - it must be awaited.
+               * Passing the un-awaited Promise straight into retryParams.ref put
+               * a Promise object where the ref resolver expects a ref string,
+               * so every recovery attempt failed with ref_stale again.
+               * It also re-snapshots the STEP's tab (mergedParams.tabId), not
+               * params.tabId: an entry may target a different tab than the
+               * batch default, and re-resolving against the wrong tab would
+               * resolve the identity against the wrong document. */
+              var reResolved = await agentRpcReResolveRef(mergedParams.tabId, entry.params.ref)
+              if (!reResolved || typeof reResolved.ref !== 'string') {
+                throw agentRpcCommandError(AGENT_RPC_ERRORS.ref_stale, 'ref_stale', 'identity re-resolution did not return a usable ref; take a fresh snapshot and re-target explicitly')
+              }
+              var retryParams = Object.assign({}, mergedParams)
+              retryParams.ref = reResolved.ref
+              /* Re-run the retry through the same transport validator so a
+               * re-resolved ref is held to exactly the same parameter rules as
+               * a caller-supplied one. Bounded: exactly one attempt. */
+              const retryVerdict = agentRpcValidate({
+                method: 'POST',
+                url: '/rpc',
+                headers: {
+                  host: '127.0.0.1:' + agentRpcState.port,
+                  authorization: 'Bearer ' + agentRpcState.token,
+                  'content-type': 'application/json'
+                },
+                port: agentRpcState.port,
+                expectedToken: agentRpcState.token
+              }, JSON.stringify({ jsonrpc: '2.0', id: 'batch-retry', method: entry.tool, params: retryParams }))
+              if (!retryVerdict.ok) {
+                steps.push({ step: i, tool: entry.tool, ok: false, retried: true, error: { category: 'ref_stale_recovery_failed', message: 're-resolved ref failed re-validation (' + (retryVerdict.error && retryVerdict.error.category) + ')' } })
+                if (stopOnError) break
+              } else {
+                var retryOutcome = agentRpcDispatch(entry.tool, retryParams)
+                var retryResult = await retryOutcome
+                if (retryResult && typeof retryResult === 'object' && retryResult.verified === false) {
+                  steps.push({ step: i, tool: entry.tool, ok: false, result: retryResult, retried: true, error: { category: 'verification_failed', message: 're-resolved step dispatched but verification did not pass' } })
+                  if (stopOnError) break
+                } else {
+                  steps.push({ step: i, tool: entry.tool, ok: true, result: retryResult, retried: true })
+                }
+              }
+            } catch (eRetry) {
+              steps.push({ step: i, tool: entry.tool, ok: false, retried: true, error: { category: 'ref_stale_recovery_failed', message: (eRetry && eRetry.message) || 'stale-ref recovery failed' } })
+              if (stopOnError) break
+            }
+          } else if (stopOnError) {
+            break
+          }
         }
       }
       return {
@@ -3129,7 +4754,8 @@ function agentRpcCommandBatch (params) {
         steps: steps,
         completed: steps.length,
         planned: plan.length,
-        stopOnError: true,
+        /* P1-15/D1-F4: report the value the caller actually used. */
+        stopOnError: stopOnError,
         totalMs: Date.now() - startedAt
       }
     }
@@ -3285,7 +4911,8 @@ function agentRpcRunVerification (wc, tabId, ref, pre, isType, expectedText) {
       resolve({ kind: kind || 'dispatched-unverified', verified: kind !== null && kind !== 'dispatched-unverified', navFired: navFired })
     }
 
-    var locateSource = '(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')(' + JSON.stringify('locate') + ',' + JSON.stringify(pre.ordinal) + ')'
+    var locExtra = (pre.redacted === true && isType && typeof expectedText === 'string') ? { matchAgainst: expectedText, ordinal: pre.ordinal } : null
+    var locateSource = '(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')(' + JSON.stringify('locate') + ',' + JSON.stringify(pre.ordinal) + ',' + JSON.stringify(locExtra) + ')'
 
     function inspect () {
       return wc.executeJavaScript(locateSource).then(function (page) {
@@ -3324,7 +4951,13 @@ function agentRpcRunVerification (wc, tabId, ref, pre, isType, expectedText) {
            * 'value' verification is length-only. Non-redacted fields match the
            * sanitized value. */
           if (target.redacted === true) {
-            if (target.valueLength === expectedText.length) return 'value'
+            /* P1-15 M4: exact internal comparison preferred (non-secret outcome); the
+             * value-length fallback only applies when the locate could not compare. */
+            if (target.matchExact === true) return 'value'
+            /* explicit mismatch: exit the window early as 'mismatch' — verified:false,
+             * the native-setter fallback then performs its own exact comparison. */
+            if (target.matchExact === false) return 'mismatch'
+            if (typeof target.matchExact === 'undefined' && target.valueLength === expectedText.length) return 'value-length'
           } else if (target.valueLength === expectedText.length && target.value === agentRpcSafeText(expectedText, AGENT_RPC_SNAPSHOT_NAME_MAX).slice(0, AGENT_RPC_SNAPSHOT_NAME_MAX)) return 'value'
           /* P1-01D: a located (identity-strict) target that still reads length 0
            * while non-empty text was dispatched is DEMONSTRABLY not accepted.
@@ -3368,6 +5001,302 @@ function agentRpcRunVerification (wc, tabId, ref, pre, isType, expectedText) {
   })
 }
 
+/* ============================ R4: DEBUG-CLICK OVERLAY ============================
+ *
+ * Authority: Master Scope Register line 1721 assigns "D3 debug overlay" to
+ * R4 (D4 observability). INTEGRATED-TARGET-ARCHITECTURE.md:803 states the scope
+ * exactly: "Probe/dev aid only, never in the shipped agent path", and the parity
+ * matrix (BROWSER-HARNESS-FEATURE-PARITY.md D3) lists it as "nice-to-have dev aid".
+ *
+ * WHAT IT IS
+ *   A purely diagnostic visualisation of the LAST resolved click target: where the
+ *   bridge actually aimed, what it resolved, and which pipeline stage was proven.
+ *   Upstream's BH_DEBUG_CLICKS drew a marker on the screenshot; this does the same
+ *   job without a screenshot pipeline change, and without touching click behaviour.
+ *
+ * WHAT IT DELIBERATELY IS NOT
+ *   - Not a click path. The overlay is rendered from data collected AFTER the real
+ *     dispatch already happened; it cannot change the target, coordinates, event
+ *     order or verification outcome.
+ *   - Not page mutation. Rendering happens in an isolated, fixed-source page
+ *     function that appends ONE position:fixed, pointer-events:none element and
+ *     removes it again on clear. It never edits page nodes, form values, scroll,
+ *     zoom or focus, and never calls preventDefault/stopPropagation.
+ *   - Not a data exporter. Only role/tag/name(length-capped)/viewport box/outcome
+ *     category are kept. Accessible names are REDACTED per the same sensitive-field
+ *     policy the rest of the bridge uses, and raw page text never leaves the page.
+ *   - Not new transport. No CDP (ADR-02 intact), no new MCP tool, no change to the
+ *     39-tool census: the overlay is `browser_state.debugOverlay`, an additive
+ *     field of an existing read-only tool.
+ *
+ * OPT-IN
+ *   Default OFF. Enabled only by an explicit per-profile setting
+ *   (`debugClickOverlay: true` in policy.json) or the per-call
+ *   `browser_state { debugOverlay: true }` probe flag. When disabled, NOTHING runs:
+ *   no record is kept, no page function executes, and the state object carries no
+ *   overlay field at all.
+ *
+ * LIFECYCLE
+ *   Records are keyed by tabId and bounded (ring of 8). A record is dropped on
+ *   navigation (URL change), tab close, purge, or target loss (stale ref). The
+ *   rendered marker is removed on every one of those transitions.
+ * ================================================================================= */
+
+const AGENT_RPC_OVERLAY_MAX_RECORDS = 8
+const AGENT_RPC_OVERLAY_NAME_MAX = 60
+
+/* Per-tab debug records: tabId -> { records: [], url, marker } */
+const AGENT_RPC_OVERLAY = new Map()
+
+/* Sensitive-field detection is REUSED from the page function's own classification
+ * so there is exactly one policy, not a second weaker copy. The bridge only needs
+ * to know "was this target marked sensitive?", which the snapshot already carries. */
+function agentRpcOverlayEnabled () {
+  try {
+    const policy = agentRpcReadPolicy()
+    return policy && policy.debugClickOverlay === true
+  } catch (e) { return false }
+}
+
+function agentRpcOverlayRedactName (target) {
+  if (!target) return null
+  /* A password/email/phone/autocomplete-sensitive field must never contribute its
+   * accessible name: those often embed the value or the account identifier. The
+   * snapshot's own tri-state redaction flag is authoritative. */
+  if (target.redacted === true) return '[redacted: sensitive field]'
+  const raw = typeof target.name === 'string' ? target.name : ''
+  if (!raw) return null
+  const trimmed = raw.length > AGENT_RPC_OVERLAY_NAME_MAX ? raw.slice(0, AGENT_RPC_OVERLAY_NAME_MAX) + '…' : raw
+  return trimmed
+}
+
+/* Bounded, categorical outcome. Never a raw verification blob (those can carry page
+ * text). Each value maps to exactly one pipeline stage, so the UI cannot imply that
+ * dispatch proved paint. */
+function agentRpcOverlayOutcome (result) {
+  if (!result) return { stage: 'unknown', category: 'unknown' }
+  const dispatched = result.dispatched === true
+  const verified = result.verified === true
+  const delivery = result.delivery
+  if (!dispatched) return { stage: 'resolve', category: 'not_dispatched' }
+  if (delivery === 'attested') {
+    return { stage: verified ? 'verified' : 'delivered', category: verified ? 'effect_verified' : 'delivered_unverified' }
+  }
+  if (delivery === 'unverified') return { stage: 'dispatched', category: 'dispatch_only' }
+  return { stage: 'dispatched', category: 'dispatch_only' }
+}
+
+function agentRpcOverlayRecord (tabId, wc, target, box, result, url) {
+  if (!agentRpcOverlayEnabled()) return null
+  const key = String(tabId)
+  let entry = AGENT_RPC_OVERLAY.get(key)
+  if (!entry || entry.url !== url) {
+    entry = { records: [], url: url, marker: null }
+    AGENT_RPC_OVERLAY.set(key, entry)
+  }
+  const rec = {
+    at: new Date().toISOString(),
+    ordinal: typeof target.ordinal === 'number' ? target.ordinal : null,
+    role: target.role || null,
+    tag: target.tag || null,
+    name: agentRpcOverlayRedactName(target),
+    nameRedacted: target.redacted === true,
+    inputType: target.inputType || null,
+    /* viewport-space box, the same coordinate space the dispatch used */
+    box: box && typeof box.x === 'number' ? { x: box.x, y: box.y, w: box.w, h: box.h } : null,
+    outcome: agentRpcOverlayOutcome(result)
+  }
+  entry.records.push(rec)
+  while (entry.records.length > AGENT_RPC_OVERLAY_MAX_RECORDS) entry.records.shift()
+  return rec
+}
+
+/* Fixed-source page function. It is transported with Function.prototype.toString
+ * exactly like AGENT_SNAPSHOT_PAGE_FN, so no request value is ever executed; the
+ * arguments are plain data. It touches nothing except its own overlay nodes. */
+function AGENT_RPC_OVERLAY_PAGE_FN (op, payload) {
+  'use strict'
+  var ID = '__agent_rpc_debug_click_overlay__'
+  var marks = []
+  function removeAll () {
+    for (var i = 0; i < marks.length; i++) {
+      try { if (marks[i].parentNode) marks[i].parentNode.removeChild(marks[i]) } catch (e) {}
+    }
+    marks = []
+    try {
+      var stEl = document.getElementById('__agent_rpc_overlay_style__')
+      if (stEl && stEl.parentNode) stEl.parentNode.removeChild(stEl)
+    } catch (eSt) {}
+    var stale = document.querySelectorAll('[' + 'data-agent-rpc-overlay="1"]')
+    for (var j = 0; j < stale.length; j++) {
+      try { if (stale[j].parentNode) stale[j].parentNode.removeChild(stale[j]) } catch (e2) {}
+    }
+  }
+  try {
+    if (op === 'clear') {
+      removeAll()
+      return { ok: true, cleared: true, remaining: document.querySelectorAll('[data-agent-rpc-overlay="1"]').length }
+    }
+    if (op !== 'draw') return { ok: false, reason: 'unknown op' }
+    var items = (payload && payload.items) || []
+    removeAll()
+    var drawn = 0
+    for (var k = 0; k < items.length && k < 8; k++) {
+      var it = items[k]
+      if (!it || !it.box || !(it.box.w > 0) || !(it.box.h > 0)) continue
+      var el = document.createElement('div')
+      el.setAttribute('data-agent-rpc-overlay', '1')
+      el.setAttribute('aria-hidden', 'true')
+      var s = el.style
+      s.position = 'fixed'
+      s.left = it.box.x + 'px'
+      s.top = it.box.y + 'px'
+      s.width = it.box.w + 'px'
+      s.height = it.box.h + 'px'
+      s.zIndex = '2147483647'
+      s.pointerEvents = 'none'
+      s.boxSizing = 'border-box'
+      s.border = '2px solid ' + (it.color || '#e11d48')
+      s.borderRadius = '3px'
+      s.background = 'rgba(225,29,72,0.10)'
+      el.appendChild(document.createTextNode(''))
+      var label = document.createElement('div')
+      label.setAttribute('data-agent-rpc-overlay', '1')
+      label.setAttribute('aria-hidden', 'true')
+      var ls = label.style
+      ls.position = 'absolute'
+      ls.left = '0'
+      ls.top = '-18px'
+      ls.maxWidth = '320px'
+      ls.overflow = 'hidden'
+      ls.whiteSpace = 'nowrap'
+      ls.textOverflow = 'ellipsis'
+      ls.font = '11px/16px monospace'
+      ls.color = '#fff'
+      ls.background = it.color || '#e11d48'
+      ls.padding = '0 4px'
+      ls.pointerEvents = 'none'
+      label.setAttribute('data-agent-overlay-label', String(it.label || '').slice(0, 80))
+      /* Generated content: visible on screen, invisible to innerText/textContent. */
+      /* A <style> element's CSS text IS part of the document text, so it would
+       * perturb innerText just like the label did. Insert the rule through the
+       * CSSOM instead (no text content), and tag the element with a distinct
+       * attribute so it never matches the marker selector. */
+      if (!document.getElementById('__agent_rpc_overlay_style__')) {
+        var st = document.createElement('style')
+        st.id = '__agent_rpc_overlay_style__'
+        st.setAttribute('data-agent-rpc-overlay-style', '1')
+        document.documentElement.appendChild(st)
+        try {
+          st.sheet.insertRule('[data-agent-overlay-label]::after{content:attr(data-agent-overlay-label)}', 0)
+        } catch (eRule) {
+          try { st.appendChild(document.createTextNode('[data-agent-overlay-label]::after{content:attr(data-agent-overlay-label)}')) } catch (eFallback) {}
+        }
+        marks.push(st)
+      }
+      el.appendChild(label)
+      try {
+        document.documentElement.appendChild(el)
+      } catch (eAppend) {
+        try { document.body.appendChild(el) } catch (eBody) { continue }
+      }
+      marks.push(el)
+      drawn++
+    }
+    return { ok: true, drawn: drawn, id: ID }
+  } catch (e) {
+    return { ok: false, reason: String(e && e.message ? e.message : e) }
+  }
+}
+
+/* Apply the current record set to the page. Runs only when the overlay is enabled;
+ * failures are swallowed (a debug aid must never break a real command). */
+function agentRpcOverlayRender (tabId, wc) {
+  if (!agentRpcOverlayEnabled()) return Promise.resolve(null)
+  const key = String(tabId)
+  const entry = AGENT_RPC_OVERLAY.get(key)
+  if (!entry || !wc || wc.isDestroyed()) return Promise.resolve(null)
+  const items = entry.records.map(function (r) {
+    const label = r.outcome.category === 'effect_verified'
+      ? 'verified ' + (r.role || r.tag || '?')
+      : r.outcome.category === 'delivered_unverified'
+        ? 'delivered ' + (r.role || r.tag || '?')
+        : 'dispatched ' + (r.role || r.tag || '?')
+    return { box: r.box, label: label, color: r.outcome.category === 'effect_verified' ? '#059669' : (r.outcome.category === 'delivered_unverified' ? '#d97706' : '#e11d48') }
+  })
+  const src = '(' + AGENT_RPC_OVERLAY_PAGE_FN.toString() + ')(' +
+    JSON.stringify('draw') + ',' + JSON.stringify({ items: items }) + ')'
+  return wc.executeJavaScript(src).then(function (r) {
+    entry.marker = r || null
+    return r || null
+  }).catch(function () { return null })
+}
+
+/* Remove overlay DOM for one tab (navigation, close, disable, error). */
+function agentRpcOverlayClear (tabId) {
+  const key = String(tabId)
+  const entry = AGENT_RPC_OVERLAY.get(key)
+  if (!entry) return Promise.resolve(false)
+  const view = typeof viewMap !== 'undefined' ? viewMap[tabId] : null
+  const wc = view && view.webContents && !view.webContents.isDestroyed() ? view.webContents : null
+  AGENT_RPC_OVERLAY.delete(key)
+  if (!wc) return Promise.resolve(true)
+  const src = '(' + AGENT_RPC_OVERLAY_PAGE_FN.toString() + ')(' + JSON.stringify('clear') + ',' + JSON.stringify({}) + ')'
+  return wc.executeJavaScript(src).then(function () { return true }).catch(function () { return true })
+}
+
+/* Apply the REAL outcome to the record and repaint. Returns the outcome object
+ * unchanged so callers can use it as a pass-through. Never throws: a debug aid
+ * must not be able to fail a click. */
+function agentRpcOverlayFinishPassive (tabId, wc, rec, outcome) {
+  try {
+    if (rec && rec.outcome) {
+      rec.outcome = agentRpcOverlayOutcome(outcome)
+      agentRpcOverlayRender(tabId, wc)
+    }
+  } catch (e) { /* diagnostics must never break the caller */ }
+  return outcome
+}
+
+function agentRpcOverlayFinish (tabId, wc, rec, outcome) {
+  return Promise.resolve(agentRpcOverlayFinishPassive(tabId, wc, rec, outcome))
+}
+
+/* Clear overlay records + DOM for a tab. Called on navigation, tab close and
+ * explicit disable so a stale marker can never outlive the page it described. */
+function agentRpcOverlayForget (tabId) {
+  try { return agentRpcOverlayClear(tabId) } catch (e) { return Promise.resolve(false) }
+}
+
+/* browser_state gate: return the overlay object only when the profile opted in
+ * OR the caller passed debugOverlay:true (the probe path). Otherwise return
+ * undefined so JSON.stringify omits the key entirely. */
+function agentRpcOverlayStateForCall (tabId, probeRequested) {
+  if (!agentRpcOverlayEnabled() && probeRequested !== true) return undefined
+  const st = agentRpcOverlayState(tabId)
+  if (probeRequested === true && st.records.length === 0) {
+    /* a probe asking explicitly gets an explicit answer, never an omission */
+    return Object.assign({}, st, { enabled: agentRpcOverlayEnabled(), requested: true })
+  }
+  return st
+}
+
+/* Public (bridge-internal) view of the overlay state for browser_state. Bounded:
+ * at most 8 records, each already redacted and length-capped. */
+function agentRpcOverlayState (tabId) {
+  const entry = AGENT_RPC_OVERLAY.get(String(tabId))
+  if (!entry) return { enabled: agentRpcOverlayEnabled(), records: [], count: 0 }
+  return {
+    enabled: true,
+    url: entry.url,
+    rendered: !!(entry.marker && entry.marker.ok),
+    records: entry.records.slice(),
+    count: entry.records.length,
+    limitations: 'diagnostic only: boxes are viewport CSS px captured at dispatch; outcome stage reflects dispatched/delivered/verified independently, never paint.'
+  }
+}
+
+
 /* P1-01D: refresh an element's on-screen box right before a coordinate-based
  * dispatch by scrolling it into view. Returns a fresh viewport-space box or
  * null. Uses the fixed setvalue-style identity re-check (no arbitrary code). */
@@ -3387,14 +5316,21 @@ function agentRpcCommandClick (params) {
     if (t.disabled === true) {
       throw agentRpcCommandError(AGENT_RPC_ERRORS.disabled, 'disabled', 'target element is disabled; a click would be a no-op')
     }
-    if (t.nearCaptcha === true) {
-      throw agentRpcCommandError(AGENT_RPC_ERRORS.captcha_handoff_required, 'captcha_handoff_required', 'a CAPTCHA widget overlaps this element; solve it in the visible window and continue the workflow afterwards')
-    }
+    /* P1-13 follow-up (CAPTCHA policy correction): a CAPTCHA locator match
+     * (t.nearCaptcha) no longer refuses clicks. Detection is reported
+     * transparently (browser_state captcha info and the informational
+     * nearCaptcha marker on snapshot nodes), the agent may inspect and act on
+     * ordinary visible controls — including challenge controls — through this
+     * normal verified interaction path, and clearance claims must still be
+     * verified from page state. Unrelated protections (disabled targets,
+     * risky-name grant policy, origin/auth checks) are unchanged. */
     var nameLower = (t.name || '').toLowerCase()
     if (AGENT_RPC_RISKY_NAME.test(nameLower)) {
-      /* P0-13: policy pre-authorization first, then a single-use grant. */
-      const policy = agentRpcReadPolicy()
-      if (!policy.allowRiskyClicks && !agentRpcConsumeGrant('risky_click', params.tabId, params.ref)) {
+      /* ADR-11 seam 3: the policy FLAG comes from the shared evaluator; the
+           * single-use consume stays here, so a grant is consumed exactly once
+           * (short-circuiting the consume would make grants reusable). */
+      if (!agentRpcPolicyAllows('risky_click', { tabId: params.tabId, ref: params.ref }) &&
+              !agentRpcConsumeGrant('risky_click', params.tabId, params.ref)) {
         throw agentRpcCommandError(AGENT_RPC_ERRORS.risky_action, 'risky_action', 'accessible name matches a purchase/payment pattern; requires a single-use browser_grant(risky_click) for this tab (or allowRiskyClicks: true in profile policy.json)')
       }
     }
@@ -3424,48 +5360,97 @@ function agentRpcCommandClick (params) {
         dispatchedAt: Date.now()
       }
       delete pre.targetName_unused
-    try {
-      res.wc.sendInputEvent({ type: 'mouseDown', x: cx, y: cy, button: 'left', clickCount: 1 })
-      res.wc.sendInputEvent({ type: 'mouseUp', x: cx, y: cy, button: 'left', clickCount: 1 })
-    } catch (e) {
-      throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'input dispatch failed')
-    }
-    agentRpcLog('action dispatched', 'click', 'ref=' + params.ref)
-    return agentRpcRunVerification(res.wc, params.tabId, params.ref, pre, false, null).then(function (v) {
-      const base = {
-        tabId: String(params.tabId),
-        ref: params.ref,
-        target: { role: t.role, name: t.name, nameIndex: t.nameIndex },
-        dispatched: true,
-        verified: v.verified,
-        verification: v.kind,
-        url: res.page.url,
-        title: res.page.title,
-        waitedMs: Date.now() - pre.dispatchedAt
+      /* Phase E / D2-A: arm BEFORE dispatch so the attestation floor is the counter
+     * value immediately before this click is issued. */
+      const armPointer = agentRpcAttestArm(res.wc, 'pointer')
+      try {
+        res.wc.sendInputEvent({ type: 'mouseDown', x: cx, y: cy, button: 'left', clickCount: 1 })
+        res.wc.sendInputEvent({ type: 'mouseUp', x: cx, y: cy, button: 'left', clickCount: 1 })
+      } catch (e) {
+        throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'input dispatch failed')
       }
-      /* P1-03: a navigating click must expose the FINAL URL (Stage 2 cheap
-       * verification). Bounded 3 s settle read at 250 ms; capped to keep the
-       * tool fast. */
-      if (v.navFired === true) {
-        return new Promise(function (resolveSettle) {
-          const deadline = Date.now() + 3000
-          let last = res.wc.getURL()
-          let lastChange = Date.now()
-          const poll = function () {
-            const nowUrl = res.wc.getURL()
-            const now = Date.now()
-            if (nowUrl !== last) { last = nowUrl; lastChange = now }
-            if ((now - lastChange >= 250) || now >= deadline) {
-              resolveSettle(Object.assign(base, { finalUrl: last }))
-              return
-            }
-            setTimeout(poll, 250)
+      agentRpcLog('action dispatched', 'click', 'ref=' + params.ref)
+      /* R4 debug-click overlay: capture what was ACTUALLY aimed at. This runs
+       * after dispatch so it can never influence the target, coordinates or
+       * event order. No-op unless a profile opted in. */
+      const overlayRec = agentRpcOverlayRecord(params.tabId, res.wc, {
+        ordinal: clickOrdinal,
+        role: t.role,
+        tag: t.tag || null,
+        name: t.name,
+        redacted: t.redacted === true,
+        inputType: t.inputType || null
+      }, { x: t.box.x, y: t.box.y, w: t.box.w, h: t.box.h }, null, res.page.url)
+      /* P1-15 M2: verification mode — 'none' returns immediately after dispatch with an
+     * honest unverified status (no fixed 5s settling); 'standard' (default) keeps the
+     * bounded verification window. */
+      if (params.verification === 'none') {
+        return agentRpcAttestAwait(armPointer, 400).then(function (a) {
+          return {
+            tabId: String(params.tabId),
+            ref: params.ref,
+            target: { role: t.role, name: t.name, nameIndex: t.nameIndex },
+            dispatched: true,
+            verified: false,
+            verification: 'none',
+            delivery: a.delivery,
+            deliveryReason: a.deliveryReason,
+            deliveryAt: a.deliveryAt || null,
+            note: 'accepted+dispatched; page effect intentionally unverified (verification: "none")',
+            url: res.page.url,
+            waitedMs: Date.now() - pre.dispatchedAt
           }
-          poll()
+        }).then(function (outNone) {
+          return agentRpcOverlayFinishPassive(params.tabId, res.wc, overlayRec, outNone)
         })
       }
-      return base
-    })
+      /* The verification window MUST start immediately after dispatch: it detects
+     * navigation by watching the URL change inside its own window, so awaiting
+     * delivery first would let a navigation complete unseen and silently drop
+     * finalUrl. Delivery is therefore collected AFTER verification has started,
+     * never before it. */
+      return agentRpcRunVerification(res.wc, params.tabId, params.ref, pre, false, null).then(function (v) {
+        return agentRpcAttestAwait(armPointer, 400).then(function (a) { return { a: a, v: v } })
+      }).then(function (both) {
+        const a = both.a
+        const v = both.v
+        const base = {
+          tabId: String(params.tabId),
+          ref: params.ref,
+          target: { role: t.role, name: t.name, nameIndex: t.nameIndex },
+          dispatched: true,
+          verified: v.verified,
+          verification: v.kind,
+          delivery: a.delivery,
+          deliveryReason: a.deliveryReason,
+          deliveryAt: a.deliveryAt || null,
+          url: res.page.url,
+          title: res.page.title,
+          waitedMs: Date.now() - pre.dispatchedAt
+        }
+        /* P1-03: a navigating click must expose the FINAL URL (Stage 2 cheap
+       * verification). Bounded 3 s settle read at 250 ms; capped to keep the
+       * tool fast. */
+        if (v.navFired === true) {
+          return new Promise(function (resolveSettle) {
+            const deadline = Date.now() + 3000
+            let last = res.wc.getURL()
+            let lastChange = Date.now()
+            const poll = function () {
+              const nowUrl = res.wc.getURL()
+              const now = Date.now()
+              if (nowUrl !== last) { last = nowUrl; lastChange = now }
+              if ((now - lastChange >= 250) || now >= deadline) {
+                resolveSettle(agentRpcOverlayFinishPassive(params.tabId, res.wc, overlayRec, Object.assign(base, { finalUrl: last })))
+                return
+              }
+              setTimeout(poll, 250)
+            }
+            poll()
+          })
+        }
+        return agentRpcOverlayFinish(params.tabId, res.wc, overlayRec, base)
+      })
     })
   })
 }
@@ -3474,20 +5459,29 @@ function agentRpcCommandType (params) {
   return agentRpcResolveTarget(params.tabId, params.ref).then(function (res) {
     var t = res.target
     if (t.redacted === true) {
-      /* P0-13: policy pre-authorization first, then a single-use grant. */
-      const policy = agentRpcReadPolicy()
-      if (!policy.allowSensitiveTyping && !agentRpcConsumeGrant('sensitive_type', params.tabId, params.ref)) {
+      /* ADR-11 seam 3: same evaluator, same ordering (pre-auth then consume). */
+      if (!agentRpcPolicyAllows('sensitive_type', { tabId: params.tabId, ref: params.ref }) &&
+            !agentRpcConsumeGrant('sensitive_type', params.tabId, params.ref)) {
         throw agentRpcCommandError(AGENT_RPC_ERRORS.sensitive_field, 'sensitive_field', 'typing into password/email/phone/autocomplete-sensitive fields is refused; requires a single-use browser_grant(sensitive_type) for this tab (or allowSensitiveTyping: true in profile policy.json)')
       }
     }
-    if (t.nearCaptcha === true) {
-      throw agentRpcCommandError(AGENT_RPC_ERRORS.captcha_handoff_required, 'captcha_handoff_required', 'a CAPTCHA widget overlaps this field; solve it in the visible window and continue the workflow afterwards')
-    }
+    /* P1-13 follow-up (CAPTCHA policy correction): the nearCaptcha hard
+     * refusal for text targets was removed for the same reason as the click
+     * guard — a locator match must not disable ordinary field interaction.
+     * Field-level protections (sensitive-field grants, role/disabled checks,
+     * value verification) remain in force. */
     if (t.role !== 'textbox' && t.role !== 'combobox') {
       throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'ref does not point at a text-entry element (role=' + t.role + ')')
     }
     if (t.disabled === true) {
       throw agentRpcCommandError(AGENT_RPC_ERRORS.disabled, 'disabled', 'target element is disabled')
+    }
+    /* READONLY GATE (post-Option-C): the LIVE element is authoritative; the
+       * walk-time snapshot flag is only a cache. Electron's synthetic input path
+       * does not honour `readonly`, so an unknown flag must never become a
+       * silent mutation. */
+    if (t.readOnlyLive === true || (t.readOnlyLive === null && t.readOnly === true)) {
+      throw agentRpcCommandError(AGENT_RPC_ERRORS.disabled, 'readonly', 'target element is read-only; its value cannot be edited through the UI')
     }
     if (!t.box || typeof t.box.x !== 'number' || !(t.box.w > 0) || !(t.box.h > 0)) {
       throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'target has no usable on-screen geometry')
@@ -3510,81 +5504,96 @@ function agentRpcCommandType (params) {
         targetName: t.name,
         targetNameIndex: t.nameIndex,
         ordinal: typeOrdinal,
+        redacted: t.redacted === true,
         dispatchedAt: Date.now()
       }
-    try {
+      try {
       /* Focus via a native click, select-all + delete via native key events,
        * then native text insertion (insertText). No JS is injected. */
-      res.wc.sendInputEvent({ type: 'mouseDown', x: cx, y: cy, button: 'left', clickCount: 1 })
-      res.wc.sendInputEvent({ type: 'mouseUp', x: cx, y: cy, button: 'left', clickCount: 1 })
-      var mod = process.platform === 'darwin' ? 'meta' : 'control'
-      res.wc.sendInputEvent({ type: 'keyDown', keyCode: 'a', modifiers: [mod] })
-      res.wc.sendInputEvent({ type: 'keyUp', keyCode: 'a', modifiers: [mod] })
-      res.wc.sendInputEvent({ type: 'keyDown', keyCode: 'Backspace' })
-      res.wc.sendInputEvent({ type: 'keyUp', keyCode: 'Backspace' })
-      res.wc.insertText(text)
-    } catch (e) {
-      throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'input dispatch failed')
-    }
-    agentRpcLog('action dispatched', 'type', 'ref=' + params.ref, 'len=' + text.length)
-    var buildTypeResult = function (verification, verified, strategy, extraFields) {
-      return Object.assign({
-        tabId: String(params.tabId),
-        ref: params.ref,
-        target: { role: t.role, name: t.name, nameIndex: t.nameIndex, shadowPath: t.shadowPath || null },
-        strategy: strategy,
-        dispatched: true,
-        verified: verified,
-        verification: verification,
-        valueLength: text.length,
-        url: res.page.url,
-        title: res.page.title,
-        waitedMs: Date.now() - pre.dispatchedAt
-      }, extraFields || {})
-    }
-    return agentRpcRunVerification(res.wc, params.tabId, params.ref, pre, true, text).then(function (v) {
+        res.wc.sendInputEvent({ type: 'mouseDown', x: cx, y: cy, button: 'left', clickCount: 1 })
+        res.wc.sendInputEvent({ type: 'mouseUp', x: cx, y: cy, button: 'left', clickCount: 1 })
+        var mod = process.platform === 'darwin' ? 'meta' : 'control'
+        res.wc.sendInputEvent({ type: 'keyDown', keyCode: 'a', modifiers: [mod] })
+        res.wc.sendInputEvent({ type: 'keyUp', keyCode: 'a', modifiers: [mod] })
+        res.wc.sendInputEvent({ type: 'keyDown', keyCode: 'Backspace' })
+        res.wc.sendInputEvent({ type: 'keyUp', keyCode: 'Backspace' })
+        if (params.mode !== 'keyboard') res.wc.insertText(text)
+      } catch (e) {
+        throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'input dispatch failed')
+      }
+      agentRpcLog('action dispatched', 'type', 'ref=' + params.ref, 'len=' + text.length)
+      var buildTypeResult = function (verification, verified, strategy, extraFields) {
+        return Object.assign({
+          tabId: String(params.tabId),
+          ref: params.ref,
+          target: { role: t.role, name: t.name, nameIndex: t.nameIndex, shadowPath: t.shadowPath || null },
+          strategy: strategy,
+          inputMode: params.mode === 'keyboard' ? 'keyboard' : 'native',
+          keyboard: keyboardMeta || null,
+          dispatched: true,
+          verified: verified,
+          verification: verification,
+          valueLength: text.length,
+          url: res.page.url,
+          title: res.page.title,
+          waitedMs: Date.now() - pre.dispatchedAt
+        }, extraFields || {})
+      }
+      /* Phase E / D3-A: in keyboard mode the per-character events are async,
+     * so read-back verification must start only after they finish. */
+      var keyboardMeta = null
+      var afterInsert = (params.mode === 'keyboard')
+        ? agentRpcTypeKeyboard(res.wc, text).then(function (km) { keyboardMeta = km })
+        : Promise.resolve()
+      return afterInsert.then(function () {
+        return agentRpcRunVerification(res.wc, params.tabId, params.ref, pre, true, text)
+      }).then(function (v) {
       /* P1-01C: dispatched input is NOT assumed accepted. Acceptance is the
        * read-back: exact sanitized value (non-sensitive) or exact length only
        * (sensitive). A late navigation during verification is still a valid
        * outcome (verified via the navigation signal). */
-      var acceptedKind = null
-      if (v.kind === 'value') acceptedKind = t.redacted === true ? 'value-length' : 'value'
-      if (acceptedKind !== null || v.kind === 'navigation') {
-        return buildTypeResult(acceptedKind || v.kind, true, 'native-insert', { navFired: v.navFired === true })
-      }
-      /* Bounded fallback: exactly ONE retry with a different strategy - the
+        var acceptedKind = null
+        if (v.kind === 'value') acceptedKind = t.redacted === true ? 'value-length' : 'value'
+        if (acceptedKind !== null || v.kind === 'navigation') {
+          return buildTypeResult(acceptedKind || v.kind, true, params.mode === 'keyboard' ? 'keyboard-events' : 'native-insert', { navFired: v.navFired === true })
+        }
+        /* Bounded fallback: exactly ONE retry with a different strategy - the
        * input element's own prototype value setter plus input+change events
        * (framework-controlled inputs and delegated listeners observe a real
        * value change). Identity-checked against the enumeration that produced
        * the ref; never dispatched when the first strategy verified. */
-      var setvalueSource = '(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')(' +
+        var setvalueSource = '(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')(' +
         JSON.stringify('setvalue') + ',' + JSON.stringify(pre.ordinal) + ',' +
         JSON.stringify({ role: t.role, name: t.name, nameIndex: t.nameIndex || 0, text: text, redacted: t.redacted === true }) + ')'
-      return res.wc.executeJavaScript(setvalueSource).then(function (fb) {
-        if (!fb || fb.mode !== 'setvalue') {
-          return buildTypeResult('unreadable-state', false, 'native-setter-fallback', { failReason: 'fallback could not read back page state' })
-        }
-        if (!fb.ok) {
-          if (/stale|not found/.test(fb.reason || '')) {
-            throw agentRpcCommandError(AGENT_RPC_ERRORS.ref_stale, 'ref_stale', 'element drifted or vanished during fallback; take a new snapshot')
+        return res.wc.executeJavaScript(setvalueSource).then(function (fb) {
+          if (!fb || fb.mode !== 'setvalue') {
+            return buildTypeResult('unreadable-state', false, 'native-setter-fallback', { failReason: 'fallback could not read back page state' })
           }
-          return buildTypeResult('unreadable-state', false, 'native-setter-fallback', { failReason: String(fb.reason || 'fallback failed') })
-        }
-        var lenOk = fb.valueLength === text.length
-        if (fb.redacted) {
-          return lenOk
-            ? buildTypeResult('value-length', true, 'native-setter-fallback')
-            : buildTypeResult('rejected-input', false, 'native-setter-fallback', { failReason: 'framework rejected the value (length mismatch after fallback)' })
-        }
-        if (lenOk && fb.value === agentRpcSafeText(text, AGENT_RPC_SNAPSHOT_NAME_MAX).slice(0, AGENT_RPC_SNAPSHOT_NAME_MAX)) {
-          return buildTypeResult('value', true, 'native-setter-fallback')
-        }
-        return buildTypeResult('rejected-input', false, 'native-setter-fallback', { failReason: 'framework rejected the value (content mismatch after fallback)' })
-      }).catch(function (eFB) {
-        if (eFB && eFB.agentRpcCommandError) throw eFB
-        return buildTypeResult('unreadable-state', false, 'native-setter-fallback', { failReason: 'fallback execution failed' })
+          if (!fb.ok) {
+            if (/stale|not found/.test(fb.reason || '')) {
+              throw agentRpcCommandError(AGENT_RPC_ERRORS.ref_stale, 'ref_stale', 'element drifted or vanished during fallback; take a new snapshot')
+            }
+            return buildTypeResult('unreadable-state', false, 'native-setter-fallback', { failReason: String(fb.reason || 'fallback failed') })
+          }
+          var lenOk = fb.valueLength === text.length
+          if (fb.redacted) {
+          /* P1-15 M4: exact internal comparison preferred; length fallback only when
+           * match was not computable (undefined). The value itself is never returned. */
+            if (fb.match === true) return buildTypeResult('value', true, 'native-setter-fallback')
+            if (fb.match === false) return buildTypeResult('rejected-input', false, 'native-setter-fallback', { failReason: 'framework rejected the value (exact comparison mismatch after fallback)' })
+            return lenOk
+              ? buildTypeResult('value-length', true, 'native-setter-fallback')
+              : buildTypeResult('rejected-input', false, 'native-setter-fallback', { failReason: 'framework rejected the value (length mismatch after fallback)' })
+          }
+          if (lenOk && fb.value === agentRpcSafeText(text, AGENT_RPC_SNAPSHOT_NAME_MAX).slice(0, AGENT_RPC_SNAPSHOT_NAME_MAX)) {
+            return buildTypeResult('value', true, 'native-setter-fallback')
+          }
+          return buildTypeResult('rejected-input', false, 'native-setter-fallback', { failReason: 'framework rejected the value (content mismatch after fallback)' })
+        }).catch(function (eFB) {
+          if (eFB && eFB.agentRpcCommandError) throw eFB
+          return buildTypeResult('unreadable-state', false, 'native-setter-fallback', { failReason: 'fallback execution failed' })
+        })
       })
-    })
     })
   })
 }
@@ -3640,6 +5649,67 @@ function agentRpcValidateUrl (raw, allowedProtocols) {
 /* P1-01E: last navigation outcome per tab (bounded; feeds browser_state). */
 var AGENT_RPC_LAST_NAV = new Map()
 
+/* ---------- dialog observation (Phase E / D2-C) ----------
+ * PURELY OBSERVATIONAL. We register listeners but NEVER call preventDefault(),
+ * so no user-facing dialog behaviour changes and nothing blocks waiting on a
+ * dialog a human must dismiss. Electron exposes what it chooses to surface;
+ * tab views set safeDialogs:true, so page JS alert/confirm/prompt are
+ * suppressed by Chromium BEFORE reaching main - that is reported honestly
+ * instead of pretending a JS dialog was captured.
+ *
+ * PRIVACY: dialog message text is NEVER stored. Only the kind, the message
+ * length and a timestamp are kept, so a health/state call cannot leak page
+ * content or credentials typed into a prompt. */
+const AGENT_RPC_DIALOG_KINDS = ['javascript', 'confirm', 'prompt', 'alert', 'beforeunload', 'native']
+const AGENT_RPC_DIALOG_LOG = []
+const AGENT_RPC_DIALOG_MAX = 20
+const AGENT_RPC_OBSERVED_WC = new WeakSet()
+
+function agentRpcRecordDialog (tabId, kind, messageLength) {
+  AGENT_RPC_DIALOG_LOG.push({
+    kind: AGENT_RPC_DIALOG_KINDS.indexOf(kind) === -1 ? 'native' : kind,
+    tabId: tabId === null || tabId === undefined ? null : String(tabId),
+    /* length only - never the text itself */
+    messageLength: typeof messageLength === 'number' ? messageLength : null,
+    at: Date.now()
+  })
+  while (AGENT_RPC_DIALOG_LOG.length > AGENT_RPC_DIALOG_MAX) AGENT_RPC_DIALOG_LOG.shift()
+}
+
+/* DELIBERATELY NOT IMPLEMENTED: a per-webContents `dialog` listener.
+ *
+ * EVIDENCE, stated honestly with its uncertainty: probe:mouse hover/pointer
+ * delivery is INTERMITTENT on this Electron build and has been observed at
+ * both 27/29 and 28/29 across repeated identical runs (the two failures are
+ * 'hover state visible' and the known 'wheel page-side delivery'). In the D2
+ * listener experiment every run that registered `wc.on('dialog')` scored
+ * 27/29 and the first run without it scored 28/29, but later runs without it
+ * ALSO scored 27/29 - so the experiment did NOT establish causation.
+ *
+ * The decision is therefore conservative rather than conclusive: a diagnostic
+ * feature with no acceptance-critical value is not worth any added risk to the
+ * input path, so no listener is registered and dialog state is reported as NOT
+ * OBSERVED. If a future milestone wants real dialog reporting, it must first
+ * characterise the hover intermittency and then re-evaluate this trade-off.
+ *
+ * Consequence, stated plainly: `browser_state.dialogs` cannot report an open
+ * native dialog. Page alert/confirm/prompt are already neutralised by
+ * safeDialogs:true on tab views, so the common blocking-dialog case cannot
+ * occur. A real native dialog is visible to the human in the window. */
+function agentRpcEnsureDialogObserver () { /* intentionally inert - see note above */ }
+
+function agentRpcDialogSnapshot () {
+  return {
+    observed: false,
+    recent: false,
+    kinds: [],
+    items: [],
+    pageDialogsSuppressed: true,
+    note: 'tab views run with safeDialogs:true, so page alert/confirm/prompt are replaced by Chromium before they can block the page. No Electron dialog listener is registered because registering one measurably perturbs pointer delivery on this build (see the note above agentRpcEnsureDialogObserver). An open NATIVE dialog is therefore not reported by the API and remains visible to the human in the window.',
+    policy: 'the agent never accepts or dismisses a dialog on the user\'s behalf'
+  }
+}
+
 function agentRpcCommandState (params) {
   let tabId = params.tabId
   if (tabId === undefined) {
@@ -3664,6 +5734,7 @@ function agentRpcCommandState (params) {
   const source = '(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')(' + JSON.stringify('state') + ')'
   const startedAt = Date.now()
   return wc.executeJavaScript(source).then(function (page) {
+    agentRpcEnsureDialogObserver(params.tabId, wc)
     if (!page || page.mode !== 'state') {
       throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'page state could not be collected from this view')
     }
@@ -3681,6 +5752,7 @@ function agentRpcCommandState (params) {
       url: page.url,
       title: page.title,
       readyState: page.readyState,
+      dialogs: agentRpcDialogSnapshot(),
       captcha: {
         detected: captcha.detected === true,
         kind: captcha.kind || null,
@@ -3693,6 +5765,9 @@ function agentRpcCommandState (params) {
       focus: page.focus || { isBody: true, isTextField: false, isPasswordField: false, tag: null },
       net: { inFlight: AGENT_RPC_NET_INFLIGHT },
       lastNavigation: lastNav ? { verified: lastNav.verified, verification: lastNav.verification, ageMs: Date.now() - lastNav.at } : null,
+      /* R4 debug-click overlay (opt-in). Absent when disabled, so existing
+       * callers see no new field. */
+      debugOverlay: agentRpcOverlayStateForCall(String(tabId), params.debugOverlay === true),
       waitedMs: Date.now() - startedAt
     }
   }).catch(function (eState) {
@@ -4104,7 +6179,8 @@ function agentRpcCommandNavigate (params) {
         title: view.webContents.isDestroyed() ? '' : wc.getTitle(),
         verified: res2.verified === true,
         verification: res2.verification,
-        failCode: res2.failCode, failReason: res2.failReason,
+        failCode: res2.failCode,
+        failReason: res2.failReason,
         urlChanges: res2.urlChanges || 0,
         routeChangeKind: res2.routeChangeKind || null,
         changedFrom: res2.changedFrom || null,
@@ -4116,6 +6192,9 @@ function agentRpcCommandNavigate (params) {
       })
       /* P1-01E: remember the last navigation outcome per tab for
        * browser_state's blocked/apparently signal (bounded map). */
+      /* R4: a navigation invalidates every recorded target: forget records and
+       * remove the marker. Diagnostics only; never awaited on the nav path. */
+      try { agentRpcOverlayForget(tabId) } catch (eOv) { /* diagnostics only */ }
       try {
         AGENT_RPC_LAST_NAV.set(String(tabId), {
           verified: res2.verified === true,
@@ -4370,7 +6449,7 @@ function agentRpcCommandTransformStatus (params) {
     }
   }
   const source = '(' + AGENT_SNAPSHOT_PAGE_FN.toString() + ')(' + JSON.stringify('driftcheck') + ',null,' + JSON.stringify({ ops: opsForPage }) + ')'
-  return view.webContents.executeJavaScript(source, { } ).then(function (page) {
+  return view.webContents.executeJavaScript(source, { }).then(function (page) {
     if (page && page.mode === 'driftcheck' && Array.isArray(page.ops)) {
       for (const p of page.ops) {
         if (p.op === 'driftcheck' && p.drift === true) driftList.push(p.transformId)
@@ -4426,24 +6505,76 @@ function agentRpcCommandPress (params) {
           focusOrdinal: focusOrdinal,
           dispatchedAt: Date.now()
         }
-        try {
+        /* P1-15 M2: keyboard sequences serialize per webContents (bounded queue) so
+         * concurrent presses cannot interleave/lose key events; overflow surfaces as
+         * busy instead of silently dropping. */
+        var pressDispatch = function () {
           wc.sendInputEvent({ type: 'keyDown', keyCode: agentRpcTranslateKey(params.key) })
           wc.sendInputEvent({ type: 'keyUp', keyCode: agentRpcTranslateKey(params.key) })
-        } catch (e) {
-          throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'input dispatch failed')
         }
-        agentRpcLog('action dispatched', 'press', 'key=' + params.key)
-        return agentRpcRunVerification(wc, tabId, null, pre, false, null).then(function (v) {
-          return {
-            tabId: String(tabId),
-            key: params.key,
-            dispatched: true,
-            verified: v.verified,
-            verification: v.kind,
-            url: pre.url,
-            title: pre.title,
-            waitedMs: Date.now() - pre.dispatchedAt
-          }
+        var qk = String(wc.id)
+        AGENT_RPC_PRESS_QUEUE[qk] = AGENT_RPC_PRESS_QUEUE[qk] || Promise.resolve()
+        if ((AGENT_RPC_PRESS_QUEUE_LEN[qk] || 0) >= 24) {
+          throw agentRpcCommandError(AGENT_RPC_ERRORS.timeout, 'busy', 'too many queued keyboard actions for this tab')
+        }
+        AGENT_RPC_PRESS_QUEUE_LEN[qk] = (AGENT_RPC_PRESS_QUEUE_LEN[qk] || 0) + 1
+        var seq = AGENT_RPC_PRESS_QUEUE[qk].then(function () { pressDispatch() })
+        var counted = seq.then(function () {
+          AGENT_RPC_PRESS_QUEUE_LEN[qk] = (AGENT_RPC_PRESS_QUEUE_LEN[qk] || 1) - 1
+          agentRpcLog('action dispatched', 'press', 'key=' + params.key)
+        }, function (eQ) {
+          AGENT_RPC_PRESS_QUEUE_LEN[qk] = (AGENT_RPC_PRESS_QUEUE_LEN[qk] || 1) - 1
+          throw eQ
+        })
+        /* keep the shared chain alive for later presses even when this one failed */
+        AGENT_RPC_PRESS_QUEUE[qk] = counted.catch(function () { })
+
+        /* Phase E / D2-A: arm BEFORE the queued dispatch runs so the floor is
+         * the counter value immediately before this key is sent. */
+        var arm = agentRpcAttestArm(wc, 'key')
+
+        /* P1-15 M2: verification mode */
+        if (params.verification === 'none') {
+          return counted.then(function () {
+            /* Phase E / D2-A: attestation still runs. 'verification:none' means
+             * "do not wait for page-effect evidence" - it never means "do not
+             * tell me whether the page received the key". */
+            return agentRpcAttestAwait(arm, 400).then(function (att) {
+              return {
+                tabId: String(tabId),
+                key: params.key,
+                dispatched: true,
+                verified: false,
+                verification: 'none',
+                delivery: att.delivery,
+                deliveryReason: att.deliveryReason,
+                deliveryAt: att.deliveryAt || null,
+                note: 'accepted+dispatched; page effect intentionally unverified',
+                url: pre.url,
+                title: pre.title,
+                waitedMs: Date.now() - pre.dispatchedAt
+              }
+            })
+          })
+        }
+        return counted.then(function () {
+          return agentRpcRunVerification(wc, tabId, null, pre, false, null)
+        }).then(function (v) {
+          return agentRpcAttestAwait(arm, 400).then(function (a) {
+            return {
+              tabId: String(tabId),
+              key: params.key,
+              dispatched: true,
+              verified: v.verified,
+              verification: v.kind,
+              delivery: a.delivery,
+              deliveryReason: a.deliveryReason,
+              deliveryAt: a.deliveryAt || null,
+              url: pre.url,
+              title: pre.title,
+              waitedMs: Date.now() - pre.dispatchedAt
+            }
+          })
         })
       })
       .then(function (result) { resolve(result) }, function (err) { reject(err) })
@@ -4491,7 +6622,254 @@ function agentRplFetchViewportMeta (wc) {
   }).catch(function () { return null })
 }
 
+/* P1-15 M3 — screenshots with adaptive fallback ladder + element-scoped capture.
+ * The caller-required encoded-size cap is honored by re-encoding through a
+ * ladder of (scale, format, quality) rungs — full detail first; progressively
+ * smaller / recompressed until one rung fits, or an error with the attempts and cap.
+ *
+ * Element-scoped capture: an optional `selector` resolves an element rect inside
+ * the page (validated, clamped), the view scrolls it into view, and the captured
+ * full-viewport image is cropped to the element rect before the ladder runs.
+ *
+ * Metadata honestly reports attempts, whether rescaling/recompression happened,
+ * and the final dimensions/format. Image data always goes to the caller. */
+var AGENT_RPC_SCREENSHOT_DEFAULT_MAX = 5 * 1024 * 1024
+var AGENT_RPC_SCREENSHOT_LADDER = [
+  { scale: 1, fmt: 'as-req', q: -1 },
+  { scale: 0.5, fmt: 'jpeg', q: 80 },
+  { scale: 0.35, fmt: 'jpeg', q: 60 },
+  { scale: 0.25, fmt: 'jpeg', q: 45 },
+  { scale: 0.2, fmt: 'jpeg', q: 35 }
+]
+
+function agentRpcScreenshotMaxBytes (params) {
+  if (params && typeof params.maxBytes === 'number' && params.maxBytes >= 5000) return Math.floor(params.maxBytes)
+  return AGENT_RPC_SCREENSHOT_MAX
+}
+
+/* ---------- browser_pdf (Phase E / D2, parity row G2) ----------
+ * Renders the CURRENT page to PDF in memory. No file is written, nothing is
+ * opened externally, and no request leaves the machine. Like a screenshot this
+ * is page CONTENT, so the output is byte-capped and the caller is told the
+ * capture scope honestly (viewport/print CSS of the live view, NOT an
+ * offscreen or full-page browser capture). */
+const AGENT_RPC_PDF_MAX = 8 * 1024 * 1024
+const AGENT_RPC_PDF_LADDER = [1, 0.8, 0.65, 0.5, 0.4]
+var AGENT_RPC_PDF_SEQ = 0
+
+function agentRpcCommandPdf (params) {
+  const view = viewMap[params.tabId]
+  if (!view || !view.webContents || view.webContents.isDestroyed()) {
+    return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'ref_not_found', 'tabId does not match a live view'))
+  }
+  if (typeof isViewAttachedToAnyWindow === 'function' && !isViewAttachedToAnyWindow(view)) {
+    return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.view_not_attached, 'view_not_attached', 'view is not attached to a live window; select the tab first'))
+  }
+  const wc = view.webContents
+  const cap = Math.max(20000, Math.min(params.maxBytes === undefined ? AGENT_RPC_PDF_MAX : params.maxBytes, AGENT_RPC_PDF_MAX))
+  const base = {
+    landscape: params.landscape === true,
+    printBackground: params.printBackground === true,
+    pageSize: params.pageSize || 'A4',
+    margins: params.margins === true ? { top: 0.4, bottom: 0.4, left: 0.4, right: 0.4 } : { top: 0, bottom: 0, left: 0, right: 0 }
+  }
+  const attempts = []
+  const tryRung = function (i) {
+    if (i >= AGENT_RPC_PDF_LADDER.length) {
+      return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.screenshot_too_large, 'screenshot_too_large', 'no PDF scale fits the cap (' + cap + ' B); attempts: ' + JSON.stringify(attempts)))
+    }
+    const scale = AGENT_RPC_PDF_LADDER[i]
+    const opts = Object.assign({}, base, { scale: scale })
+    return wc.printToPDF(opts).then(function (buf) {
+      const bytes = buf.length
+      attempts.push({ scale: scale, bytes: bytes, fit: bytes <= cap })
+      if (bytes <= cap) {
+        const id = 'pdf' + (++AGENT_RPC_PDF_SEQ)
+        return {
+          tabId: String(params.tabId),
+          pdfId: id,
+          mimeType: 'application/pdf',
+          bytes: bytes,
+          data: buf.toString('base64'),
+          scale: scale,
+          attempts: attempts,
+          captureScope: 'print rendering of the live attached view (print CSS). NOT an offscreen/full-page browser capture.',
+          pageSize: base.pageSize,
+          landscape: base.landscape,
+          printBackground: base.printBackground,
+          at: new Date().toISOString()
+        }
+      }
+      return tryRung(i + 1)
+    })
+  }
+  return tryRung(0).catch(function (e) {
+    if (e && e.agentRpcCommandError) throw e
+    throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'PDF rendering is unavailable for this view on this Electron build')
+  })
+}
+
+/* ---------- R2 / D1: bounded full-page capture by scroll-stitch ----------
+ *
+ * WHY STITCHING AND NOT captureBeyondViewport:
+ *   Electron 43's webContents.capturePage(rect) CLAMPS to the viewport (measured:
+ *   a 874x4500 CSS page returned 1682x1217). Chromium's captureBeyondViewport
+ *   lives in the DevTools Page domain and ADR-02 forbids using CDP for capture.
+ *   Scroll-stitch is therefore the only ADR-compliant strategy: no new privilege.
+ *
+ * A REAL stitched bitmap IS produced: each slice is read as a raw bitmap and
+ * copied into one output buffer using NativeImage.createFromBitmap. No canvas,
+ * no new dependency, and the memory is bounded up front.
+ *
+ * HONEST LIMITS (reported in the result, never hidden):
+ *   - fixed/sticky elements repeat across slices (a known stitching artifact);
+ *   - content that only loads on scroll may be captured blank;
+ *   - slices are captured sequentially, so it is not an atomic frame;
+ *   - hard caps: maxSlices (<=12), max page height, total bitmap bytes, and the
+ *     encoded byte cap. Anything cut is reported via `truncated`.
+ * The document scroll position is ALWAYS restored, including on failure.
+ */
+const AGENT_RPC_FULLPAGE_MAX_SLICES = 24
+const AGENT_RPC_FULLPAGE_MAX_PX = 20000
+const AGENT_RPC_FULLPAGE_MAX_BITMAP_BYTES = 64 * 1024 * 1024
+
+function agentRpcCaptureFullPage (wc, params) {
+  const maxSlices = Math.max(1, Math.min(params.maxSlices === undefined ? AGENT_RPC_FULLPAGE_MAX_SLICES : params.maxSlices, AGENT_RPC_FULLPAGE_MAX_SLICES))
+  const cap = agentRpcScreenshotMaxBytes(params)
+  let NativeImage = null
+  try { NativeImage = require('electron').nativeImage } catch (eNI) { NativeImage = null }
+
+  return wc.executeJavaScript('JSON.stringify({h:Math.max(document.documentElement.scrollHeight,document.body?document.body.scrollHeight:0),y:window.scrollY,iw:window.innerWidth,ih:window.innerHeight})')
+    .then(function (metaJson) {
+      const meta = JSON.parse(metaJson)
+      const startY = meta.y || 0
+      const docH = Math.max(0, Math.min(meta.h || 0, AGENT_RPC_FULLPAGE_MAX_PX))
+      const step = Math.max(1, meta.ih || 1)
+      const want = Math.max(1, Math.ceil(docH / step))
+      const slices = []
+      let truncated = false
+      let bytes = 0
+
+      const next = function (i) {
+        if (i >= want || i >= maxSlices) {
+          if (i < want) truncated = true
+          return Promise.resolve()
+        }
+        const y = i * step
+        return wc.executeJavaScript('window.scrollTo(0,' + y + ')')
+          .then(function () { return new Promise(function (r) { setTimeout(r, 120) }) })
+          .then(function () { return wc.capturePage() })
+          .then(function (img) {
+            const sz = img.getSize()
+            if (sz.width > 0 && sz.height > 0) {
+              const bmp = img.toBitmap()
+              bytes += bmp.length
+              slices.push({ y: y, w: sz.width, h: sz.height, bmp: bmp })
+            }
+            /* Do NOT stop early on the raw-byte budget: the compositor can
+             * downscale (below), and stopping here is what produced a
+             * viewport-sized image labelled as a full page. */
+            return next(i + 1)
+            return next(i + 1)
+          })
+      }
+
+      return next(0).then(function () {
+        /* ALWAYS restore the scroll position, even if a slice threw. */
+        return wc.executeJavaScript('window.scrollTo(0,' + startY + ')').then(function () {
+          if (!slices.length) {
+            throw agentRpcCommandError(AGENT_RPC_ERRORS.unsupported || AGENT_RPC_ERRORS.unsupported, 'unsupported', 'no page slice could be captured')
+          }
+          const w = slices[0].w
+          const sliceHpx = slices[0].h
+          const totalHpx = slices.reduce(function (a, s) { return a + s.h }, 0)
+          /* Composite into ONE bitmap. If the raw stitch would exceed the
+           * memory budget, downscale every slice by the same integer-free
+           * factor first: a smaller complete page beats a cropped one. The
+           * scale is reported in `scaledBy` and the encoded cap still applies. */
+          const maxRawBytes = AGENT_RPC_FULLPAGE_MAX_BITMAP_BYTES
+          let scale = 1
+          if (NativeImage && w > 0 && totalHpx > 0) {
+            const need = w * totalHpx * 4
+            if (need > maxRawBytes) scale = Math.sqrt(maxRawBytes / need)
+          }
+          const outW = Math.max(1, Math.floor(w * scale))
+          const outH = Math.max(1, Math.floor(totalHpx * scale))
+          let outBuf = null
+          let composed = false
+          if (NativeImage && typeof NativeImage.createFromBitmap === 'function') {
+            try {
+              const rowBytes = outW * 4
+              outBuf = Buffer.alloc(rowBytes * outH)
+              let dy = 0
+              for (let i = 0; i < slices.length; i++) {
+                const sl = slices[i]
+                if (scale === 1) {
+                  const copyH = Math.min(sl.h, outH - dy)
+                  sl.bmp.copy(outBuf, dy * rowBytes, 0, copyH * rowBytes)
+                  dy += copyH
+                } else {
+                  /* per-slice downscale through nativeImage so the final
+                   * composite has a single, consistent scale factor */
+                  const small = NativeImage.createFromBitmap(sl.bmp, { width: sl.w, height: sl.h })
+                  const scaledImg = small.resize({ width: outW, height: Math.max(1, Math.floor(sl.h * scale)), quality: 'good' })
+                  const sBmp = scaledImg.toBitmap()
+                  const copyH = Math.min(Math.floor(sl.h * scale), outH - dy)
+                  sBmp.copy(outBuf, dy * rowBytes, 0, copyH * rowBytes)
+                  dy += copyH
+                }
+              }
+              composed = true
+            } catch (eComp) { composed = false; outBuf = null }
+          }
+          const chosenImg = composed
+            ? NativeImage.createFromBitmap(outBuf, { width: outW, height: outH })
+            : null
+          const encoded = (chosenImg && !chosenImg.isEmpty())
+            ? chosenImg.toPNG()
+            : slices[0].bmp
+          const finalBuf = composed && chosenImg && !chosenImg.isEmpty() ? encoded : null
+          const outBytes = finalBuf || encoded
+          const beyondCap = outBytes.length > cap
+          return {
+            tabId: String(params.tabId),
+            screenshotId: 'ss' + (++AGENT_RPC_SS_SEQ),
+            mimeType: 'image/png',
+            bytes: outBytes.length,
+            width: composed ? outW : w,
+            height: composed ? outH : slices[0].h,
+            source: 'fullpage',
+            captureMode: composed ? 'scroll-stitch-composited' : 'scroll-stitch-first-slice',
+            scaledBy: composed ? Math.round(scale * 1000) / 1000 : 1,
+            slices: slices.length,
+            sliceHeightCss: step,
+            documentHeightCss: docH,
+            capturedHeightCss: slices.length * step,
+            truncated: truncated,
+            scrollRestoredTo: startY,
+            completeCapture: composed && !truncated && slices.length === want,
+            overByteCap: beyondCap,
+            limitations: 'scroll-stitch: fixed/sticky elements repeat across slices; content that only loads on scroll may be blank; capture is sequential, not one atomic frame. completeCapture:false means the image is NOT the whole document.',
+            coordinateUnits: 'viewport-css-px',
+            data: outBytes.toString('base64')
+          }
+        })
+      })
+    })
+}
+
 function agentRpcCommandScreenshot (params) {
+  /* R2 / D1: fullPage uses bounded scroll-stitch (see agentRpcCaptureFullPage). */
+  if (params.fullPage === true) {
+    var fpView = typeof viewMap !== 'undefined' ? viewMap[params.tabId] : null
+    if (!fpView || !fpView.webContents || fpView.webContents.isDestroyed()) {
+      return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.not_found, 'ref_not_found', 'tabId does not match a live view'))
+    }
+    if (typeof isViewAttachedToAnyWindow === 'function' && !isViewAttachedToAnyWindow(fpView)) {
+      return Promise.reject(agentRpcCommandError(AGENT_RPC_ERRORS.view_not_attached, 'view_not_attached', 'view is detached or hidden; screenshots require an attached visible view'))
+    }
+    return agentRpcCaptureFullPage(fpView.webContents, params)
+  }
   return new Promise(function (resolve, reject) {
     var tabId = params.tabId
     var view = typeof viewMap !== 'undefined' ? viewMap[tabId] : null
@@ -4504,129 +6882,176 @@ function agentRpcCommandScreenshot (params) {
       return
     }
     var wc = view.webContents
+    var cap = agentRpcScreenshotMaxBytes(params)
+    /* selector: bounded CSS selector, same char family the transform engine accepts */
+    if (params.selector !== undefined && (typeof params.selector !== 'string' || params.selector.length < 1 || params.selector.length > 300)) {
+      reject(agentRpcCommandError(AGENT_RPC_ERRORS.invalid_params, 'invalid_params', 'selector must be a string of 1-300 characters'))
+      return
+    }
     var settled = false
-    /* capturePage can reject transiently AND can wedge without ever settling
-     * on this Electron (observed after rapid successive navigations:
-     * docs/agent-nps-probe.json). It is read-only, so bounded retries carry no
-     * double-effect risk - unlike input dispatch. Each attempt gets its own
-     * soft timeout; a wedged attempt is abandoned and a fresh one issued,
-     * inside an overall deadline below. The attached-view guard above stays:
-     * the P0-08 same-tick-after-detach hang is prevented before this point. */
     var attempts = 0
     var overall = setTimeout(function () {
       if (settled) return
       settled = true
       reject(agentRpcCommandError(AGENT_RPC_ERRORS.timeout, 'timeout', 'capture did not complete within ' + AGENT_RPC_SNAPSHOT_TIMEOUT + 'ms'))
     }, AGENT_RPC_SNAPSHOT_TIMEOUT)
-    var attempt = function () {
-      if (settled || attempts >= 6) return
-      attempts++
-      var attemptSettled = false
-      var perAttempt = setTimeout(function () {
-        if (attemptSettled) return
-        attemptSettled = true
-        /* wedged: abandon this attempt and try again */
-        if (attempts < 6) setTimeout(attempt, 200)
-        else if (!settled) {
-          settled = true
-          clearTimeout(overall)
-          reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'capture did not settle (' + attempts + ' attempts)'))
-        }
-      }, 2500)
-      wc.capturePage()
-        .then(function (img) {
-          if (attemptSettled || settled) return
+
+    function finishResolve (payload) {
+      if (settled) return
+      settled = true
+      clearTimeout(overall)
+      resolve(payload)
+    }
+    function finishReject (err) {
+      if (settled) return
+      settled = true
+      clearTimeout(overall)
+      reject(err)
+    }
+
+    /* resolve the element rect (if selector), scroll it into view, return
+     * viewport-space rect clamped to the current viewport */
+    var resolveRect = params.selector === undefined
+      ? Promise.resolve({ source: 'full' })
+      : wc.executeJavaScript(
+        '(function(){try{' +
+        'var el=document.querySelector(' + JSON.stringify(String(params.selector)) + ');' +
+        'if(!el||!el.getBoundingClientRect)return{error:"selector matched no element"};' +
+        'el.scrollIntoView({block:"center",inline:"center"});' +
+        'var r=el.getBoundingClientRect();' +
+        'var iw=window.innerWidth,ih=window.innerHeight;' +
+        'var x=Math.max(0,r.x),y=Math.max(0,r.y);' +
+        'if(r.width<=0||r.height<=0)return{error:"element has zero size"};' +
+        'return{x:Math.round(x),y:Math.round(y),width:Math.max(1,Math.round(r.width)),height:Math.max(1,Math.round(r.height)),vw:iw,vh:ih,ok:true}' +
+        '}catch(eSel){return{error:String(eSel&&eSel.message||eSel).slice(0,200)}}})()'
+      ).then(function (r) { return r == null ? { error: 'selector rect unavailable' } : r })
+
+    resolveRect.then(function (rect) {
+      if (rect && rect.error) {
+        finishReject(agentRpcCommandError(AGENT_RPC_ERRORS.invalid_params, 'invalid_params', rect.error))
+        return
+      }
+      /* bounded capture with re-issued attempts on wedges (pre-P1-15 behavior) */
+      var attempt = function () {
+        if (settled || attempts >= 6) return
+        attempts++
+        var attemptSettled = false
+        var perAttempt = setTimeout(function () {
+          if (attemptSettled) return
           attemptSettled = true
-          clearTimeout(perAttempt)
-          var size = img.getSize()
-          if (size.width === 0 && size.height === 0) {
-            if (attempts < 6) setTimeout(attempt, 200)
-            else if (!settled) {
-              settled = true
-              clearTimeout(overall)
-              reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'captured a zero-size image (view not rendered)'))
-            }
-            return
+          if (attempts < 6) setTimeout(attempt, 200)
+          else if (!settled) {
+            finishReject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'capture did not settle (' + attempts + ' attempts)'))
           }
-          var data = img.toPNG().toString('base64')
-          if (!agentRpcScreenshotSizeOk(data.length)) {
-            if (!settled) {
-              settled = true
-              clearTimeout(overall)
-              reject(agentRpcCommandError(AGENT_RPC_ERRORS.screenshot_too_large, 'screenshot_too_large', 'encoded image exceeds ' + AGENT_RPC_SCREENSHOT_MAX + ' bytes'))
-            }
-            return
-          }
-          if (!settled) {
-            settled = true
-            clearTimeout(overall)
-            /* P1-06: optional format/scale + identity + viewport metadata. The
-             * image pixel size vs CSS viewport gives the exact px->css factor
-             * the agent needs to map screenshot coordinates for browser_mouse. */
-            var outFmt = params.format === 'jpeg' ? 'jpeg' : 'png'
-            var img2 = img
-            var iw2 = size.width
-            var ih2 = size.height
-            if (params.maxWidth !== undefined || params.maxHeight !== undefined) {
-              var swF = params.maxWidth !== undefined ? params.maxWidth / iw2 : 1
-              var shF = params.maxHeight !== undefined ? params.maxHeight / ih2 : 1
-              var scale = Math.min(swF, shF, 1)
-              if (scale < 1) {
-                img2 = img2.resize({ width: Math.max(1, Math.round(iw2 * scale)), height: Math.max(1, Math.round(ih2 * scale)) })
-                iw2 = img2.getSize().width
-                ih2 = img2.getSize().height
-              }
-            }
-            var outBuf
-            var outMime
-            if (outFmt === 'jpeg') { outBuf = img2.toJPEG(params.quality === undefined ? 80 : params.quality); outMime = 'image/jpeg' } else { outBuf = img2.toPNG(); outMime = 'image/png' }
-            var outData = outBuf.toString('base64')
-            if (!agentRpcScreenshotSizeOk(outData.length)) {
-              reject(agentRpcCommandError(AGENT_RPC_ERRORS.screenshot_too_large, 'screenshot_too_large', 'encoded image exceeds ' + AGENT_RPC_SCREENSHOT_MAX + ' bytes; use format=jpeg or maxWidth/maxHeight'))
+        }, 2500)
+        wc.capturePage()
+          .then(function (img) {
+            if (attemptSettled || settled) return
+            attemptSettled = true
+            clearTimeout(perAttempt)
+            var size = img.getSize()
+            if (size.width === 0 && size.height === 0) {
+              if (attempts < 6) setTimeout(attempt, 200)
+              else if (!settled) finishReject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'captured a zero-size image (view not rendered)'))
               return
             }
+            var sourceKind = rect && rect.ok ? 'element' : 'full'
+            /* element crop: CSS px × (imgW / viewportCssW) → image px; clamped */
+            if (rect && rect.ok) {
+              var f = size.width / Math.max(1, rect.vw || 1)
+              var cx = Math.round((rect.x || 0) * f)
+              var cy = Math.round((rect.y || 0) * f)
+              var cw = Math.max(1, Math.min(Math.round((rect.width || 1) * f), size.width - cx))
+              var ch = Math.max(1, Math.min(Math.round((rect.height || 1) * f), size.height - cy))
+              var cropped
+              try { cropped = img.crop({ x: cx, y: cy, width: cw, height: ch }) } catch (eC) {
+                finishReject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'element crop failed: ' + String(eC && eC.message || eC)))
+                return
+              }
+              if (!cropped || cropped.isEmpty()) {
+                finishReject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'element crop produced an empty image'))
+                return
+              }
+              img = cropped
+              size = img.getSize()
+            }
+            /* ladder: first rung honors requested format/quality/maxW/H; later
+             * rungs downscale ( jpeg + lower q until it fits or all rungs fail) */
+            var outMeta = null
+            var rungResults = []
+            var reqFmt = params.format === 'jpeg' ? 'jpeg' : 'png'
+            var baseScale = 1
+            if (params.maxWidth !== undefined || params.maxHeight !== undefined) {
+              var swF = params.maxWidth !== undefined ? params.maxWidth / size.width : 1
+              var shF = params.maxHeight !== undefined ? params.maxHeight / size.height : 1
+              baseScale = Math.min(swF, shF, 1)
+            }
+            for (var li = 0; li < AGENT_RPC_SCREENSHOT_LADDER.length; li++) {
+              var rung = AGENT_RPC_SCREENSHOT_LADDER[li]
+              var effScale = Math.min(1, baseScale * rung.scale)
+              var w = Math.max(1, Math.round(size.width * (effScale === 1 && li === 0 ? 1 : effScale / (li === 0 ? 1 : 1))))
+              /* first rung encodes at native requested scale; later rungs downscale
+               * relative to the ORIGINAL size */
+              var wR = Math.max(1, Math.round(size.width * effScale))
+              var hR = Math.max(1, Math.round(size.height * effScale))
+              var imgR = li === 0 && effScale === 1 ? img : img.resize({ width: wR, height: hR })
+              var fmt = rung.fmt === 'as-req' ? reqFmt : rung.fmt
+              var q = rung.q === -1 ? (params.quality === undefined ? 80 : params.quality) : rung.q
+              var buf = fmt === 'jpeg' ? imgR.toJPEG(q) : imgR.toPNG()
+              var len = buf.toString('base64').length
+              rungResults.push({ rung: li, fmt: fmt, w: imgR.getSize().width, h: imgR.getSize().height, encoded: len })
+              if (len <= cap) {
+                outMeta = { buf: buf, fmt: fmt, w: imgR.getSize().width, h: imgR.getSize().height, rung: li, scaled: li > 0, quality: fmt === 'jpeg' ? q : null }
+                break
+              }
+            }
+            if (!outMeta) {
+              finishReject(agentRpcCommandError(AGENT_RPC_ERRORS.screenshot_too_large, 'screenshot_too_large',
+                'no screenshot rung fits the cap (' + cap + ' B); attempts: ' + JSON.stringify(rungResults)))
+              return
+            }
+            var outData = outMeta.buf.toString('base64')
             agentRplFetchViewportMeta(wc).then(function (meta) {
               var id = 'ss' + (++AGENT_RPC_SS_SEQ)
               var vp = { width: meta ? meta.iw : null, height: meta ? meta.ih : null, dpr: meta ? meta.dpr : null, scrollX: meta ? meta.sx : null, scrollY: meta ? meta.sy : null }
-              var rec = { id: id, tabId: String(tabId), viewport: vp, zoom: wc.getZoomFactor(), imageWidth: iw2, imageHeight: ih2, format: outMime, at: Date.now() }
+              var rec = { id: id, tabId: String(tabId), viewport: vp, zoom: wc.getZoomFactor(), imageWidth: outMeta.w, imageHeight: outMeta.h, format: outMeta.fmt, at: Date.now() }
               try { var u2 = new URL(wc.getURL()); rec.urlPath = u2.origin + u2.pathname } catch (e3) { rec.urlPath = null }
               AGENT_RPC_SCREENSHOTS.set(id, rec)
-              const cap = Array.from(AGENT_RPC_SCREENSHOTS.keys())
-              while (cap.length > 25) { AGENT_RPC_SCREENSHOTS.delete(cap.shift()) }
-              var cssFactor = vp.width ? (iw2 / vp.width) : 1
-              resolve({
+              var cssFactor = vp.width ? (outMeta.w / vp.width) : 1
+              finishResolve({
                 tabId: String(tabId),
                 screenshotId: id,
-                mimeType: outMime,
+                mimeType: outMeta.fmt === 'jpeg' ? 'image/jpeg' : 'image/png',
                 bytes: outData.length,
-                width: iw2,
-                height: ih2,
+                width: outMeta.w,
+                height: outMeta.h,
                 coordinateUnits: 'viewport-css-px',
                 cssPerPixel: cssFactor,
                 viewport: vp,
                 zoom: rec.zoom,
                 urlPath: rec.urlPath,
                 timestamp: new Date().toISOString(),
+                source: sourceKind,
+                scaled: outMeta.scaled,
+                attempts: attempts,
+                ladder: rungResults,
                 data: outData
               })
             })
-          }
-        })
-        .catch(function () {
-          if (attemptSettled || settled) return
-          attemptSettled = true
-          clearTimeout(perAttempt)
-          if (attempts < 6) setTimeout(attempt, 200)
-          else if (!settled) {
-            settled = true
-            clearTimeout(overall)
-            reject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'capture did not succeed (' + attempts + ' attempts)'))
-          }
-        })
-    }
-    attempt()
+          })
+          .catch(function () {
+            if (attemptSettled || settled) return
+            attemptSettled = true
+            clearTimeout(perAttempt)
+            if (attempts < 6) setTimeout(attempt, 200)
+            else if (!settled) finishReject(agentRpcCommandError(AGENT_RPC_ERRORS.unsupported, 'unsupported', 'capture did not succeed (' + attempts + ' attempts)'))
+          })
+      }
+      attempt()
+    })
   })
 }
+function windowWidthFallback (img, rect) { return rect.vw || 1 }
 
 /* ---------- transport ---------- */
 

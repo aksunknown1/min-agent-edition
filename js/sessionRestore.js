@@ -11,7 +11,7 @@ const sessionRestore = {
   savePath: window.globalArgs['user-data-path'] + (platformType === 'windows' ? '\\sessionRestore.json' : '/sessionRestore.json'),
   previousState: null,
   save: function (forceSave, sync) {
-    //only one window (the focused one) should be responsible for saving session restore data
+    // only one window (the focused one) should be responsible for saving session restore data
     if (!document.body.classList.contains('focused')) {
       return
     }
@@ -31,10 +31,10 @@ const sessionRestore = {
       })
     }
 
-    //if startupTabOption is "open a new blank task", don't save any tabs in the current task
+    // if startupTabOption is "open a new blank task", don't save any tabs in the current task
     if (settings.get('startupTabOption') === 3) {
       for (var i = 0; i < data.state.tasks.length; i++) {
-        if (tasks.get(data.state.tasks[i].id).selectedInWindow) { //need to re-fetch the task because temporary properties have been removed
+        if (tasks.get(data.state.tasks[i].id).selectedInWindow) { // need to re-fetch the task because temporary properties have been removed
           data.state.tasks[i].tabs = []
         }
       }
@@ -85,10 +85,10 @@ const sessionRestore = {
         tasks.setSelected(tasks.add()) // create a new task
 
         var newTab = tasks.getSelected().tabs.add({
-            url: 'https://minbrowser.github.io/min/tour'
+          url: 'https://minbrowser.github.io/min/tour'
         })
         browserUI.addTab(newTab, {
-         enterEditMode: false
+          enterEditMode: false
         })
         return
       }
@@ -233,8 +233,8 @@ const sessionRestore = {
 
     window.onbeforeunload = function (e) {
       sessionRestore.save(true, true)
-      //workaround for notifying the other windows that the task open in this window isn't open anymore.
-      //This should ideally be done in windowSync, but it needs to run synchronously, which windowSync doesn't
+      // workaround for notifying the other windows that the task open in this window isn't open anymore.
+      // This should ideally be done in windowSync, but it needs to run synchronously, which windowSync doesn't
       ipc.send('tab-state-change', [
         ['task-updated', tasks.getSelected().id, 'selectedInWindow', null]
       ])

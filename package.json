@@ -92,7 +92,10 @@
     "updateFilters": "node ./ext/filterLists/updateEasylist.js",
     "updateHttpsList": "node ./ext/httpsUpgrade/updateHttpsList.js",
     "updateSuffixes": "node ./ext/publicSuffixes/updateSuffixes.js",
-    "lint": "prettier --write **/**/*.css **/**/*.md **/**/*.html **/**/*.json && standard --fix js/**/*.js main/*.js | snazzy",
+    "lint": "node ./scripts/lint-check.js",
+    "lint:style": "node ./scripts/lint-check.js --style",
+    "lint:js": "node ./scripts/lint-check.js --js",
+    "format:write": "prettier --write \"./**/*.css\" \"./**/*.md\" \"./**/*.html\" \"./**/*.json\" && standard --fix \"js/**/*.js\" \"main/*.js\"",
     "probe:tabs": "node ./scripts/agent-tabs-probe.js",
     "probe:inputs": "node ./scripts/agent-inputs-probe.js",
     "probe:waits": "node ./scripts/agent-waits-probe.js",
@@ -100,6 +103,13 @@
     "probe:pav": "node ./scripts/agent-pav-probe.js",
     "probe:downloads": "node ./scripts/agent-downloads-probe.js",
     "probe:mouse": "node ./scripts/agent-mouse-probe.js",
-    "probe:transform": "node ./scripts/agent-transform-probe.js"
+    "probe:transform": "node ./scripts/agent-transform-probe.js",
+    "probe:eval": "node ./scripts/agent-eval-probe.js",
+    "probe:realweb": "node ./scripts/realweb-accept.js",
+    "test:impact": "node ./scripts/test-impact.js",
+    "probe:keyboard": "node ./scripts/agent-keyboard-probe.js",
+    "probe:helper": "node ./scripts/agent-helper-probe.js",
+    "probe:r2": "node ./scripts/agent-r2-probe.js",
+    "probe:r4": "node ./scripts/agent-r4-overlay-probe.js"
   }
 }

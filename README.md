@@ -39,9 +39,9 @@ and the [upstream website](https://minbrowser.org/).
 
 Min is made possible by these sponsors:
 
-| [<img src="https://avatars.githubusercontent.com/u/6592155?v=4" width="40">](https://github.com/blackgwe) | [<img src="https://avatars.githubusercontent.com/u/49724477?v=4" width="40">](https://github.com/rafel-ioli) |[<img src="https://avatars.githubusercontent.com/u/237596?v=4" width="40">](https://github.com/idoru) |     |
-| ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |--------------------------------------------------------------------------------------------------------------- | --- |
-| [@blackgwe](https://github.com/blackgwe)                                                                            | [@rafel-ioli](https://github.com/rafel-ioli)                                                                        |[@idoru](https://github.com/idoru)                                                                        ||
+| [<img src="https://avatars.githubusercontent.com/u/6592155?v=4" width="40">](https://github.com/blackgwe) | [<img src="https://avatars.githubusercontent.com/u/49724477?v=4" width="40">](https://github.com/rafel-ioli) | [<img src="https://avatars.githubusercontent.com/u/237596?v=4" width="40">](https://github.com/idoru) |     |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | --- |
+| [@blackgwe](https://github.com/blackgwe)                                                                  | [@rafel-ioli](https://github.com/rafel-ioli)                                                                 | [@idoru](https://github.com/idoru)                                                                    |     |
 
 [Become a sponsor](https://github.com/sponsors/PalmerAL)
 
@@ -67,9 +67,9 @@ You can find prebuilt binaries for the **official Min browser** [here](https://g
 
 ## Getting Started
 
-* The [upstream wiki](https://github.com/minbrowser/min/wiki) provides an overview of the features available in Min, a list of available keyboard shortcuts, and answers to some [frequently asked questions](https://github.com/minbrowser/min/wiki/FAQ).
-* Min supports installing userscripts to extend its functionality. See the [userscript documentation](https://github.com/minbrowser/min/wiki/userscripts) for instructions on writing userscripts, as well as a collection of scripts written by the community.
-* For questions about **upstream Min**, join the [upstream Discord server](https://discord.gg/bRpqjJ4). Agent Edition–specific development notes live in this repository (`SKILL.md`, `CONTRIBUTING.md`, `docs/audit/`, `RELEASE_NOTES.md`).
+- The [upstream wiki](https://github.com/minbrowser/min/wiki) provides an overview of the features available in Min, a list of available keyboard shortcuts, and answers to some [frequently asked questions](https://github.com/minbrowser/min/wiki/FAQ).
+- Min supports installing userscripts to extend its functionality. See the [userscript documentation](https://github.com/minbrowser/min/wiki/userscripts) for instructions on writing userscripts, as well as a collection of scripts written by the community.
+- For questions about **upstream Min**, join the [upstream Discord server](https://discord.gg/bRpqjJ4). Agent Edition–specific development notes live in this repository (`SKILL.md`, `CONTRIBUTING.md`, `docs/audit/`, `RELEASE_NOTES.md`).
 
 ## Developing
 

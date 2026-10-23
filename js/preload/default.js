@@ -62,3 +62,32 @@ window.addEventListener('message', function (e) {
     ipc.send('downloadFile', e.data.url)
   }
 })
+
+/* Phase E / D2-A: trusted-input delivery attestation.
+ *
+ * This runs in the isolated preload world (contextIsolation:true,
+ * sandbox:true). Page JavaScript cannot read, call or forge anything defined
+ * here, and cannot send IPC at all - so a page can never manufacture a
+ * "delivered" acknowledgement.
+ *
+ * Only events with isTrusted === true are attested. A synthetic
+ * `new KeyboardEvent('keydown', ...)` dispatched by the page is isTrusted:false
+ * and is therefore never counted.
+ *
+ * NOTHING about the event VALUE is recorded - no key, no character, no
+ * coordinates, no target - only the kind and a monotonic counter. A password
+ * typed into a field cannot leak through this channel.
+ *
+ * This attests ONLY that the renderer delivered a trusted input event to the
+ * page. It is NOT compositor paint, NOT application effect, and NOT challenge
+ * clearance. Those remain unproven and are reported as such. */
+var attestSeq = 0
+function attestTrusted (kind, e) {
+  if (!e || e.isTrusted !== true) return
+  attestSeq++
+  ipc.send('agent-attest', { seq: attestSeq, kind: kind })
+}
+window.addEventListener('keydown', function (e) { attestTrusted('key', e) }, true)
+window.addEventListener('keyup', function (e) { attestTrusted('key', e) }, true)
+window.addEventListener('mousedown', function (e) { attestTrusted('pointer', e) }, true)
+window.addEventListener('mouseup', function (e) { attestTrusted('pointer', e) }, true)

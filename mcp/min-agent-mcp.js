@@ -49,6 +49,75 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: {}, additionalProperties: false }
   },
   {
+    name: 'browser_health',
+    description: 'Read-only doctor for THIS Min profile: overall healthy/degraded/unavailable plus per-check status for the bridge listener, discovery file, authentication, userData profile, managed download root, policy flags, live/crashed renderers, ad-blocker, network counters, ref store and tool catalogue. Never returns the bridge token, cookies or page content. Reports known permanent limitations honestly. Takes no parameters.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false }
+  },
+  {
+    name: 'browser_pdf',
+    description: 'Render the current page of a tab to PDF in memory (Electron printToPDF). Returns base64 PDF bytes plus a bounded text metadata block. No file is written and nothing leaves the machine. Capture scope is the print rendering of the live attached view - NOT an offscreen or full-page browser capture. An adaptive scale ladder honours maxBytes.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
+        landscape: { type: 'boolean', description: 'default false' },
+        printBackground: { type: 'boolean', description: 'default false' },
+        pageSize: { type: 'string', enum: ['A4', 'A5', 'A3', 'Letter', 'Legal', 'Tabloid', 'Ledger'], description: 'default A4' },
+        margins: { type: 'boolean', description: 'default false (edge-to-edge)' },
+        maxBytes: { type: 'integer', minimum: 20000, maximum: 8388608, description: 'encoded-output cap; a scale ladder retries until one rung fits' }
+      },
+      required: ['tabId'],
+      additionalProperties: false
+    }
+  },
+  {
+name: 'browser_helper_list',
+    description: 'ADR-09 Option C: list the FIXED read-only built-in catalogue and the closed tool allowlist. Data only - no code executes. Takes no parameters.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false }
+  },
+  {
+    name: 'browser_helper',
+    description: 'ADR-09 Option C: run a REGISTERED read-only built-in against one tab. The helper id is the only selector; a caller can never choose an arbitrary tool, reorder steps or widen privilege. Built-ins only observe page state - they never click, type, navigate, transform, download or change settings - and never prove that a remote site persisted a change. Available: page_summary (browser_state then browser_snapshot), form_control_inventory (browser_snapshot only; flat control list, values never returned).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        helper: { type: 'string', maxLength: 64, enum: ['page_summary', 'form_control_inventory'], description: 'registered built-in id' },
+        tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id - explicit; never an implicit current tab' },
+        version: { type: 'integer', minimum: 1, maximum: 1000, description: 'optional; must match the registered definition' },
+        maxNodes: { type: 'integer', minimum: 1, maximum: 200, description: 'snapshot node cap passed to the constituent call' },
+        limit: { type: 'integer', minimum: 1, maximum: 60, description: 'form_control_inventory item cap' }
+      },
+      required: ['helper', 'tabId'],
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'browser_upload',
+    description: 'R2/C6: attach ONE local file to a file input, by snapshot ref. The file must live under <profile>/agent-uploads and is validated by the same path policy as downloads (no absolute/UNC/traversal/symlink escape). Uses a single allowlisted browser command (DOM.setFileInputFiles). Never submits a form. Reports dispatched/delivered/verified separately; verified means the input reports the file attached.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
+        ref: { type: 'string', pattern: '^r[0-9a-z]{1,12}$', description: 'ref of a file input from browser_snapshot' },
+        relPath: { type: 'string', maxLength: 240, description: 'path RELATIVE to <profile>/agent-uploads' }
+      },
+      required: ['tabId', 'ref', 'relPath'],
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'browser_frames',
+    description: 'R2/C8: enumerate the frame tree of a tab from Electron itself (no CDP). Lists the main frame and child frames with depth and URL. Cross-origin children are listed but their documents are not readable, and frame-scoped eval/click is NOT implemented in R2. Limitations are returned with the result.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' }
+      },
+      required: ['tabId'],
+      additionalProperties: false
+    }
+  },
+  {
     name: 'browser_tabs',
     description: 'List open Min tabs (tabId, url, title, focused/active flags). Takes no parameters.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false }
@@ -61,7 +130,8 @@ const TOOLS = [
       properties: {
         tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id from browser_tabs' },
         format: { type: 'string', enum: ['json', 'text'], description: 'default json' },
-        maxNodes: { type: 'integer', minimum: 1, maximum: 500, description: 'default 200' }
+        maxNodes: { type: 'integer', minimum: 1, maximum: 500, description: 'default 200' },
+        waitMs: { type: 'integer', minimum: 0, maximum: 5000, description: 'bounded settle delay before capturing, 0-5000ms; default 0' }
       },
       required: ['tabId'],
       additionalProperties: false
@@ -90,7 +160,8 @@ const TOOLS = [
       type: 'object',
       properties: {
         tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
-        ref: { type: 'string', pattern: '^r[0-9a-z]{1,12}$', description: 'opaque ref from a fresh browser_snapshot (60s lifetime)' }
+        ref: { type: 'string', pattern: '^r[0-9a-z]{1,12}$', description: 'opaque ref from a fresh browser_snapshot (60s lifetime)' },
+        verification: { type: 'string', enum: ['standard', 'none'], description: 'P1-15: none returns immediately after dispatch with an honest unverified status (for canvas/custom surfaces where immediate DOM verification is not meaningful)' }
       },
       required: ['tabId', 'ref'],
       additionalProperties: false
@@ -98,13 +169,14 @@ const TOOLS = [
   },
   {
     name: 'browser_type',
-    description: 'Replace the text of a textbox/combobox a snapshot ref points at, via native input events. Password/email/phone/sensitive-autocomplete fields are refused (single-use browser_grant sensitive_type unlocks one field). Acceptance is verified by reading the value back: verification=value (non-sensitive), value-length (sensitive, length only), rejected-input (framework refused), unreadable-state; strategy shows native-insert or native-setter-fallback (one bounded retry).',
+    description: 'Replace the text of a textbox/combobox a snapshot ref points at, via native input events. Password/email/phone/sensitive-autocomplete fields are refused (single-use browser_grant sensitive_type unlocks one field). Acceptance is verified by reading the value back: verification=value (non-sensitive), value-length (sensitive, length only), rejected-input (framework refused), unreadable-state; strategy shows native-insert, keyboard-events or native-setter-fallback (one bounded retry).',
     inputSchema: {
       type: 'object',
       properties: {
         tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
         ref: { type: 'string', pattern: '^r[0-9a-z]{1,12}$', description: 'opaque ref pointing at a textbox/combobox' },
-        text: { type: 'string', maxLength: 1000, description: 'text to enter (no control characters/newlines)' }
+        text: { type: 'string', maxLength: 1000, description: 'text to enter (no control characters/newlines)' },
+        mode: { type: 'string', enum: ['native', 'keyboard'], description: 'D3-A: native (default) = one native insertText; keyboard = one trusted keyDown/char/keyUp per character for framework/controlled inputs. Keyboard mode is bounded to 200 chars and reports physicalKeys:false when non-ASCII is delivered as text rather than a physical key sequence.' }
       },
       required: ['tabId', 'ref', 'text'],
       additionalProperties: false
@@ -117,7 +189,8 @@ const TOOLS = [
       type: 'object',
       properties: {
         tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
-        key: { type: 'string', enum: ['Enter', 'Tab', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', 'Backspace', 'Delete'], description: 'single key' }
+        key: { type: 'string', enum: ['Enter', 'Tab', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', 'Backspace', 'Delete'], description: 'single key' },
+        verification: { type: 'string', enum: ['standard', 'none'], description: 'P1-15: none returns immediately after dispatch with an honest unverified status' }
       },
       required: ['tabId', 'key'],
       additionalProperties: false
@@ -125,15 +198,19 @@ const TOOLS = [
   },
   {
     name: 'browser_screenshot',
-    description: 'Screenshot of the visible Min view. Returns an MCP image content block (real image bytes) plus a text metadata block: screenshotId, viewport (CSS px), devicePixelRatio, scroll offsets, zoom, cssPerPixel conversion for browser_mouse coordinates. Requires an attached (selected) view.',
+    description: 'Screenshot of the Min view. Returns an MCP image content block (real image bytes) plus a text metadata block: screenshotId, viewport (CSS px), devicePixelRatio, scroll offsets, zoom, cssPerPixel conversion for browser_mouse coordinates. Requires an attached (selected) view. fullPage:true captures the WHOLE document via bounded scroll-stitching and reports completeCapture/truncated/scaledBy honestly.',
     inputSchema: {
       type: 'object',
       properties: {
         tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
         format: { type: 'string', enum: ['png', 'jpeg'], description: 'default png' },
+        maxBytes: { type: 'integer', minimum: 5000, maximum: 5242880, description: 'P1-15: encoded-output cap; an adaptive ladder (downscale/recompress) retries until one rung fits, else an error with the attempts' },
+        selector: { type: 'string', maxLength: 300, description: 'P1-15: optional CSS selector — element-scoped capture: validated rect, scrolled into view, cropped before encoding' },
         quality: { type: 'integer', minimum: 1, maximum: 100, description: 'jpeg quality (default 80)' },
         maxWidth: { type: 'integer', minimum: 16, maximum: 4096, description: 'aspect-preserving downscale' },
-        maxHeight: { type: 'integer', minimum: 16, maximum: 4096, description: 'aspect-preserving downscale' }
+        maxHeight: { type: 'integer', minimum: 16, maximum: 4096, description: 'aspect-preserving downscale' },
+        fullPage: { type: 'boolean', description: 'R2/D1: bounded scroll-stitch capture of the WHOLE document. Read the metadata block: completeCapture, truncated and scaledBy state honestly whether the image is the entire page.' },
+        maxSlices: { type: 'integer', minimum: 1, maximum: 24, description: 'fullPage only: viewport slices to stitch; raise it for very long pages' }
       },
       required: ['tabId'],
       additionalProperties: false
@@ -182,7 +259,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
-        maxChars: { type: 'integer', minimum: 1000, maximum: 50000, description: 'default 20000' }
+        maxChars: { type: 'integer', minimum: 200, maximum: 50000, description: 'default 20000; P1-15: minimum lowered from 1000 — smaller valid excerpts are supported' }
       },
       required: ['tabId'],
       additionalProperties: false
@@ -271,13 +348,15 @@ const TOOLS = [
   },
   {
     name: 'browser_wait',
-    description: 'Wait for a condition: network_idle (1s quiet) or selector_visible (CSS selector becomes visible). Bounded timeout.',
+    description: 'Wait for a condition: network_idle (quiet window; long-lived SSE/stream connections are ignored per D2-D semantics), selector_visible (CSS selector becomes visible), or ready_state (document.readyState becomes complete/interactive). Bounded timeout; returns what it actually waited on.',
     inputSchema: {
       type: 'object',
       properties: {
         tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
-        until: { type: 'string', enum: ['network_idle', 'selector_visible'], description: 'wait condition' },
+        until: { type: 'string', enum: ['network_idle', 'selector_visible', 'ready_state'], description: 'wait condition' },
         selector: { type: 'string', maxLength: 200, description: 'CSS selector (selector_visible only)' },
+          maxQuietMs: { type: 'integer', minimum: 800, maximum: 10000, description: 'network_idle give-up window (default 3000): if new traffic keeps arriving past quietMs, the wait returns satisfied=true with drained=false so quiet is never reported as stopped' },
+          quietMs: { type: 'integer', minimum: 300, maximum: 10000, description: 'network_idle quiet window (default 1000ms). Long-lived SSE/long-poll/websocket connections opened before the wait are baselined and ignored, so they cannot prevent idle; the count is reported as openLongLived.' },
         timeoutMs: { type: 'integer', minimum: 1000, maximum: 20000, description: 'default 8000' }
       },
       required: ['tabId', 'until'],
@@ -367,7 +446,7 @@ const TOOLS = [
           items: {
             type: 'object',
             properties: {
-              tool: { type: 'string', enum: ['browser_status','browser_tabs','browser_snapshot','browser_content','browser_click','browser_type','browser_press','browser_hover','browser_scroll','browser_select','browser_check','browser_wait','browser_navigate','browser_screenshot','browser_downloads','browser_state','browser_tab_open','browser_tab_select','browser_tab_close'] },
+              tool: { type: 'string', enum: ['browser_status','browser_tabs','browser_snapshot','browser_content','browser_click','browser_type','browser_press','browser_hover','browser_scroll','browser_select','browser_check','browser_wait','browser_navigate','browser_screenshot','browser_downloads','browser_state','browser_tab_open','browser_tab_select','browser_tab_close','browser_eval','browser_viewport'] },
               params: { type: 'object', description: 'same schema as the standalone tool (tabId optional if it equals the batch default)' }
             },
             required: ['tool'],
@@ -376,6 +455,8 @@ const TOOLS = [
         }
       },
       required: ['tabId', 'actions'],
+      stopOnError: { type: 'boolean', description: 'P1-15: default true — stop at the first failing step. With false, failing steps are reported and later steps continue.', default: true },
+      recoverStale: { type: 'boolean', description: 'P1-15: default false — on ref_stale, re-snapshot once, re-resolve the target by identity (role+name+nameIndex), and retry the step once. Fails with an actionable error when identity does not re-resolve uniquely.', default: false },
       additionalProperties: false
     }
   },
@@ -385,7 +466,8 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' }
+        tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
+        debugOverlay: { type: 'boolean', description: 'R4 probe aid: ask for the debug-click overlay report even when the profile has not enabled it (used to assert the default-disabled state). Enabling rendering itself requires debugClickOverlay:true in the profile policy.json.' }
       },
       required: ['tabId'],
       additionalProperties: false
@@ -421,6 +503,35 @@ const TOOLS = [
         timeoutMs: { type: 'number', description: 'bounded wait (100-120000, default 30000)' }
       },
       required: ['downloadId'],
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'browser_eval',
+    description: 'Evaluate a JavaScript expression in the TARGET TAB\'s page main world (never in Node/server context) and return a JSON-safe result. Supports reading DOM state, computed properties, canvas pixel data (getImageData), storage, and awaited promises (awaitPromise). Exceptions, rejections, oversized output, cycles and non-serializable values are reported structurally. Timeout is bounded; an endless SYNCHRONOUS expression may keep the renderer busy after the call rejects — reload the page to recover. Expressions are authored by the calling agent: this is authorized, token-gated browser automation, not a sandbox.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
+        expression: { type: 'string', maxLength: 20000, description: 'JavaScript EXPRESSION to evaluate in the page main world (wrap statements in an IIFE). Returning DOM values, ImageData summaries, storage values, or awaited promises is supported; results are JSON-safe serialized.' },
+        awaitPromise: { type: 'boolean', description: 'default true: await promise-returning expressions. With false, a promise result is reported as { __t: promise }, unresolved.' },
+        timeoutMs: { type: 'integer', minimum: 1000, maximum: 30000, description: 'bounded race for the evaluation, default 10000' },
+        maxResultChars: { type: 'integer', minimum: 1000, maximum: 200000, description: 'serialized output cap with automatic tight-detail truncation, default 60000' }
+      },
+      required: ['tabId', 'expression'],
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'browser_viewport',
+    description: 'Set the per-tab viewport scale (zoom factor 0.25-3) for the target tab. Affects layout width, screenshot cssPerPixel mapping and coordinates. Restore by setting the returned previousZoom. Per-tab scale — not a window resize.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        tabId: { type: 'string', pattern: '^[0-9]{1,20}$', description: 'Min tab id' },
+        zoom: { type: 'number', minimum: 0.25, maximum: 3, description: 'zoom factor; omit or 1 = reset' }
+      },
+      required: ['tabId'],
       additionalProperties: false
     }
   },
@@ -554,13 +665,79 @@ function mcpToolResultFor (name, result) {
     return {
       content: [
         { type: 'image', data: result.data, mimeType: result.mimeType },
-        { type: 'text', text: JSON.stringify({ tabId: result.tabId, screenshotId: result.screenshotId, mimeType: result.mimeType, width: result.width, height: result.height, bytes: result.bytes, coordinateUnits: result.coordinateUnits, cssPerPixel: result.cssPerPixel, viewport: result.viewport, zoom: result.zoom, urlPath: result.urlPath, timestamp: result.timestamp }, null, 2) }
+        { type: 'text', text: JSON.stringify({
+          tabId: result.tabId,
+          screenshotId: result.screenshotId,
+          mimeType: result.mimeType,
+          width: result.width,
+          height: result.height,
+          bytes: result.bytes,
+          source: result.source || 'full',
+          scaled: result.scaled === true,
+          attempts: typeof result.attempts === 'number' ? result.attempts : null,
+          ladder: Array.isArray(result.ladder) ? result.ladder.slice(0, 6).map(r => ({ rung: r.rung, fmt: r.fmt, w: r.w, h: r.h, encoded: r.encoded })) : [],
+          cropLimited: result.source === 'element' ? 'visible-area after scrollIntoView; NOT full-page or offscreen capture' : 'none',
+          coordinateUnits: result.coordinateUnits,
+          cssPerPixel: result.cssPerPixel,
+          viewport: result.viewport,
+          zoom: result.zoom,
+          urlPath: result.urlPath,
+          timestamp: result.timestamp,
+          /* fullPage contract (present only for source 'fullpage'): without these
+           * a client cannot tell a complete stitch from a first-slice fallback. */
+          captureMode: result.captureMode,
+          scaledBy: result.scaledBy,
+          slices: result.slices,
+          sliceHeightCss: result.sliceHeightCss,
+          documentHeightCss: result.documentHeightCss,
+          capturedHeightCss: result.capturedHeightCss,
+          truncated: result.truncated,
+          completeCapture: result.completeCapture,
+          overByteCap: result.overByteCap,
+          scrollRestoredTo: result.scrollRestoredTo,
+          limitations: result.limitations
+        }, null, 2) }
       ]
     }
   }
   return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] }
 }
 
+/* P1-15/D1-F12: bounded retry for the two states a Min RESTART actually
+ * produces - the discovery file is momentarily absent while Min republishes
+ * it (old token), and the previous port is refused for a moment (old url).
+ * Nothing else is retried. In particular a timeout is never retried, and a
+ * call that reached the bridge is never re-sent, so a single-use grant is
+ * still consumed at most once and no side effect can be duplicated. */
+const BRIDGE_TRANSIENT_CODES = ['ECONNREFUSED', 'ECONNRESET', 'EPIPE']
+const BRIDGE_RETRY_DELAYS_MS = [400, 1200]
+const BRIDGE_RETRY_TOTAL_MS = 10000
+
+function delayMs (ms) { return new Promise(function (resolve) { setTimeout(resolve, ms) }) }
+
+async function bridgeCallWithRetry (method, params) {
+  const startedAt = Date.now()
+  for (let attempt = 0; ; attempt++) {
+    let out = null
+    let notRunning = null
+    try {
+      out = await bridgeCall(method, params)
+    } catch (e) {
+      if (!e.notRunning) throw e
+      notRunning = e
+    }
+    const transient = notRunning
+      ? true
+      : (out.status === 0 && BRIDGE_TRANSIENT_CODES.indexOf(out.error) !== -1)
+    const lastAttempt = attempt >= BRIDGE_RETRY_DELAYS_MS.length
+    const outOfBudget = startedAt + BRIDGE_RETRY_DELAYS_MS[attempt] > Date.now() + BRIDGE_RETRY_TOTAL_MS
+    if (!transient || lastAttempt || outOfBudget) {
+      if (notRunning) throw notRunning
+      return out
+    }
+    await delayMs(BRIDGE_RETRY_DELAYS_MS[attempt])
+  }
+}
 /* P1-03: MCP clients send actions as a typed array; the bridge schema takes a
  * bounded JSON string. This is the ONLY per-tool transform the adapter needs. */
 function prepareArgs (name, args) {
@@ -572,6 +749,10 @@ function prepareArgs (name, args) {
 }
 
 async function handleToolCall (id, callParams) {
+  /* P1-15/D1-F9: this timer was referenced but never declared, so every
+   * successful call threw a ReferenceError here (swallowed by the
+   * uncaughtException handler) and duration logging never worked. */
+  const t0 = Date.now()
   const name = callParams && callParams.name
   const tool = toolByName(name)
   if (!tool) {
@@ -580,7 +761,7 @@ async function handleToolCall (id, callParams) {
   }
   let out
   try {
-    out = await bridgeCall(name, prepareArgs(name, callParams.arguments || {}))
+    out = await bridgeCallWithRetry(name, prepareArgs(name, callParams.arguments || {}))
   } catch (e) {
     if (e.notRunning) {
       replyToolError(id, e.message)
@@ -593,7 +774,8 @@ async function handleToolCall (id, callParams) {
   }
   if (out.status === 0 || !out.parsed) {
     replyToolError(id, 'Min bridge unreachable (' + (out.error || 'status ' + out.status) +
-      '). Is Min running? Start it with: node scripts/min-launch.js')
+      '). Is Min running? Start it with: node scripts/min-launch.js --profile="' + profileDir() + '" --agent-rpc' +
+      '  (P1-15: the adapter is configured with the profile above — discovery is read from <profile>/agent-rpc.json or <profile>-development/agent-rpc.json)')
     log('tools/call', name, 'unreachable')
     return
   }

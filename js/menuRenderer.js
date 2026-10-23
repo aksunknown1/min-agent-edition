@@ -54,6 +54,30 @@ module.exports = {
       tabEditor.show(tabs.getSelected())
     })
 
+    /* agent bridge (browser_tab_select / browser_tab_open): selecting a tab has
+     * to go through the RENDERER, because the renderer owns view visibility
+     * (viewManager.setView only attaches; a placeholder - edit mode, overlay,
+     * password viewer - keeps the previous view on screen until the renderer
+     * hides it). Attaching in main alone left a tab "selected" in state while
+     * every page-level command still saw the previous document. */
+    ipc.on('agentSelectTab', function (e, data) {
+      var id = data && data.id
+      if (!id || !tabs.get(id)) {
+        return
+      }
+      browserUI.switchToTab(id, { focusWebview: true })
+      /* switchToTab runs synchronously, but the main process also attaches the
+       * view on its own path. Re-assert visibility on the next turn so a late
+       * attach cannot leave the previous view in front (measured: a renderer
+       * switch followed by a main-process attach left tab A displayed while B
+       * was selected). Idempotent: setSelected on an already-shown tab is a
+       * no-op apart from a bounds sync. */
+      setTimeout(function () {
+        if (!tabs.get(id)) return
+        webviews.setSelected(id, { focus: true })
+      }, 60)
+    })
+
     ipc.on('showBookmarks', function () {
       tabEditor.show(tabs.getSelected(), '!bookmarks ')
     })
@@ -79,7 +103,11 @@ module.exports = {
       })
 
       browserUI.addTab(newTab, {
-        enterEditMode: !data.url // only enter edit mode if the new tab is empty
+        enterEditMode: !data.url, // only enter edit mode if the new tab is empty
+        /* agent bridge (browser_tab_open background:true): create the tab
+         * without switching to it. Without this the renderer always performs
+         * the full switch, so a "background" open replaced the user's view. */
+        openInBackground: data.background === true
       })
     })
 

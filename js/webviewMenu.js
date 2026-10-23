@@ -113,7 +113,6 @@ const webviewMenu = {
     var mediaURL = data.srcURL
 
     if (mediaURL && data.mediaType === 'image') {
-
       var imageActions = [
         {
           label: (mediaURL.length > 60) ? mediaURL.substring(0, 60) + '...' : mediaURL,

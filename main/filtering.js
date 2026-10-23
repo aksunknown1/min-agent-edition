@@ -129,7 +129,7 @@ function filterUpdateCreate () {
     onPromoted: function () { initFilterList() },
     log: function (msg) { global.filterUpdaterLog = global.filterUpdaterLog || null; try { console.log('[filtering] ' + msg) } catch (eLog) { } }
   })
-}function removeWWW (domain) {
+} function removeWWW (domain) {
   return domain.replace(/^www\./i, '')
 }
 
@@ -191,7 +191,7 @@ function handleRequest (details, callback) {
    * structurally preserved. Blocked requests never reach onCompleted, so the
    * bridge is told they settled right away. */
   if (typeof agentRpcNetworkRequestObserved === 'function' && (details.url.startsWith('http://') || details.url.startsWith('https://'))) {
-    agentRpcNetworkRequestObserved()
+    agentRpcNetworkRequestObserved(details.webContentsId)
   }
 
   // webContentsId may not exist if this request is a mainFrame or subframe
@@ -219,10 +219,10 @@ function handleRequest (details, callback) {
     for (var i = 0; i < enabledFilteringOptions.contentTypes.length; i++) {
       if (details.resourceType === enabledFilteringOptions.contentTypes[i]) {
         if (typeof agentRpcNetworkRequestBlocked === 'function') {
-          agentRpcNetworkRequestBlocked()
+          agentRpcNetworkRequestBlocked(details.webContentsId)
         }
         if (typeof agentRpcNetworkRequestSettled === 'function') {
-          agentRpcNetworkRequestSettled()
+          agentRpcNetworkRequestSettled(details.webContentsId)
         }
         callback({
           cancel: true,
@@ -247,10 +247,10 @@ function handleRequest (details, callback) {
         unsavedBlockedRequests++
 
         if (typeof agentRpcNetworkRequestBlocked === 'function') {
-          agentRpcNetworkRequestBlocked()
+          agentRpcNetworkRequestBlocked(details.webContentsId)
         }
         if (typeof agentRpcNetworkRequestSettled === 'function') {
-          agentRpcNetworkRequestSettled()
+          agentRpcNetworkRequestSettled(details.webContentsId)
         }
         callback({
           cancel: true,

@@ -1,10 +1,11 @@
 # min-agent MCP adapter
 
-Exposes the 30 Min agent-rpc tools (navigation, tabs, snapshot/content,
+Exposes the 39 Min agent edition tools (navigation, tabs, snapshot/content,
 click/type/press/hover/scroll/select/check/wait, predict/verify,
-screenshot, tab management, reversible transforms, agent-managed
-downloads: `browser_download_start/wait/cancel/pause/resume` plus the
-read-only `browser_downloads`) to any MCP client over stdio.
+mouse with real screenshot delivery, reversible transforms + transform status,
+agent-managed downloads: `browser_download_start/wait/cancel/pause/resume`
+plus read-only `browser_downloads`, CAPTCHA-aware state reporting) —
+full census in `docs/p112-publish-set.json` + `npm run test:agent-rpc`. to any MCP client over stdio.
 
 ## Start-up order (always)
 
@@ -13,7 +14,9 @@ read-only `browser_downloads`) to any MCP client over stdio.
    ```
    node scripts/min-launch.js
    ```
+
    (optionally with start URLs: `node scripts/min-launch.js -- https://example.com`)
+
 2. **Then start your MCP client.** The adapter reads the bridge token from the
    profile's `agent-rpc.json` on every call; the token rotates per launch.
 
@@ -82,9 +85,13 @@ step-by-step permission:
    completed task).
 5. On failure: identify the category (`ref_stale`/`ref_not_found` →
    re-snapshot and retry; `view_not_attached` → browser_tab_select and
-   retry; `timeout` → adjust once; `captcha_handoff_required` → hand the
-   challenge to the user, then poll `browser_state` and resume automatically
-   when cleared). One safe alternative strategy per failure is the norm.
+   retry; `timeout` → adjust once). CAPTCHA detection is informational:
+   challenge controls and ordinary page interaction use the normal verified
+   path (a detector match does not block clicks); when a challenge genuinely
+   needs a human, report the widget (browser_state gives
+   kind/confidence/box), wait for the user, then confirm cleared state from
+   page evidence and only then resume. One safe alternative strategy per
+   failure is the norm.
 6. Continue until the goal is verified complete by evidence (page state,
    not a dispatched event), then report outcome + limitations.
 7. Only stop for: missing consolidated information, CAPTCHA/secondary auth
@@ -93,6 +100,7 @@ step-by-step permission:
 
 Efficiency rules (measured in docs/AUTONOMY-GAP-ANALYSIS.md and
 docs/autonomy-workflows.json):
+
 - Use `browser_batch` for deterministic action sequences (up to 20 steps,
   stop-on-error). Grants/CAPTCHA checks still apply per step; batch cannot
   bundle grant issuance.

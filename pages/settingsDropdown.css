@@ -61,7 +61,7 @@ body[theme="sepia"] #settings-dropdown {
   display: none;
 }
 
-.setting-section+.setting-section {
+.setting-section + .setting-section {
   padding-top: 0.5em;
 }
 
