@@ -21,3 +21,10 @@ yarn.lock
 /docs/atomic-live-*.json
 /docs/atomic-recon.json
 /docs/atomic-stage3.json
+
+# P1-13: generated test artifacts (screenshots + patch backups) - local only
+/docs/p110-runs/*.png
+/docs/*-evidence.png
+*.patched
+*.orig
+*.rej
