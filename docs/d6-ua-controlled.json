@@ -1,0 +1,42 @@
+{
+  "ts": "2026-10-20T04:51:19.703Z",
+  "url": "https://novellive.com/",
+  "timeoutMs": 30000,
+  "reps": 2,
+  "runtime": "Electron 43.4.1 / Chromium 150.0.7871.224 (identical binary for both variants)",
+  "note": "Read-only. Only the User-Agent product token differs. No challenge solved or bypassed.",
+  "results": [
+    {
+      "rep": 1,
+      "variant": "control-default-UA",
+      "extraUA": null,
+      "clearedAtMs": 3062,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free"
+    },
+    {
+      "rep": 1,
+      "variant": "treatment-min-token",
+      "extraUA": "MinAgentEdition/1.35.7",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment..."
+    },
+    {
+      "rep": 2,
+      "variant": "control-default-UA",
+      "extraUA": null,
+      "clearedAtMs": 3058,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free"
+    },
+    {
+      "rep": 2,
+      "variant": "treatment-min-token",
+      "extraUA": "MinAgentEdition/1.35.7",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment..."
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "ts": "2026-10-19T07:34:14.001Z",
+  "target": "https://novellive.com/",
+  "clearedInMin": false,
+  "pollCount": 30,
+  "timeline": [
+    {
+      "t": "3s",
+      "title": "Just a moment...",
+      "url": "https://novellive.com/",
+      "ready": "complete",
+      "stillChecking": false
+    }
+  ],
+  "totalSeconds": 90,
+  "results": [
+    {
+      "name": "bridge discovery appeared",
+      "pass": true
+    },
+    {
+      "name": "startup tab enumerated",
+      "pass": true
+    },
+    {
+      "name": "novellive.com reached (page loaded from this host/network)",
+      "pass": true
+    },
+    {
+      "name": "challenge cleared inside Min within 90 s",
+      "pass": false
+    },
+    {
+      "name": "browser_state.captcha reported during/after check",
+      "pass": true
+    }
+  ],
+  "minErrTail": "tents.canGoBack' is deprecated and will be removed. Please use 'webContents.navigationHistory.canGoBack' instead.\n(electron) 'webContents.canGoForward' is deprecated and will be removed. Please use 'webContents.navigationHistory.canGoForward' instead.\n[11508:1019/130241.679:ERROR:mojo\\public\\cpp\\bindings\\lib\\interface_endpoint_client.cc:748] Message 0 rejected by interface blink.mojom.WidgetHost\r\n",
+  "note": "sanitized: title/url/readyState + boolean challenge marker only. No cookies, tokens, headers or page content recorded. Profile is a fresh temp dir."
+}

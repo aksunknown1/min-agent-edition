@@ -1,8 +1,8 @@
 {
-  "ranAt": "2026-10-19T03:05:20.561Z",
+  "ranAt": "2026-10-20T04:13:48.463Z",
   "script": "scripts/agent-transform-probe.js",
-  "passed": 18,
-  "total": 18,
+  "passed": 19,
+  "total": 19,
   "results": [
     {
       "name": "boot. bridge ready (browser_tabs resolves)",
@@ -17,7 +17,7 @@
     {
       "name": "1. replace_text applied (ok, applied=1)",
       "pass": true,
-      "detail": "{\"tabId\":\"58457842029040040\",\"ok\":true,\"applied\":1,\"failed\":0,\"results\":[{\"sel\":\"#p1\",\"ordinal\":\"sel0\",\"op\":\"replace_text\",\"ok\":true,\"transformedId\":\"tf1\",\"rendered\":{\"text\":\"TRANSFORMED-XYZ\",\"childre"
+      "detail": "{\"tabId\":\"76316493629314990\",\"ok\":true,\"applied\":1,\"failed\":0,\"results\":[{\"sel\":\"#p1\",\"ordinal\":\"sel0\",\"op\":\"replace_text\",\"ok\":true,\"transformedId\":\"tf1\",\"rendered\":{\"text\":\"TRANSFORMED-XYZ\",\"childre"
     },
     {
       "name": "2. original text no longer rendered",
@@ -27,7 +27,7 @@
     {
       "name": "3. restore_target brings original back",
       "pass": true,
-      "detail": "{\"tabId\":\"58457842029040040\",\"ok\":true,\"applied\":1,\"failed\":0,\"results\":[{\"sel\":\"#p1\",\"ordinal\":\"sel0\",\"op\":\"restore\",\"ok\":true,\"restoredText\":\"Original paragraph one\",\"restoredId\":\"tf1\",\"rendered\":{}"
+      "detail": "{\"tabId\":\"76316493629314990\",\"ok\":true,\"applied\":1,\"failed\":0,\"results\":[{\"sel\":\"#p1\",\"ordinal\":\"sel0\",\"op\":\"restore\",\"ok\":true,\"restoredText\":\"Original paragraph one\",\"restoredId\":\"tf1\",\"rendered\":{}"
     },
     {
       "name": "4. transformed text gone after restore",
@@ -37,12 +37,12 @@
     {
       "name": "5. batch apply: both targets verified",
       "pass": true,
-      "detail": "{\"tabId\":\"58457842029040040\",\"ok\":true,\"applied\":2,\"failed\":0,\"results\":[{\"sel\":\"#p1\",\"ordinal\":\"sel0\",\"op\":\"replace_text\",\"ok\":true,\"transformedId\":\"tf2\",\"rendered\":{\"text\":\"BATCH-A-TEXT\",\"children\":0}},{\"sel\":\"#p2\",\"or"
+      "detail": "{\"tabId\":\"76316493629314990\",\"ok\":true,\"applied\":2,\"failed\":0,\"results\":[{\"sel\":\"#p1\",\"ordinal\":\"sel0\",\"op\":\"replace_text\",\"ok\":true,\"transformedId\":\"tf2\",\"rendered\":{\"text\":\"BATCH-A-TEXT\",\"children\":0}},{\"sel\":\"#p2\",\"or"
     },
     {
       "name": "6. restore_all restores the batch",
       "pass": true,
-      "detail": "{\"tabId\":\"58457842029040040\",\"ok\":true,\"applied\":2,\"failed\":0,\"results\":[{\"sel\":\"#p1\",\"ordinal\":\"sel0\",\"op\":\"restore\",\"ok\":true,\"restoredText\":\"Original paragraph one\",\"restoredId\":\"tf2\",\"rendered\":{}"
+      "detail": "{\"tabId\":\"76316493629314990\",\"ok\":true,\"applied\":2,\"failed\":0,\"results\":[{\"sel\":\"#p1\",\"ordinal\":\"sel0\",\"op\":\"restore\",\"ok\":true,\"restoredText\":\"Original paragraph one\",\"restoredId\":\"tf2\",\"rendered\":{}"
     },
     {
       "name": "7. highlight recorded in status then restore clears it",
@@ -52,7 +52,7 @@
     {
       "name": "8. allowlisted set_style accepted",
       "pass": true,
-      "detail": "{\"tabId\":\"58457842029040040\",\"ok\":true,\"applied\":1,\"failed\":0,\"results\":[{\"sel\":\"#p1\",\"ordinal\":\"sel0\",\"op\":\"set_style\",\"ok\":true,\"transformedId\":\"tf5\",\"rendered\":{\"fontsize\":\"\"}}],\"totalMs\":1}"
+      "detail": "{\"tabId\":\"76316493629314990\",\"ok\":true,\"applied\":1,\"failed\":0,\"results\":[{\"sel\":\"#p1\",\"ordinal\":\"sel0\",\"op\":\"set_style\",\"ok\":true,\"transformedId\":\"tf5\",\"rendered\":{\"fontsize\":\"\"}}],\"totalMs\":2}"
     },
     {
       "name": "9. unsafe url() style value rejected",
@@ -67,27 +67,32 @@
     {
       "name": "11. restore_all idempotent (structured result, ok)",
       "pass": true,
-      "detail": "{\"tabId\":\"58457842029040040\",\"ok\":true,\"applied\":0,\"failed\":0,\"results\":[],\"totalMs\":1}"
+      "detail": "{\"tabId\":\"76316493629314990\",\"ok\":true,\"applied\":0,\"failed\":0,\"results\":[],\"totalMs\":2}"
     },
     {
       "name": "12. genuine navigation clears active transform records",
       "pass": true,
-      "detail": "{\"tabId\":\"58457842029040040\",\"active\":0,\"ops\":{},\"drift\":[],\"cleared\":true}"
+      "detail": "{\"tabId\":\"76316493629314990\",\"active\":0,\"ops\":{},\"drift\":[],\"cleared\":true}"
     },
     {
       "name": "13. stale snapshot ref → ok:false + category ref_stale",
       "pass": true,
-      "detail": "{\"tabId\":\"58457842029040040\",\"ok\":false,\"applied\":0,\"failed\":1,\"results\":[{\"sel\":null,\"ref\":\"r1\",\"op\":\"replace_text\",\"ok\":false,\"error\":{\"category\":\"ref_stale\",\"message\":\"ref_not_found: no live snapshot ref (take a fresh"
+      "detail": "{\"tabId\":\"76316493629314990\",\"ok\":false,\"applied\":0,\"failed\":1,\"results\":[{\"sel\":null,\"ref\":\"r1\",\"op\":\"replace_text\",\"ok\":false,\"error\":{\"category\":\"ref_stale\",\"message\":\"ref_not_found: no live snapshot ref (take a fresh"
     },
     {
       "name": "14. open shadow-root text present in browser_content",
       "pass": true,
-      "detail": "{\"len\":117}"
+      "detail": "{\"len\":3127}"
     },
     {
       "name": "15. framework re-render detected as drift",
       "pass": true,
       "detail": "{\"drift\":[\"tf8\"],\"active\":1}"
+    },
+    {
+      "name": "17. long-text restore is FAITHFUL (no 1200-char truncation)",
+      "pass": true,
+      "detail": "{\"applied\":true,\"expected\":3009,\"actual\":3120}"
     },
     {
       "name": "16. per-target outcomes on mixed batch",

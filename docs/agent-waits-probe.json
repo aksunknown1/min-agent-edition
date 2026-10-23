@@ -1,26 +1,41 @@
 {
-  "ranAt": "2026-10-19T03:06:59.060Z",
+  "ranAt": "2026-10-20T04:12:56.772Z",
   "passed": 16,
   "total": 16,
   "timings": [
     {
       "method": "browser_tabs",
-      "ms": 7,
+      "ms": 5,
       "status": 200
     },
     {
       "method": "browser_navigate",
-      "ms": 275,
+      "ms": 264,
       "status": 200
     },
     {
       "method": "browser_wait",
-      "ms": 942,
+      "ms": 934,
       "status": 200
     },
     {
       "method": "browser_wait",
-      "ms": 2198,
+      "ms": 2180,
+      "status": 200
+    },
+    {
+      "method": "browser_status",
+      "ms": 1,
+      "status": 200
+    },
+    {
+      "method": "browser_navigate",
+      "ms": 314,
+      "status": 200
+    },
+    {
+      "method": "browser_wait",
+      "ms": 4117,
       "status": 200
     },
     {
@@ -30,27 +45,12 @@
     },
     {
       "method": "browser_navigate",
-      "ms": 295,
+      "ms": 268,
       "status": 200
     },
     {
       "method": "browser_wait",
-      "ms": 4103,
-      "status": 200
-    },
-    {
-      "method": "browser_status",
-      "ms": 1,
-      "status": 200
-    },
-    {
-      "method": "browser_navigate",
-      "ms": 281,
-      "status": 200
-    },
-    {
-      "method": "browser_wait",
-      "ms": 3063,
+      "ms": 1029,
       "status": 200
     },
     {
@@ -60,7 +60,7 @@
     },
     {
       "method": "browser_wait",
-      "ms": 6276,
+      "ms": 6216,
       "status": 200
     },
     {
@@ -70,12 +70,12 @@
     },
     {
       "method": "browser_navigate",
-      "ms": 555,
+      "ms": 564,
       "status": 200
     },
     {
       "method": "browser_status",
-      "ms": 1,
+      "ms": 2,
       "status": 200
     }
   ],
@@ -98,37 +98,37 @@
     {
       "name": "selector_visible: delayed element satisfied with honest waitedMs",
       "pass": true,
-      "detail": "{\"satisfied\":true,\"waitedMs\":940,\"reason\":\"selector visible (1 matches)\"}"
+      "detail": "{\"satisfied\":true,\"waitedMs\":932,\"reason\":\"selector visible (1 matches)\"}"
     },
     {
       "name": "selector_visible: timeout -> satisfied=false with reason",
       "pass": true,
-      "detail": "{\"satisfied\":false,\"waitedMs\":2196,\"reason\":\"selector not found\"}"
+      "detail": "{\"satisfied\":false,\"waitedMs\":2178,\"reason\":\"selector not found\"}"
     },
     {
       "name": "re-navigated to http wait page",
       "pass": true,
-      "detail": "{\"verified\":true,\"url\":\"http://127.0.0.1:59420/waitpage\"}"
+      "detail": "{\"verified\":true,\"url\":\"http://127.0.0.1:56826/waitpage\"}"
     },
     {
       "name": "network_idle: delayed XHR covered (satisfied after in-flight window, not instantly)",
       "pass": true,
-      "detail": "{\"r\":{\"satisfied\":true,\"waitedMs\":4102,\"reason\":\"no new activity for 3079ms; in-flight=2 (pre-existing)\"},\"observed\":\"20->23\"}"
+      "detail": "{\"r\":{\"satisfied\":true,\"drained\":false,\"waitedMs\":4115,\"quietMs\":1000,\"maxQuietMs\":3000,\"semantics\":\"no request started for maxQuietMs, but the tab was NOT drained - this is a quiet-by-timeout result, NOT proof that netw"
     },
     {
       "name": "network_idle: blocker handler observed the HTTP requests (integration proof)",
       "pass": true,
-      "detail": "20->23"
+      "detail": "20->25"
     },
     {
       "name": "idle http page navigated",
       "pass": true,
-      "detail": "{\"v\":true,\"url\":\"http://127.0.0.1:59420/idle\"}"
+      "detail": "{\"v\":true,\"url\":\"http://127.0.0.1:56826/idle\"}"
     },
     {
       "name": "network_idle: idle page satisfied promptly (<3500ms)",
       "pass": true,
-      "detail": "{\"satisfied\":true,\"waitedMs\":3061,\"reason\":\"no new activity for 3061ms; in-flight=2 (pre-existing)\"}"
+      "detail": "{\"satisfied\":true,\"drained\":true,\"waitedMs\":1028,\"quietMs\":1000,\"semantics\":\"no NEW request started in this tab for the quiet window and the tab is drained; requests already in flight when the wait began are ignored and "
     },
     {
       "name": "bridge responsive during pending wait (status answers while wait pending)",
@@ -138,7 +138,7 @@
     {
       "name": "pending wait still completes honestly after concurrency check",
       "pass": true,
-      "detail": "{\"satisfied\":false,\"waitedMs\":6275,\"reason\":\"selector not found\"}"
+      "detail": "{\"satisfied\":false,\"waitedMs\":6215,\"reason\":\"selector not found\"}"
     },
     {
       "name": "pre-check: only one onBeforeRequest registrant in the bundle",
@@ -148,7 +148,7 @@
     {
       "name": "pre-check: bridge net counters initialized",
       "pass": true,
-      "detail": "{\"inflight\":2,\"observedTotal\":24,\"settledTotal\":22,\"blockedTotal\":0,\"filteringBlockedCount\":0}"
+      "detail": "{\"inflight\":2,\"observedTotal\":26,\"settledTotal\":24,\"blockedTotal\":0,\"filteringBlockedCount\":0}"
     },
     {
       "name": "ad-blocker integrity: blocked count INCREASED after tracker URLs (filtering pipeline alive)",
@@ -158,7 +158,7 @@
     {
       "name": "ad-blocker integrity: observed request total grew (handler still sees requests)",
       "pass": true,
-      "detail": "before=24 after=26"
+      "detail": "before=26 after=28"
     }
   ]
 }

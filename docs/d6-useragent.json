@@ -1,0 +1,30 @@
+{
+  "ts": "2026-10-20T04:48:42.140Z",
+  "ua": {
+    "min": {
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) MinAgentEdition/1.35.7 Chrome/150.0.0.0 Safari/537.36",
+      "brands": [
+        {
+          "brand": "Not;A=Brand",
+          "version": "8"
+        },
+        {
+          "brand": "Chromium",
+          "version": "150"
+        }
+      ],
+      "platform": "Win32",
+      "vendor": "Google Inc."
+    },
+    "chrome": {
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "protocol": "1.3",
+      "browser": "Chrome/155.0.8059.84"
+    },
+    "cloak146": {
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+      "protocol": "1.3",
+      "browser": "Chrome/146.0.7680.177"
+    }
+  }
+}

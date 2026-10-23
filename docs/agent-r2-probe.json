@@ -1,0 +1,142 @@
+{
+  "ts": "2026-10-20T04:12:08.486Z",
+  "results": [
+    {
+      "name": "bridge discovery appeared",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "startup tab enumerated",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C8: frames enumerated without CDP",
+      "pass": true,
+      "detail": "2"
+    },
+    {
+      "name": "C8: main frame URL reported",
+      "pass": true,
+      "detail": "file:///C:/Users/AKS-PC/AppData/Local/Temp/min-r2-probe/r2.html"
+    },
+    {
+      "name": "C8: same-origin child frame listed",
+      "pass": true,
+      "detail": "file:///C:/Users/AKS-PC/AppData/Local/Temp/min-r2-probe/r2.html,file:///C:/Users/AKS-PC/AppData/Local/Temp/min-r2-probe/inner.html"
+    },
+    {
+      "name": "C8: honest limitations returned",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C8: child frame carries a distinct frame identity",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B4: ax format returns a genuine accessibility tree",
+      "pass": true,
+      "detail": "chromium-accessibility-tree/38"
+    },
+    {
+      "name": "B4: hierarchy/roles present",
+      "pass": true,
+      "detail": "RootWebArea,none,none,heading,StaticText,InlineTextBox,LabelText,StaticText"
+    },
+    {
+      "name": "B4: accessible NAME resolved from the tree",
+      "pass": true,
+      "detail": "R2 Fixture Heading"
+    },
+    {
+      "name": "B4: disabled state reported where Chromium provides it",
+      "pass": true,
+      "detail": "textbox:Disabled input"
+    },
+    {
+      "name": "B4: unsupported properties are null, not invented false",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B4: truncation flag present",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B4: no node carries a raw page value for a password field",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B4: DOM snapshot mode still works (backward compatible)",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D1: fullPage capture ran",
+      "pass": true,
+      "detail": "fullpage 140692b"
+    },
+    {
+      "name": "D1: capture is taller than one viewport",
+      "pass": true,
+      "detail": "img 5926 vs viewport 1063"
+    },
+    {
+      "name": "D1: slice geometry and document height reported",
+      "pass": true,
+      "detail": "{\"s\":4,\"d\":3829}"
+    },
+    {
+      "name": "D1: completeness is stated honestly",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D1: scroll position restored after capture",
+      "pass": true,
+      "detail": "now=0 was=0"
+    },
+    {
+      "name": "C6: file input enumerated with its type",
+      "pass": true,
+      "detail": "Pick a file/file"
+    },
+    {
+      "name": "C6: upload attaches the file and verifies input state",
+      "pass": true,
+      "detail": "{\"d\":true,\"v\":true,\"n\":1}"
+    },
+    {
+      "name": "C6: result distinguishes dispatched from verified",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C6: local absolute path is not echoed",
+      "pass": true,
+      "detail": "path not leaked"
+    },
+    {
+      "name": "C6: traversal path refused",
+      "pass": true,
+      "detail": "'.' and '..' segments are not allowed"
+    },
+    {
+      "name": "C6: missing file refused",
+      "pass": true,
+      "detail": "no such file in the upload directory"
+    },
+    {
+      "name": "C6: non-file target refused",
+      "pass": true,
+      "detail": "unsupported"
+    }
+  ],
+  "pass": 27,
+  "total": 27
+}

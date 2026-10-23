@@ -5,14 +5,14 @@
 `browser_type` no longer reports dispatched input as accepted. The result now
 carries `strategy` + read-back-driven `verification`:
 
-| verification | verified | meaning |
-|---|---|---|
-| `value` | true | read-back matched the sanitized typed text exactly (non-sensitive) |
-| `value-length` | true | sensitive (password/email/phone/autofill) field: read-back LENGTH matches; the value itself never leaves the page |
-| `navigation` | true | a navigation fired during the verification window (e.g. implicit submit) |
-| `rejected-input` | false | framework controlled-rejected the text (length/content mismatch after both strategies) |
-| `unreadable-state` | false | post-dispatch state could not be read back or the target identity drifted |
-| `focus` / `dispatched-unverified` | true/false | field focused / no signal within the 5 s bounded window (pre-fallback only) |
+| verification                      | verified   | meaning                                                                                                           |
+| --------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------- |
+| `value`                           | true       | read-back matched the sanitized typed text exactly (non-sensitive)                                                |
+| `value-length`                    | true       | sensitive (password/email/phone/autofill) field: read-back LENGTH matches; the value itself never leaves the page |
+| `navigation`                      | true       | a navigation fired during the verification window (e.g. implicit submit)                                          |
+| `rejected-input`                  | false      | framework controlled-rejected the text (length/content mismatch after both strategies)                            |
+| `unreadable-state`                | false      | post-dispatch state could not be read back or the target identity drifted                                         |
+| `focus` / `dispatched-unverified` | true/false | field focused / no signal within the 5 s bounded window (pre-fallback only)                                       |
 
 `strategy`: `native-insert` (click focus + select-all + insertText — trusted
 input events) or `native-setter-fallback`. **Fallback**: exactly ONE retry
@@ -46,6 +46,7 @@ NOT claimed inspectable — asserted by fixture.
 ## 3. Fixtures & evidence (scripts/agent-inputs-probe.js → probe:inputs, 20/20)
 
 Fixtures (local file:// only, submission is JS-local — no live signup):
+
 - **Controlled React-emulation form** (listener reads DOM value → updates
   state → resets DOM value from state, i.e. React's controlled render cycle).
 - **Hostile input** (trusted `beforeinput` preventDefault blocks insertText) —
@@ -69,13 +70,13 @@ sleeps added); clicks 2–4 ms.
 
 ## 4. Changed files & backups (all pre-edit copies in docs/backups/P1-01C/)
 
-| File | Change |
-|---|---|
-| `main/agentRpc.js` | `setvalue` page-fn mode; type rewrite (verification taxonomy + one bounded fallback); `getRootNode()` label lookup; envelope `shadowPath` |
-| `mcp/min-agent-mcp.js` | browser_type description (verification/strategy semantics) |
-| `scripts/agent-inputs-probe.js` | NEW probe (probe:inputs npm script added to package.json) |
-| `scripts/agent-actions-probe.js` | sensitive assertions `value` → `value-length` |
-| `package.json` | `probe:inputs` script |
+| File                             | Change                                                                                                                                    |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `main/agentRpc.js`               | `setvalue` page-fn mode; type rewrite (verification taxonomy + one bounded fallback); `getRootNode()` label lookup; envelope `shadowPath` |
+| `mcp/min-agent-mcp.js`           | browser_type description (verification/strategy semantics)                                                                                |
+| `scripts/agent-inputs-probe.js`  | NEW probe (probe:inputs npm script added to package.json)                                                                                 |
+| `scripts/agent-actions-probe.js` | sensitive assertions `value` → `value-length`                                                                                             |
+| `package.json`                   | `probe:inputs` script                                                                                                                     |
 
 ## 5. Regression (all commands actually run)
 
@@ -92,11 +93,11 @@ sleeps added); clicks 2–4 ms.
 
 Navigate result / snapshot (docs/real-site-checkpoint-P1-01C.json):
 
-| Site | navigate | snapshot |
-|---|---|---|
-| example.com | verified:true, navigation, urlChanges 0, 4206 ms | 1 node (1 link), 5 ms |
-| news.ycombinator.com | verified:true, urlChanges 0, 5501 ms | 200 nodes (199 links + 1 textbox, requestedMaxNodes 200), 14 ms |
-| account.proton.me/login | verified:true, urlChanges 0, 6346 ms | 17 nodes: 8 buttons, 5 links, 2 textboxes, 1 checkbox, 1 heading; **1 redacted field** (password); heading 'Sign in' |
+| Site                    | navigate                                         | snapshot                                                                                                             |
+| ----------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| example.com             | verified:true, navigation, urlChanges 0, 4206 ms | 1 node (1 link), 5 ms                                                                                                |
+| news.ycombinator.com    | verified:true, urlChanges 0, 5501 ms             | 200 nodes (199 links + 1 textbox, requestedMaxNodes 200), 14 ms                                                      |
+| account.proton.me/login | verified:true, urlChanges 0, 6346 ms             | 17 nodes: 8 buttons, 5 links, 2 textboxes, 1 checkbox, 1 heading; **1 redacted field** (password); heading 'Sign in' |
 
 Proton's login page renders its sign-in form and the password field is
 correctly flagged `redacted` (its value can never be read).

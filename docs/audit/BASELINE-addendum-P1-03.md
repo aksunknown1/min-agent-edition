@@ -1,6 +1,7 @@
 # P1-03 Addendum — Real stdio MCP validation + Predict → Act → Verify
 
 ## Stage 0 (verification before work)
+
 - Source census: bridge **21 methods**, adapter **21 tools** at start; syntax OK;
   `test:agent-rpc` **175/175** — matched the P1-02 report.
 - Discrepancy found INSIDE scripts/mcp-e2e.js (not reported before): its unit
@@ -8,6 +9,7 @@
   since P1-01B. Both fixed during Stage 1.
 
 ## Stage 1 — real stdio `browser_batch` validation (complete: docs/MCP-STDIO-E2E.md)
+
 Suite extended and now passes **52/52** (`node scripts/mcp-e2e.js`). New
 coverage over real stdio: schema discovery; a 3-step live batch against
 https://example.com (navigate+snapshot+content, per-step ok); a 5-step
@@ -20,6 +22,7 @@ step-limit (21 entries → structured invalid_params); non-JSON actions
 Electron processes after teardown.
 
 Two real defects found by the real-transport test (invisible at unit level):
+
 1. **`browser_batch` was unreachable over stdio** — the adapter relayed
    `actions` as a raw array while the bridge schema takes a bounded JSON
    string. Fixed by one per-tool transform (`prepareArgs`) in the adapter.
@@ -32,6 +35,7 @@ Two real defects found by the real-transport test (invisible at unit level):
 ## Stage 2 — Predict → Act → Verify (implemented)
 
 New tools (bridge + MCP adapter; 23 methods/tools):
+
 - `browser_predict {tabId, ref, action?}` — **static** prediction from a
   dedicated `predict` page mode: tag/role/name, resolved href (with target
   attr), enclosing form (action/method), inputType (EXPLICIT attribute only —
@@ -70,6 +74,7 @@ post-state used). Welcome mail from 'Atomic Mail Team' identified; prediction
 sends/deletes/settings; no message bodies logged.
 
 ## Gates (all actually run on this build)
+
 build OK; `test:agent-rpc` **180/180**; `probe:pav` **15/15** (new);
 `probe:inputs` 20/20; `probe:captcha` 14/14; `probe:waits` 16/16 (incl.
 ad-blocker single-registrant + live-block gates); `probe:tabs` ×5 16/16;
@@ -77,6 +82,7 @@ ad-blocker single-registrant + live-block gates); `probe:tabs` ×5 16/16;
 capture/detach 0; smoke ×3 6/6; **MCP stdio e2e 52/52**; 0 hung electrons.
 
 ## Changed files & backups
+
 `docs/backups/P1-03/` (agentRpc.js, mcp adapter, agent-rpc-test, mcp-e2e,
 package.json, mcp/README.md). Changed: `main/agentRpc.js` (predict/verify page
 modes + commands + schemas; 23-method census; finalUrl on navigating clicks),
@@ -87,6 +93,7 @@ transform), `scripts/mcp-e2e.js` (P1-03 sections + census + semantics fix),
 `autonomy docs`, this addendum).
 
 ## Known limitations
+
 - Prediction is static only: script-driven handlers are reported as unknown
   (never guessed); iframes, canvas, and closed shadows are invisible.
 - browser_verify's textContains works on body innerText — typed values are
@@ -95,6 +102,7 @@ transform), `scripts/mcp-e2e.js` (P1-03 sections + census + semantics fix),
 - min://newtab script-execution limitation unchanged.
 
 ## Next recommended task
+
 `SKILL.md` installable agent-skill package (portable MCP configuration +
 usage guide validated with a second MCP client), per the roadmap — the loop
 contract and toolset are now stable enough to make the skill meaningful.

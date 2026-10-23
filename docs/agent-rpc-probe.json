@@ -9,14 +9,7 @@
     "withFlag": {
       "discoveryFileAppeared": true,
       "staleFileReplaced": true,
-      "discoveryKeys": [
-        "launchedAt",
-        "pid",
-        "token",
-        "url",
-        "v",
-        "version"
-      ],
+      "discoveryKeys": ["launchedAt", "pid", "token", "url", "v", "version"],
       "urlIsLoopback": true,
       "tokenLength": 64,
       "pidMatchesSpawnedChild": true,

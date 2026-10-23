@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-19T03:06:24.159Z",
+  "ranAt": "2026-10-20T04:11:51.862Z",
   "passed": 16,
   "total": 16,
   "results": [
@@ -16,7 +16,7 @@
     {
       "name": "tab_open (plain) returns tabId with attached:true",
       "pass": true,
-      "detail": "{\"tabId\":\"84159178022569620\",\"attached\":true,\"background\":false}"
+      "detail": "{\"tabId\":\"1628250293254507\",\"attached\":true,\"background\":false,\"ready\":true}"
     },
     {
       "name": "snapshot works on the newly opened tab",
@@ -26,7 +26,7 @@
     {
       "name": "tab_open (url) returns tabId attached",
       "pass": true,
-      "detail": "{\"tabId\":\"38076487785873736\",\"attached\":true,\"background\":false}"
+      "detail": "{\"tabId\":\"37240535254389010\",\"attached\":true,\"background\":false,\"ready\":true}"
     },
     {
       "name": "target URL tab is open and loaded",
@@ -41,12 +41,12 @@
     {
       "name": "tab_open background -> attached:false",
       "pass": true,
-      "detail": "{\"tabId\":\"21693017710381844\",\"attached\":false,\"background\":true}"
+      "detail": "{\"tabId\":\"26690518032491296\",\"attached\":false,\"background\":true,\"ready\":true}"
     },
     {
       "name": "tab_select startup tab -> attached:true",
       "pass": true,
-      "detail": "{\"tabId\":\"89465865358926060\",\"attached\":true}"
+      "detail": "{\"tabId\":\"49198935232450110\",\"attached\":true,\"rendererNotified\":true}"
     },
     {
       "name": "snapshot works on the previously failing startup tab after select",

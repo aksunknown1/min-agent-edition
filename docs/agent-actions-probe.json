@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-18T17:22:00.165Z",
+  "ranAt": "2026-10-19T04:25:14.697Z",
   "passed": 33,
   "total": 33,
   "results": [
@@ -56,7 +56,7 @@
     {
       "name": "browser_grant issues for the other tab too",
       "pass": true,
-      "detail": "{\"granted\":true,\"action\":\"risky_click\",\"tabId\":\"83279922413787300\",\"ttlSeconds\":120,\"grantsActive\":1}"
+      "detail": "{\"granted\":true,\"action\":\"risky_click\",\"tabId\":\"13284739212046170\",\"ttlSeconds\":120,\"grantsActive\":1}"
     },
     {
       "name": "wrong-tab grant does NOT unlock this tab (403, unconsumed)",
@@ -66,7 +66,7 @@
     {
       "name": "sensitive_type grant issues (bound to the ref)",
       "pass": true,
-      "detail": "{\"granted\":true,\"action\":\"sensitive_type\",\"tabId\":\"56333742814871710\",\"ttlSeconds\":120,\"grantsActive\":2}"
+      "detail": "{\"granted\":true,\"action\":\"sensitive_type\",\"tabId\":\"32015805787777410\",\"ttlSeconds\":120,\"grantsActive\":2}"
     },
     {
       "name": "sensitive_type grant does NOT unlock a risky click (403)",
@@ -86,7 +86,7 @@
     {
       "name": "browser_grant risky_click ok (single-use, tab+ref bound)",
       "pass": true,
-      "detail": "{\"granted\":true,\"action\":\"risky_click\",\"tabId\":\"56333742814871710\",\"ttlSeconds\":120,\"grantsActive\":3}"
+      "detail": "{\"granted\":true,\"action\":\"risky_click\",\"tabId\":\"32015805787777410\",\"ttlSeconds\":120,\"grantsActive\":3}"
     },
     {
       "name": "browser_status.bridge.grants exposes active count only",
@@ -106,7 +106,7 @@
     {
       "name": "browser_grant sensitive_type ok",
       "pass": true,
-      "detail": "{\"granted\":true,\"action\":\"sensitive_type\",\"tabId\":\"56333742814871710\",\"ttlSeconds\":120,\"grantsActive\":3}"
+      "detail": "{\"granted\":true,\"action\":\"sensitive_type\",\"tabId\":\"32015805787777410\",\"ttlSeconds\":120,\"grantsActive\":3}"
     },
     {
       "name": "granted sensitive typing -> value-length (length-only verify), consumed",

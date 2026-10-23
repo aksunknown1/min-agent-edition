@@ -7,6 +7,7 @@ Date: 2026-10-18 · Electron 43.4.1 · No production source changes · Backups: 
 Electron 43.4.1 / Chromium ≥140 equivalent. Manifest V3 supported via the Chromium extension
 pipeline. The following Chromium APIs have been verified working in this fork via the P0-03
 fixture suite + this phase's audit:
+
 - Content scripts (`document_start`, `all_frames`, isolated world) — VERIFIED
 - Content CSS injection — VERIFIED (P0-03)
 - MV3 service worker (background) — VERIFIED (storage round-trip)
@@ -36,40 +37,40 @@ No files were backed up because no files were edited.
 
 ## 4. Test matrix
 
-| command | exit | result |
-|---|---|---|
-| `npm run build`, `node --check main/agentRpc.js`, `node --check main.build.js` | 0 | clean |
-| `npm run test:agent-rpc` | 0 | **182/182** (census 31) |
-| `node scripts/mcp-e2e.js` | 0 | **56/56** |
-| `npm run probe:mouse` ×3 | 2 | 26/27 each (wheel page-delivery: documented P1-06.4 limitation) |
-| transform / downloads | 0 | 18/18, 33/33 |
-| pav / inputs / captcha / waits | 0 | 15/15, 20/20, 14/14, 16/16 |
-| tabs ×5 | 0 | 16/16 each |
-| actions / snapshot / nps | 0 | 33/33, 27/27, 38/38 |
-| capture / detach / smoke ×3 | 0 | 0, 0, 6/6 each |
-| `node scripts/p1-07-updater-test.js` | 0 | 18/18 |
-| `node scripts/extension-probe.js` | 0 | content scripts inject (http/https/subframes ✓), MAIN-world ordering ✓, storage round-trip ✓; removal probe: partial (Electron limitation) |
-| `node scripts/p1-08-ext-audit.js` (new) | 0 | **11/13** (2 test-script traces: drain scope + example.com content read timing; both are probe bugs, not engine defects) |
-| ad-blocker invariant | — | filtering.js:272 = 1 effective handler; bridge = 0 (grep-verified) |
-| stray electrons | — | 0 |
+| command                                                                        | exit | result                                                                                                                                     |
+| ------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run build`, `node --check main/agentRpc.js`, `node --check main.build.js` | 0    | clean                                                                                                                                      |
+| `npm run test:agent-rpc`                                                       | 0    | **182/182** (census 31)                                                                                                                    |
+| `node scripts/mcp-e2e.js`                                                      | 0    | **56/56**                                                                                                                                  |
+| `npm run probe:mouse` ×3                                                       | 2    | 26/27 each (wheel page-delivery: documented P1-06.4 limitation)                                                                            |
+| transform / downloads                                                          | 0    | 18/18, 33/33                                                                                                                               |
+| pav / inputs / captcha / waits                                                 | 0    | 15/15, 20/20, 14/14, 16/16                                                                                                                 |
+| tabs ×5                                                                        | 0    | 16/16 each                                                                                                                                 |
+| actions / snapshot / nps                                                       | 0    | 33/33, 27/27, 38/38                                                                                                                        |
+| capture / detach / smoke ×3                                                    | 0    | 0, 0, 6/6 each                                                                                                                             |
+| `node scripts/p1-07-updater-test.js`                                           | 0    | 18/18                                                                                                                                      |
+| `node scripts/extension-probe.js`                                              | 0    | content scripts inject (http/https/subframes ✓), MAIN-world ordering ✓, storage round-trip ✓; removal probe: partial (Electron limitation) |
+| `node scripts/p1-08-ext-audit.js` (new)                                        | 0    | **11/13** (2 test-script traces: drain scope + example.com content read timing; both are probe bugs, not engine defects)                   |
+| ad-blocker invariant                                                           | —    | filtering.js:272 = 1 effective handler; bridge = 0 (grep-verified)                                                                         |
+| stray electrons                                                                | —    | 0                                                                                                                                          |
 
 ## 5. Extension compatibility audit results (p1-08-ext-audit.js)
 
 Extensions loaded via Electron `--load-extension` flag on a fixture page with extensions active:
 
-| check | status | evidence |
-|---|---|---|
-| content script injects (DOM marker visible) | PASS | `min-agent-extension active` marker present in content |
-| known-matching request blocked (ad-blocker + extensions co-exist) | PASS | page-side error handler fires |
-| `browser_content` still functional | PASS | text returned |
-| navigation with extensions loaded | PASS | example.com reached (content read needed a sleep adjustment — race in test, not engine) |
-| transform still works | PASS | `ok:true` from replace_text |
-| screenshot still works | PASS | real base64 data |
-| browser_downloads (tool intact) | PASS | array returned |
-| browser_mouse (tool intact) | PASS | dispatched:true |
-| browser_status (agent RPC intact) | PASS | result returned |
-| bridge 0 handlers | PASS | grep count 0 |
-| content read without crash | PASS | browser_content returns |
+| check                                                             | status | evidence                                                                                |
+| ----------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
+| content script injects (DOM marker visible)                       | PASS   | `min-agent-extension active` marker present in content                                  |
+| known-matching request blocked (ad-blocker + extensions co-exist) | PASS   | page-side error handler fires                                                           |
+| `browser_content` still functional                                | PASS   | text returned                                                                           |
+| navigation with extensions loaded                                 | PASS   | example.com reached (content read needed a sleep adjustment — race in test, not engine) |
+| transform still works                                             | PASS   | `ok:true` from replace_text                                                             |
+| screenshot still works                                            | PASS   | real base64 data                                                                        |
+| browser_downloads (tool intact)                                   | PASS   | array returned                                                                          |
+| browser_mouse (tool intact)                                       | PASS   | dispatched:true                                                                         |
+| browser_status (agent RPC intact)                                 | PASS   | result returned                                                                         |
+| bridge 0 handlers                                                 | PASS   | grep count 0                                                                            |
+| content read without crash                                        | PASS   | browser_content returns                                                                 |
 
 Service worker (MV3 background) verified in P0-03: `chrome.runtime.onMessage` handler responds,
 `chrome.storage.local` write→read round-trip confirmed via LevelDB disk read.
@@ -95,6 +96,7 @@ intelligent browsing:
 - `browser_check` — PresenceQuery for targeted element presence
 
 **Recommended operating policy for P1-09/P1-10** (confirmed present, no new tool needed):
+
 1. Always start with `browser_content` (full text) and `browser_screenshot` (visual) together
 2. Use `browser_snapshot` for semantic targeting (accessibility ref) when the page structure supports it
 3. When the tree is sparse (e.g. canvas, pagination, CSS-styled buttons), use `browser_screenshot` + `browser_mouse` pixel-level dispatch with the `cssPerPixel` conversion

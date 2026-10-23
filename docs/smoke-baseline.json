@@ -1,6 +1,6 @@
 {
   "task": "P0-02A smoke-baseline",
-  "startedAt": "2026-10-19T03:33:16.330Z",
+  "startedAt": "2026-10-20T02:59:41.816Z",
   "platform": "win32 x64",
   "node": "v24.19.0",
   "workspace": "min-agent-edition",
@@ -13,16 +13,16 @@
       "command": "npm run build",
       "exitCode": 0,
       "error": null,
-      "durationMs": 1498,
-      "stdout": "> min-agent-edition@1.35.7 build\n> npm run buildMain && npm run buildBrowser && npm run buildBrowserStyles && npm run buildPreload\n\n\n> min-agent-edition@1.35.7 buildMain\n> node ./scripts/buildMain.js\n\n\n> min-agent-edition@1.35.7 buildBrowser\n> node ./scripts/buildBrowser.js\n\n\n> min-agent-edition@1.35.7 buildBrowserStyles\n> node ./scripts/buildBrowserStyles.js\n\n\n> min-agent-edition@1.35.7 buildPreload\n> node ./scripts/buildPreload.js",
-      "stderr": "npm warn Unknown env config \"node-linker\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown project config \"node-linker\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"node-linker\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown project config \"node-linker\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"node-linker\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown project config \"node-linker\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"node-linker\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown project config \"node-linker\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown env config \"node-linker\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.\nnpm warn Unknown project config \"node-linker\". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options."
+      "durationMs": 1696,
+      "stdout": "",
+      "stderr": ""
     }
   ],
   "checks": [
     {
       "name": "npm run build exit 0",
       "pass": true,
-      "detail": "exit=0 in 1498ms"
+      "detail": "exit=0 in 1696ms"
     },
     {
       "name": "electron main process running",
@@ -52,12 +52,12 @@
   ],
   "launch": {
     "command": "node_modules\\electron\\dist\\electron.exe . --development-mode file://<OS_TEMP>/min-agent-edition-smoke/min-agent-edition-smoke-tab.html",
-    "rootPid": 29088,
+    "rootPid": 37332,
     "exitCode": 1,
-    "launchDurationMs": 2419,
+    "launchDurationMs": 2456,
     "settled": true,
     "outputTail": [
-      "(node:29088) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 ready listeners added to [EventEmitter]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit",
+      "(node:37332) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 ready listeners added to [EventEmitter]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit",
       "(Use `electron --trace-warnings ...` to show where the warning was created)",
       "(electron) 'webContents.canGoBack' is deprecated and will be removed. Please use 'webContents.navigationHistory.canGoBack' instead.",
       "(electron) 'webContents.canGoForward' is deprecated and will be removed. Please use 'webContents.navigationHistory.canGoForward' instead."
@@ -65,9 +65,9 @@
   },
   "teardown": {
     "treeKill": {
-      "command": "taskkill /F /T /PID 29088",
+      "command": "taskkill /F /T /PID 37332",
       "exitCode": 0,
-      "output": "SUCCESS: The process with PID 41512 (child process of PID 29088) has been terminated.\r\nSUCCESS: The process with PID 28880 (child process of PID 29088) has been terminated.\r\nSUCCESS: The process with PID 30532 (child process of PID 29088) has been terminated.\r\nSUCCESS: The process with PID 27452 (child process of PID 29088) has been terminated.\r\nSUCCESS: The process with PID 27368 (child process of PID 29088) has been terminated.\r\nSUCCESS: The process with PID 19352 (child process of PID 29088) has been terminated.\r\nSUCCESS: The process with PID 53304 (child process of PID 29088) has been terminated.\r\nSUCCESS: The process with PID 29088 (child process of PID 49792) has been terminated."
+      "output": "SUCCESS: The process with PID 34888 (child process of PID 37332) has been terminated.\r\nSUCCESS: The process with PID 39064 (child process of PID 37332) has been terminated.\r\nSUCCESS: The process with PID 42112 (child process of PID 37332) has been terminated.\r\nSUCCESS: The process with PID 11580 (child process of PID 37332) has been terminated.\r\nSUCCESS: The process with PID 41652 (child process of PID 37332) has been terminated.\r\nSUCCESS: The process with PID 50588 (child process of PID 37332) has been terminated.\r\nSUCCESS: The process with PID 15528 (child process of PID 37332) has been terminated.\r\nSUCCESS: The process with PID 37332 (child process of PID 18504) has been terminated."
     },
     "strayReap": {
       "killed": []
@@ -91,15 +91,13 @@
     "uiRenderers": 2,
     "devHelpers": 0,
     "electronProcesses": 8,
-    "windowTitles": [
-      "Min Agent Smoke Tab | Min"
-    ],
+    "windowTitles": ["Min Agent Smoke Tab | Min"],
     "windowTitleSeen": "Min Agent Smoke Tab | Min"
   },
   "tabFileCleanup": {
     "removed": true,
     "stillPresent": false
   },
-  "finishedAt": "2026-10-19T03:33:22.520Z",
+  "finishedAt": "2026-10-20T02:59:48.573Z",
   "allPassed": true
 }

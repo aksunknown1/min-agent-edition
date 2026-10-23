@@ -1,5 +1,5 @@
 {
-  "startedAt": "2026-10-18T17:33:21.916Z",
+  "startedAt": "2026-10-20T02:58:23.305Z",
   "scenarios": {
     "S1": [
       {
@@ -9,7 +9,7 @@
         "blindClicks": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 1689
+        "ttl": 1642
       },
       {
         "variant": 2,
@@ -18,7 +18,7 @@
         "blindClicks": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 1708
+        "ttl": 1610
       },
       {
         "variant": 1,
@@ -27,7 +27,7 @@
         "blindClicks": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 1733
+        "ttl": 1616
       }
     ],
     "S2": [
@@ -37,7 +37,7 @@
         "blindClicks": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 2155
+        "ttl": 2120
       },
       {
         "calls": 5,
@@ -45,7 +45,7 @@
         "blindClicks": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 2155
+        "ttl": 2495
       },
       {
         "calls": 5,
@@ -53,7 +53,7 @@
         "blindClicks": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 2142
+        "ttl": 2513
       }
     ],
     "S3": [
@@ -63,7 +63,7 @@
         "fixedSleeps": 0,
         "eventDrivenWaits": 1,
         "ok": true,
-        "ttl": 1558
+        "ttl": 1539
       },
       {
         "calls": 4,
@@ -71,7 +71,7 @@
         "fixedSleeps": 0,
         "eventDrivenWaits": 1,
         "ok": true,
-        "ttl": 1587
+        "ttl": 1567
       },
       {
         "calls": 4,
@@ -79,7 +79,7 @@
         "fixedSleeps": 0,
         "eventDrivenWaits": 1,
         "ok": true,
-        "ttl": 1556
+        "ttl": 1538
       }
     ],
     "S4": [
@@ -88,21 +88,21 @@
         "screenshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 5217
+        "ttl": 5606
       },
       {
         "calls": 6,
         "screenshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 5214
+        "ttl": 5608
       },
       {
         "calls": 6,
         "screenshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 6115
+        "ttl": 5661
       }
     ],
     "S5": [
@@ -112,7 +112,7 @@
         "extraSnapshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 2157
+        "ttl": 2554
       },
       {
         "calls": 4,
@@ -120,7 +120,7 @@
         "extraSnapshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 2145
+        "ttl": 2549
       },
       {
         "calls": 4,
@@ -128,30 +128,30 @@
         "extraSnapshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 2151
+        "ttl": 2520
       }
     ],
     "S6": [
       {
-        "calls": 8,
+        "calls": 9,
         "screenshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 1616
+        "ttl": 7409
       },
       {
-        "calls": 8,
+        "calls": 9,
         "screenshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 1554
+        "ttl": 7418
       },
       {
-        "calls": 8,
+        "calls": 9,
         "screenshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 1600
+        "ttl": 7405
       }
     ],
     "S7": [
@@ -160,27 +160,27 @@
         "screenshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 2144
+        "ttl": 2553
       },
       {
         "calls": 6,
         "screenshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 2118
+        "ttl": 2546
       },
       {
         "calls": 6,
         "screenshots": 0,
         "fixedSleeps": 0,
         "ok": true,
-        "ttl": 2172
+        "ttl": 2549
       }
     ]
   },
   "counts": {
-    "pass": 90,
+    "pass": 93,
     "fail": 0
   },
-  "finishedAt": "2026-10-18T17:34:13.495Z"
+  "finishedAt": "2026-10-20T02:59:35.440Z"
 }

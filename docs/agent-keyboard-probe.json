@@ -1,0 +1,132 @@
+{
+  "ts": "2026-10-20T04:12:27.669Z",
+  "results": [
+    {
+      "name": "bridge discovery appeared",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "startup tab enumerated",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "fixture navigated and verified",
+      "pass": true,
+      "detail": "navigation"
+    },
+    {
+      "name": "fixture fields enumerated",
+      "pass": true,
+      "detail": "plain=true ctrl=true"
+    },
+    {
+      "name": "mode:\"native\" still verifies by value",
+      "pass": true,
+      "detail": "value"
+    },
+    {
+      "name": "mode:\"native\" reports inputMode=native + strategy=native-insert",
+      "pass": true,
+      "detail": "native/native-insert"
+    },
+    {
+      "name": "mode:\"keyboard\" verifies by value",
+      "pass": true,
+      "detail": "value"
+    },
+    {
+      "name": "mode:\"keyboard\" reports inputMode=keyboard + strategy=keyboard-events",
+      "pass": true,
+      "detail": "keyboard/keyboard-events"
+    },
+    {
+      "name": "page observed TRUSTED keydown events (a bulk insertText cannot do this)",
+      "pass": true,
+      "detail": "delta=7 allTrusted=true"
+    },
+    {
+      "name": "keyboard mode reports physicalKeys:true for ASCII",
+      "pass": true,
+      "detail": "{\"nonAscii\":false,\"chars\":5,\"physicalKeys\":true}"
+    },
+    {
+      "name": "controlled field: keyboard mode drove the framework state model",
+      "pass": true,
+      "detail": "{\"model\":\"abc\",\"value\":\"abc\"}"
+    },
+    {
+      "name": "controlled field: read-back verified the value",
+      "pass": true,
+      "detail": "value"
+    },
+    {
+      "name": "unicode text verified by value",
+      "pass": true,
+      "detail": "value"
+    },
+    {
+      "name": "unicode typing reports physicalKeys:false (text, not physical keys)",
+      "pass": true,
+      "detail": "{\"nonAscii\":true,\"chars\":7,\"physicalKeys\":false}"
+    },
+    {
+      "name": "keyboard typing REPLACES the value (select-all + clear first)",
+      "pass": true,
+      "detail": "\"zz\""
+    },
+    {
+      "name": "disabled field refused",
+      "pass": true,
+      "detail": "disabled"
+    },
+    {
+      "name": "read-only field does not silently succeed",
+      "pass": true,
+      "detail": "readonly actual={\"v\":\"unchanged\",\"ro\":true}"
+    },
+    {
+      "name": "stale ref fails structurally (never retargets another field)",
+      "pass": true,
+      "detail": "ref_stale"
+    },
+    {
+      "name": "STALE: typing a now-readonly field is REFUSED (structured error)",
+      "pass": true,
+      "detail": "readonly"
+    },
+    {
+      "name": "STALE: the readonly field value was NOT mutated",
+      "pass": true,
+      "detail": "{\"v\":\"zz\",\"ro\":true}"
+    },
+    {
+      "name": "STALE: the refusal came from the live element, not the cached snapshot",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "STALE: native mode is refused too",
+      "pass": true,
+      "detail": "readonly"
+    },
+    {
+      "name": "keyboard mode refuses >200 characters with a structured error",
+      "pass": true,
+      "detail": "invalid_params"
+    },
+    {
+      "name": "sensitive field still refused without a grant",
+      "pass": true,
+      "detail": "sensitive_field"
+    },
+    {
+      "name": "sensitive refusal never echoes the value",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "pass": 25,
+  "total": 25
+}

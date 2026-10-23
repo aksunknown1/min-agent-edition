@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-18T17:24:21.752Z",
+  "ranAt": "2026-10-20T04:15:09.620Z",
   "passed": 38,
   "total": 38,
   "results": [
@@ -11,7 +11,7 @@
     {
       "name": "five argv tabs present (na selected last)",
       "pass": true,
-      "detail": "56221179140972610/18363958652842304/12368321055042352"
+      "detail": "20780517129228470/23528727294994600/554673454492338"
     },
     {
       "name": "nav1 tab is the selected view",
@@ -66,42 +66,42 @@
     {
       "name": "P1-01B static page -> verified navigation, finalUrl, urlChanges 0",
       "pass": true,
-      "detail": "{\"verified\":true,\"verification\":\"navigation\",\"finalUrl\":\"http://127.0.0.1:54075/static\",\"urlChanges\":0,\"changedFrom\":null,\"routeChangeKind\":null}"
+      "detail": "{\"verified\":true,\"verification\":\"navigation\",\"finalUrl\":\"http://127.0.0.1:49437/static\",\"urlChanges\":0,\"changedFrom\":null,\"routeChangeKind\":null}"
     },
     {
       "name": "P1-01B immediate 302 -> verified navigation at /static",
       "pass": true,
-      "detail": "{\"verified\":true,\"finalUrl\":\"http://127.0.0.1:54075/static\"}"
+      "detail": "{\"verified\":true,\"finalUrl\":\"http://127.0.0.1:49437/static\"}"
     },
     {
       "name": "P1-01B delayed redirect -> verified=false unstable, finalUrl=landed",
       "pass": true,
-      "detail": "{\"verified\":false,\"verification\":\"unstable\",\"finalUrl\":\"http://127.0.0.1:54075/landed\",\"urlChanges\":1,\"routeChangeKind\":\"cross-document\"}"
+      "detail": "{\"verified\":false,\"verification\":\"unstable\",\"finalUrl\":\"http://127.0.0.1:49437/landed\",\"urlChanges\":1,\"routeChangeKind\":\"cross-document\"}"
     },
     {
       "name": "P1-01B SPA pushState -> verified=false unstable, routeChangeKind=same-document",
       "pass": true,
-      "detail": "{\"verified\":false,\"verification\":\"unstable\",\"finalUrl\":\"http://127.0.0.1:54075/spa-route\",\"routeChangeKind\":\"same-document\"}"
+      "detail": "{\"verified\":false,\"verification\":\"unstable\",\"finalUrl\":\"http://127.0.0.1:49437/spa-route\",\"routeChangeKind\":\"same-document\"}"
     },
     {
       "name": "P1-01B hung server -> structured timeout result",
       "pass": true,
-      "detail": "{\"verified\":false,\"verification\":\"timeout\",\"waitedMs\":8009}"
+      "detail": "{\"verified\":false,\"verification\":\"timeout\",\"waitedMs\":8012}"
     },
     {
       "name": "P1-01B expectUrlPrefix match -> verified navigation",
       "pass": true,
-      "detail": "{\"verified\":true,\"finalUrl\":\"http://127.0.0.1:54075/static\"}"
+      "detail": "{\"verified\":true,\"finalUrl\":\"http://127.0.0.1:49437/static\"}"
     },
     {
       "name": "P1-01B delayed bounce into expected prefix -> verified at /landed",
       "pass": true,
-      "detail": "{\"verified\":true,\"finalUrl\":\"http://127.0.0.1:54075/landed\",\"urlChanges\":0}"
+      "detail": "{\"verified\":true,\"finalUrl\":\"http://127.0.0.1:49437/landed\",\"urlChanges\":0}"
     },
     {
       "name": "P1-01B prefix match then bounce away -> redirected (not hidden)",
       "pass": true,
-      "detail": "{\"verified\":false,\"verification\":\"redirected\",\"finalUrl\":\"http://127.0.0.1:54075/landed\",\"urlChanges\":1}"
+      "detail": "{\"verified\":false,\"verification\":\"redirected\",\"finalUrl\":\"http://127.0.0.1:49437/landed\",\"urlChanges\":1}"
     },
     {
       "name": "P1-01B unmatched expectUrlPrefix -> redirected, verified=false",
@@ -111,7 +111,7 @@
     {
       "name": "P1-01B stabilityWindowMs echoed + short window still verifies",
       "pass": true,
-      "detail": "{\"verified\":true,\"stabilityWindowMs\":300,\"waitedMs\":544}"
+      "detail": "{\"verified\":true,\"stabilityWindowMs\":300,\"waitedMs\":525}"
     },
     {
       "name": "P1-01B stabilityWindowMs 15001 -> invalid_params (400)",

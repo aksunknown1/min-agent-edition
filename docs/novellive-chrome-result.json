@@ -1,0 +1,19 @@
+{
+  "ts": "2026-10-19T07:36:04.729Z",
+  "target": "https://novellive.com/",
+  "clearedInChrome": true,
+  "results": [
+    {
+      "name": "Chrome launched (fresh temp profile)",
+      "pass": true
+    },
+    {
+      "name": "novellive tab enumerated in Chrome",
+      "pass": true
+    },
+    {
+      "name": "novellive challenge resolved in Chrome (fresh temp profile)",
+      "pass": true
+    }
+  ]
+}

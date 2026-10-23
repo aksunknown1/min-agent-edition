@@ -1,0 +1,89 @@
+{
+  "ts": "2026-10-20T04:48:03.698Z",
+  "url": "https://novellive.com/",
+  "reps": 2,
+  "timeoutMs": 25000,
+  "note": "Read-only. No challenge solved, clicked or bypassed. Same minimal Electron main, fresh profile per run, headed, same machine/network. The Electron 44 probe is a throwaway install under the OS temp dir; the project dependency is untouched.",
+  "builds": {
+    "e43": {
+      "electron": "43.4.1",
+      "chromium": "150.0.7871.224",
+      "binary": "C:\\Users\\AKS-PC\\min-agent-edition\\node_modules\\electron\\dist\\electron.exe"
+    },
+    "e44": {
+      "electron": "44.9.1",
+      "chromium": "152.0.7977.167",
+      "binary": "C:\\Users\\AKS-PC\\AppData\\Local\\Temp\\opencode\\e44probe\\node_modules\\electron\\dist\\electron.exe"
+    }
+  },
+  "results": [
+    {
+      "rep": 1,
+      "runtime": "e43-c150",
+      "clearedAtMs": 3040,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free",
+      "timeline": [
+        {
+          "at": 1023,
+          "title": "Just a moment..."
+        },
+        {
+          "at": 3040,
+          "title": "Novel Live - Reading Novel Free"
+        }
+      ]
+    },
+    {
+      "rep": 1,
+      "runtime": "e44-c152",
+      "clearedAtMs": 3054,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free",
+      "timeline": [
+        {
+          "at": 1021,
+          "title": "Just a moment..."
+        },
+        {
+          "at": 3054,
+          "title": "Novel Live - Reading Novel Free"
+        }
+      ]
+    },
+    {
+      "rep": 2,
+      "runtime": "e43-c150",
+      "clearedAtMs": 3036,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free",
+      "timeline": [
+        {
+          "at": 1023,
+          "title": "Just a moment..."
+        },
+        {
+          "at": 3036,
+          "title": "Novel Live - Reading Novel Free"
+        }
+      ]
+    },
+    {
+      "rep": 2,
+      "runtime": "e44-c152",
+      "clearedAtMs": 3040,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free",
+      "timeline": [
+        {
+          "at": 1013,
+          "title": "Just a moment..."
+        },
+        {
+          "at": 3040,
+          "title": "Novel Live - Reading Novel Free"
+        }
+      ]
+    }
+  ]
+}

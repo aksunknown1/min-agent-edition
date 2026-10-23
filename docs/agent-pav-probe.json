@@ -1,10 +1,25 @@
 {
-  "ranAt": "2026-10-19T03:06:09.103Z",
-  "passed": 15,
-  "total": 15,
+  "ranAt": "2026-10-20T04:13:54.769Z",
+  "passed": 18,
+  "total": 18,
   "results": [
     {
       "name": "bridge discovered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "readiness: empty-tab transient observed and tolerated (not masked as ready)",
+      "pass": true,
+      "detail": "sawEmpty=false"
+    },
+    {
+      "name": "readiness: startup tab enumerated via bounded poll (transient empty tolerated)",
+      "pass": true,
+      "detail": "tabs=2"
+    },
+    {
+      "name": "readiness: no empty-shell tab used after staleness filter",
       "pass": true,
       "detail": ""
     },
@@ -36,7 +51,7 @@
     {
       "name": "verify: origin-checked urlPrefix correctly rejects the wrong prefix",
       "pass": true,
-      "detail": "{\"tabId\":\"64948900436373976\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/after.html\",\"title\":\"After PAV\",\"checks\":{\"urlPrefix\":false},\"verified\":false,\"waitedMs\":2}"
+      "detail": "{\"tabId\":\"19390193141635270\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/after.html\",\"title\":\"After PAV\",\"checks\":{\"urlPrefix\":false},\"verified\":false,\"waitedMs\":1}"
     },
     {
       "name": "predict JS button -> honest unknown / low confidence / requiresUserInput",
@@ -66,7 +81,7 @@
     {
       "name": "batch with per-step verify: failing check stops the remaining steps",
       "pass": true,
-      "detail": "{\"status\":200,\"err\":null,\"result\":{\"ok\":false,\"steps\":[{\"step\":0,\"tool\":\"browser_type\",\"ok\":true,\"result\":{\"tabId\":\"64948900436373976\",\"ref\":\"rm\",\"target\":{\"role\":\"textbox\",\"name\":\"Form Field\",\"nameIndex\":0,\"shadowPath\":null},\"strategy\":\"native-insert\",\"dispatched\":true,\"verified\":true,\"verification\":\"value\",\"valueLength\":11,\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\",\"title\":\"Predict Act Verify\",\"waitedMs\":5,\"navFired\":false}},{\"step\":1,\"tool\":\"browser_verify\",\"ok\":true,\"result\":{\"tabId\":\"64948900436373976\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\",\"title\":\"Predict Act Verify\",\"checks\":{\"selectorVisible\":true,\"selectorMatches\":1,\"textContains\":true},\"verified\":true,\"waitedMs\":2}},{\"step\":2,\"tool\":\"browser_verify\",\"ok\":false,\"result\":{\"tabId\":\"64948900436373976\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\",\"title\":\"Predict Act Verify\",\"checks\":{\"selectorVisible\":false,\"selectorMatches\":0,\"textContains\":false},\"verified\":false,\"waitedMs\":1},\"error\":{\"category\":\"verification_failed\",\"message\":\"step completed but its verification did not pass\"}}],\"completed\":3,\"planned\":4,\"stopOnError\":true,\"totalMs\":9}}"
+      "detail": "{\"status\":200,\"err\":null,\"result\":{\"ok\":false,\"steps\":[{\"step\":0,\"tool\":\"browser_type\",\"ok\":true,\"result\":{\"tabId\":\"19390193141635270\",\"ref\":\"rm\",\"target\":{\"role\":\"textbox\",\"name\":\"Form Field\",\"nameIndex\":0,\"shadowPath\":null},\"strategy\":\"native-insert\",\"inputMode\":\"native\",\"keyboard\":null,\"dispatched\":true,\"verified\":true,\"verification\":\"value\",\"valueLength\":11,\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\",\"title\":\"Predict Act Verify\",\"waitedMs\":6,\"navFired\":false}},{\"step\":1,\"tool\":\"browser_verify\",\"ok\":true,\"result\":{\"tabId\":\"19390193141635270\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\",\"title\":\"Predict Act Verify\",\"checks\":{\"selectorVisible\":true,\"selectorMatches\":1,\"textContains\":true},\"verified\":true,\"waitedMs\":1}},{\"step\":2,\"tool\":\"browser_verify\",\"ok\":false,\"result\":{\"tabId\":\"19390193141635270\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-pav-probe/pav.html\",\"title\":\"Predict Act Verify\",\"checks\":{\"selectorVisible\":false,\"selectorMatches\":0,\"textContains\":false},\"verified\":false,\"waitedMs\":2},\"error\":{\"category\":\"verification_failed\",\"message\":\"step completed but its verification did not pass\"}}],\"completed\":3,\"planned\":4,\"stopOnError\":true,\"totalMs\":10}}"
     },
     {
       "name": "sensitive typing: value-length only, never the value",

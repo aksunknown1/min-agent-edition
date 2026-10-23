@@ -1,0 +1,58 @@
+{
+  "ts": "2026-10-20T04:53:06.944Z",
+  "url": "https://novellive.com/",
+  "timeoutMs": 28000,
+  "reps": 2,
+  "runtime": "Electron 43.4.1 / Chromium 150.0.7871.224 for every variant",
+  "note": "Read-only. No challenge solved or bypassed. Each variant differs only in the User-Agent string.",
+  "results": [
+    {
+      "rep": 1,
+      "variant": "A-min-today",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) MinAgentEdition/1.35.7 Chrome/150.0.0.0 Safari/537.36",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment..."
+    },
+    {
+      "rep": 1,
+      "variant": "B-no-token",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+      "clearedAtMs": 3084,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free"
+    },
+    {
+      "rep": 1,
+      "variant": "C-no-token-fullver",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.224 Safari/537.36",
+      "clearedAtMs": 3077,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free"
+    },
+    {
+      "rep": 2,
+      "variant": "A-min-today",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) MinAgentEdition/1.35.7 Chrome/150.0.0.0 Safari/537.36",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment..."
+    },
+    {
+      "rep": 2,
+      "variant": "B-no-token",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+      "clearedAtMs": 3074,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free"
+    },
+    {
+      "rep": 2,
+      "variant": "C-no-token-fullver",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.224 Safari/537.36",
+      "clearedAtMs": 3053,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free"
+    }
+  ]
+}

@@ -7,21 +7,21 @@ Method: **no-git**. Source obtained as a ZIP archive; no clone, branch, or commi
 
 ## 1. Source provenance (no git)
 
-| Item | Value |
-|---|---|
-| Upstream project URL | https://github.com/minbrowser/min |
-| Archive download URL | https://codeload.github.com/minbrowser/min/zip/refs/tags/v1.35.7 |
-| Archive filename (local) | `min-v1.35.7-source.zip` |
-| Archive size | 7,367,915 bytes |
-| Archive SHA-256 | `a07293bf9bc5b6253ced0447f94ad8c77b80193609cca602f6a6c28b4b60cae0` |
-| Download date (UTC) | `2026-10-16T05:53:56Z` |
-| HTTP status | `200` |
-| Release tag | `v1.35.7` (GitHub release id 375326751, published 2026-08-23T21:22:49Z) |
-| Release `target_commitish` | `1.35.x` |
-| Commit SHA embedded in ZIP | `c92079cde045c38ab844e53501e9c5178d503a45` |
-| `package.json` `version` | `1.35.7` |
-| Archive top-level directory | `min-1.35.7/` |
-| Archive file count | 300 entries |
+| Item                        | Value                                                                                                                                         |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Upstream project URL        | https://github.com/minbrowser/min                                                                                                             |
+| Archive download URL        | https://codeload.github.com/minbrowser/min/zip/refs/tags/v1.35.7                                                                              |
+| Archive filename (local)    | `min-v1.35.7-source.zip`                                                                                                                      |
+| Archive size                | 7,367,915 bytes                                                                                                                               |
+| Archive SHA-256             | `a07293bf9bc5b6253ced0447f94ad8c77b80193609cca602f6a6c28b4b60cae0`                                                                            |
+| Download date (UTC)         | `2026-10-16T05:53:56Z`                                                                                                                        |
+| HTTP status                 | `200`                                                                                                                                         |
+| Release tag                 | `v1.35.7` (GitHub release id 375326751, published 2026-08-23T21:22:49Z)                                                                       |
+| Release `target_commitish`  | `1.35.x`                                                                                                                                      |
+| Commit SHA embedded in ZIP  | `c92079cde045c38ab844e53501e9c5178d503a45`                                                                                                    |
+| `package.json` `version`    | `1.35.7`                                                                                                                                      |
+| Archive top-level directory | `min-1.35.7/`                                                                                                                                 |
+| Archive file count          | 300 entries                                                                                                                                   |
 | Main directory in workspace | **workspace root** — archive contents were flattened one level up, so `package.json` sits at `C:\Users\AKS-PC\min-agent-edition\package.json` |
 
 Flatten command (Git Bash):
@@ -49,23 +49,23 @@ Zero tracked source files differ from the archive. No backups were created (none
 
 ### Installed from PATH
 
-| Tool | Version | Path |
-|---|---|---|
-| Node | `v24.19.0` | `C:\Program Files\nodejs\node` |
-| npm | `11.17.0` | `C:\Program Files\nodejs\npm` |
-| Electron (installed) | `43.4.1` | `node_modules/electron` |
+| Tool                 | Version    | Path                           |
+| -------------------- | ---------- | ------------------------------ |
+| Node                 | `v24.19.0` | `C:\Program Files\nodejs\node` |
+| npm                  | `11.17.0`  | `C:\Program Files\nodejs\npm`  |
+| Electron (installed) | `43.4.1`   | `node_modules/electron`        |
 
 ### Declared by the repository
 
-| Source | Declared value |
-|---|---|
-| `.nvmrc` | `15.7.0` |
-| `package.json` → `engines` | **absent** — no `engines` field exists |
-| `package.json` → `electronVersion` | `43.4.1` |
-| `package.json` → `devDependencies.electron` | `43.4.1` (pinned, exact) |
-| `package.json` → `devDependencies.electron-builder` | `^24.13.3` |
-| `.npmrc` | `node-linker=hoisted` |
-| CI `.github/workflows/build-packages.yml` | `actions/setup-node@v4` with **`node-version: 25`**, install step `npm install --omit=optional` |
+| Source                                              | Declared value                                                                                  |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `.nvmrc`                                            | `15.7.0`                                                                                        |
+| `package.json` → `engines`                          | **absent** — no `engines` field exists                                                          |
+| `package.json` → `electronVersion`                  | `43.4.1`                                                                                        |
+| `package.json` → `devDependencies.electron`         | `43.4.1` (pinned, exact)                                                                        |
+| `package.json` → `devDependencies.electron-builder` | `^24.13.3`                                                                                      |
+| `.npmrc`                                            | `node-linker=hoisted`                                                                           |
+| CI `.github/workflows/build-packages.yml`           | `actions/setup-node@v4` with **`node-version: 25`**, install step `npm install --omit=optional` |
 
 ### Runtime decision — Node 24 (the already-installed runtime) was used
 
@@ -74,7 +74,7 @@ Justification from repository evidence, not assumption:
 1. **CI is authoritative.** The only workflow in the repo pins `node-version: 25`. Node 24 is the nearest even-LTS line to it, so the installed `v24.19.0` is inside the range upstream actually builds against.
 2. **`.nvmrc` (`15.7.0`) is stale and provably wrong.** It contradicts CI, and it is internally inconsistent with the repo itself: `.npmrc` sets `node-linker=hoisted`, an npm 7+ option that Node 15.7.0's bundled npm 7.5.x barely supports and that Electron 43 does not work with. Electron 43's own minimum Node baseline is far above 15.
 3. **No `engines` field** means npm performed no engine enforcement either way; the choice was ours to justify, and CI evidence pointed at modern Node.
-4. **Empirically confirmed:** install, build, and a real GUI launch all succeeded on `v24.19.0` (see §4–§6). Node 24 is therefore *validated for this baseline*.
+4. **Empirically confirmed:** install, build, and a real GUI launch all succeeded on `v24.19.0` (see §4–§6). Node 24 is therefore _validated for this baseline_.
 
 Node v24 was **not** assumed valid a priori — it was selected from CI evidence and then verified by a green install, build, and launch.
 
@@ -86,13 +86,13 @@ All paths relative to `C:\Users\AKS-PC\min-agent-edition\`.
 
 ### 3.1 Electron main process entry
 
-| Item | Path |
-|---|---|
-| Declared entry (`package.json` `main`) | `main.build.js` — **generated**, not source |
-| Real entry source | `main/main.js` |
-| Bundle recipe (concatenation list) | `scripts/buildMain.js` (`modules` array, lines 6–28) |
-| Window lifecycle | `main/windowManagement.js` |
-| Menu / keyboard | `main/menu.js`, `main/remoteMenu.js`, `js/defaultKeybindings.js` |
+| Item                                   | Path                                                             |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| Declared entry (`package.json` `main`) | `main.build.js` — **generated**, not source                      |
+| Real entry source                      | `main/main.js`                                                   |
+| Bundle recipe (concatenation list)     | `scripts/buildMain.js` (`modules` array, lines 6–28)             |
+| Window lifecycle                       | `main/windowManagement.js`                                       |
+| Menu / keyboard                        | `main/menu.js`, `main/remoteMenu.js`, `js/defaultKeybindings.js` |
 
 `scripts/buildMain.js` builds the main process by **naive string concatenation** of the listed files into `main.build.js`. There is no bundler, no module boundary, and no scope isolation between main-process modules — they share one global scope.
 
@@ -108,31 +108,31 @@ Boot anchors in `main/main.js`:
 
 ### 3.2 BrowserWindow creation
 
-| Purpose | Path:line |
-|---|---|
-| Main browser window | `main/main.js:496` (`placesWindow`) — see also `main/main.js:192` |
-| Translation window | `main/main.js:534` |
-| Prompt / dialog window | `main/prompt.js:10` |
-| Window bounds persistence | `main/main.js:93` → `windowBounds.json` |
+| Purpose                   | Path:line                                                         |
+| ------------------------- | ----------------------------------------------------------------- |
+| Main browser window       | `main/main.js:496` (`placesWindow`) — see also `main/main.js:192` |
+| Translation window        | `main/main.js:534`                                                |
+| Prompt / dialog window    | `main/prompt.js:10`                                               |
+| Window bounds persistence | `main/main.js:93` → `windowBounds.json`                           |
 
 All three `new BrowserWindow(...)` sites use `nodeIntegration: true, contextIsolation: false`.
 
 ### 3.3 webContents / session creation
 
-Min 1.35.7 renders tabs with **`WebContentsView`**, *not* the legacy `<webview>` tag. (Comments in `js/webviews.js` still reference the webview tag; the implementation has moved on. Do not trust those comments.)
+Min 1.35.7 renders tabs with **`WebContentsView`**, _not_ the legacy `<webview>` tag. (Comments in `js/webviews.js` still reference the webview tag; the implementation has moved on. Do not trust those comments.)
 
-| Item | Path:line |
-|---|---|
-| View factory | `main/viewManager.js:32` `createView(existingViewId, id, webPreferences, boundsString, events)` |
-| `new WebContentsView(...)` | `main/viewManager.js:53`; popup/adopt path `main/viewManager.js:110` |
-| Default webPreferences per view | `main/viewManager.js:9` `getDefaultViewWebPreferences()` |
-| Renderer → main view creation IPC | `main/viewManager.js:331` `ipc.on('createView', ...)`; sender `js/webviews.js:196` |
-| Partition selection (private tabs) | `js/webviews.js:191-201` — private tab ⇒ partition = tab id; otherwise `'persist:webcontent'` |
-| Default session consumers | `main/download.js:146-147`, `main/filtering.js:255`, `main/permissionManager.js:207-208`, `main/UASwitcher.js:68`, `main/minInternalProtocol.js:47` |
-| `persist:webcontent` partition consumers | `main/remoteActions.js:45-73` |
-| `min://` internal protocol | `main/minInternalProtocol.js` |
-| Permission gating | `main/permissionManager.js` |
-| User-Agent switching | `main/UASwitcher.js` |
+| Item                                     | Path:line                                                                                                                                           |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| View factory                             | `main/viewManager.js:32` `createView(existingViewId, id, webPreferences, boundsString, events)`                                                     |
+| `new WebContentsView(...)`               | `main/viewManager.js:53`; popup/adopt path `main/viewManager.js:110`                                                                                |
+| Default webPreferences per view          | `main/viewManager.js:9` `getDefaultViewWebPreferences()`                                                                                            |
+| Renderer → main view creation IPC        | `main/viewManager.js:331` `ipc.on('createView', ...)`; sender `js/webviews.js:196`                                                                  |
+| Partition selection (private tabs)       | `js/webviews.js:191-201` — private tab ⇒ partition = tab id; otherwise `'persist:webcontent'`                                                       |
+| Default session consumers                | `main/download.js:146-147`, `main/filtering.js:255`, `main/permissionManager.js:207-208`, `main/UASwitcher.js:68`, `main/minInternalProtocol.js:47` |
+| `persist:webcontent` partition consumers | `main/remoteActions.js:45-73`                                                                                                                       |
+| `min://` internal protocol               | `main/minInternalProtocol.js`                                                                                                                       |
+| Permission gating                        | `main/permissionManager.js`                                                                                                                         |
+| User-Agent switching                     | `main/UASwitcher.js`                                                                                                                                |
 
 Note: `main/filtering.js:258` registers filtering via `app.on('session-created', registerFiltering)`, so **every** session (default + partitions) is covered — not just `defaultSession`.
 
@@ -140,24 +140,24 @@ Note: `main/filtering.js:258` registers filtering via `app.on('session-created',
 
 Min has **no profile abstraction**. There is exactly one Electron session partition for normal browsing plus ephemeral per-private-tab partitions.
 
-| Item | Path:line |
-|---|---|
-| userData root | `app.getPath('userData')` — `main/main.js:66`; dev builds append `-development` (`main/main.js:60`) |
-| Settings store (main side) | `js/util/settings/settingsMain.js` — file path set at line `70` → `<userData>/settings.json`; atomic write via `write-file-atomic` (line 20) |
-| Settings store (renderer side) | `js/util/settings/settings.js`, `js/util/settings/settingsContent.js`, `js/util/settings/settingsPreload.js` |
-| Places / history DB | `js/util/database.js:11` — `new Dexie('browsingData2')` → IndexedDB LevelDB |
-| Window bounds | `main/main.js:93` → `<userData>/windowBounds.json` |
-| Custom filter rules | `main/filtering.js:103` → `<userData>/customFilters.txt` |
-| Saved credentials (encrypted) | `main/keychainService.js:41` — `safeStorage.encryptString` → JSON file |
-| Session restore | `js/sessionRestore.js`, `js/tabRestore.js`, `js/tabState/` |
-| Userscript directory | `js/userscripts.js:71` — `<userData>/userscripts` (watched by chokidar) |
+| Item                           | Path:line                                                                                                                                    |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| userData root                  | `app.getPath('userData')` — `main/main.js:66`; dev builds append `-development` (`main/main.js:60`)                                          |
+| Settings store (main side)     | `js/util/settings/settingsMain.js` — file path set at line `70` → `<userData>/settings.json`; atomic write via `write-file-atomic` (line 20) |
+| Settings store (renderer side) | `js/util/settings/settings.js`, `js/util/settings/settingsContent.js`, `js/util/settings/settingsPreload.js`                                 |
+| Places / history DB            | `js/util/database.js:11` — `new Dexie('browsingData2')` → IndexedDB LevelDB                                                                  |
+| Window bounds                  | `main/main.js:93` → `<userData>/windowBounds.json`                                                                                           |
+| Custom filter rules            | `main/filtering.js:103` → `<userData>/customFilters.txt`                                                                                     |
+| Saved credentials (encrypted)  | `main/keychainService.js:41` — `safeStorage.encryptString` → JSON file                                                                       |
+| Session restore                | `js/sessionRestore.js`, `js/tabRestore.js`, `js/tabState/`                                                                                   |
+| Userscript directory           | `js/userscripts.js:71` — `<userData>/userscripts` (watched by chokidar)                                                                      |
 
 Observed on disk after first dev launch (`%APPDATA%\Min-development\`):
 `Partitions\webcontent\`, `settings.json`, `IndexedDB\file__0.indexeddb.leveldb\`, `Local Storage\`, `WebStorage\`, `Network\`, `Preferences`, `Local State`, `Cache\`, `GPUCache\`, `IndexedDB\`.
 
 ### 3.5 Extension loading
 
-**There is no extension system.** `session.loadExtension` appears nowhere in the repo. `ext/` is a directory of *vendored third-party libraries*, not extensions:
+**There is no extension system.** `session.loadExtension` appears nowhere in the repo. `ext/` is a directory of _vendored third-party libraries_, not extensions:
 
 ```
 ext/abp-filter-parser-modified/   ext/filterLists/   ext/franc/
@@ -173,48 +173,48 @@ Min's closest existing extension point is its **userscript** feature: `js/usersc
 
 ### 3.6 Ad / tracker blocker
 
-| Item | Path:line |
-|---|---|
-| Blocker core (main process) | `main/filtering.js` |
-| Default on/off settings | `main/filtering.js:1` `defaultFilteringSettings`, `:7` `enabledFilteringOptions` |
-| Parsed filter store (module-global) | `main/filtering.js:79` `parsedFilterData` |
-| Filter list load | `main/filtering.js:81` `initFilterList()` |
-| Request decision | `main/filtering.js:164` `handleRequest(details, callback)` |
-| Session registration | `main/filtering.js:250` `registerFiltering(ses)`; `:255` default session; `:258` `app.on('session-created', ...)` |
-| Element-type mapping to Electron | `main/filtering.js:67` `electronABPElementTypeMap` |
-| Tracking-param stripping | `main/filtering.js:13` `globalParamsToRemove`, `:31` `siteParamsToRemove`, `:147` `removeTrackingParams` |
-| Popup blocking | `main/filtering.js:126` `filterPopups` |
-| Parser (vendored, modified) | `ext/abp-filter-parser-modified/abp-filter-parser.js` |
-| Renderer toggle UI / exception domains | `js/navbar/contentBlockingToggle.js` |
-| Content-type blocking (JS etc.) | `main/viewManager.js:28` (`javascript:` pref), `js/util/settings/` |
+| Item                                   | Path:line                                                                                                         |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Blocker core (main process)            | `main/filtering.js`                                                                                               |
+| Default on/off settings                | `main/filtering.js:1` `defaultFilteringSettings`, `:7` `enabledFilteringOptions`                                  |
+| Parsed filter store (module-global)    | `main/filtering.js:79` `parsedFilterData`                                                                         |
+| Filter list load                       | `main/filtering.js:81` `initFilterList()`                                                                         |
+| Request decision                       | `main/filtering.js:164` `handleRequest(details, callback)`                                                        |
+| Session registration                   | `main/filtering.js:250` `registerFiltering(ses)`; `:255` default session; `:258` `app.on('session-created', ...)` |
+| Element-type mapping to Electron       | `main/filtering.js:67` `electronABPElementTypeMap`                                                                |
+| Tracking-param stripping               | `main/filtering.js:13` `globalParamsToRemove`, `:31` `siteParamsToRemove`, `:147` `removeTrackingParams`          |
+| Popup blocking                         | `main/filtering.js:126` `filterPopups`                                                                            |
+| Parser (vendored, modified)            | `ext/abp-filter-parser-modified/abp-filter-parser.js`                                                             |
+| Renderer toggle UI / exception domains | `js/navbar/contentBlockingToggle.js`                                                                              |
+| Content-type blocking (JS etc.)        | `main/viewManager.js:28` (`javascript:` pref), `js/util/settings/`                                                |
 
 ### 3.7 Filter-list updates
 
 **Filter lists are static, vendored, and never updated at runtime.** There is no auto-update, no network fetch, no cache, no version check in the shipped app.
 
-| Item | Path |
-|---|---|
-| Bundled blocklist (2,703,896 bytes) | `ext/filterLists/easylist+easyprivacy-noelementhiding.txt` |
-| Min-specific rules (41 bytes) | `ext/filterLists/minFilters.txt` |
-| User rules | `<userData>/customFilters.txt` (read at `main/filtering.js:103`) |
-| Manual refresh script | `ext/filterLists/updateEasylist.js` → `npm run updateFilters` (https GET, then `fs.writeFileSync` at line 52) |
-| Related list updaters | `ext/httpsUpgrade/updateHttpsList.js` (`npm run updateHttpsList`), `ext/publicSuffixes/updateSuffixes.js` (`npm run updateSuffixes`) |
+| Item                                | Path                                                                                                                                 |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Bundled blocklist (2,703,896 bytes) | `ext/filterLists/easylist+easyprivacy-noelementhiding.txt`                                                                           |
+| Min-specific rules (41 bytes)       | `ext/filterLists/minFilters.txt`                                                                                                     |
+| User rules                          | `<userData>/customFilters.txt` (read at `main/filtering.js:103`)                                                                     |
+| Manual refresh script               | `ext/filterLists/updateEasylist.js` → `npm run updateFilters` (https GET, then `fs.writeFileSync` at line 52)                        |
+| Related list updaters               | `ext/httpsUpgrade/updateHttpsList.js` (`npm run updateHttpsList`), `ext/publicSuffixes/updateSuffixes.js` (`npm run updateSuffixes`) |
 
 Reload happens only by re-invoking `initFilterList()` (`main/filtering.js:242`), triggered by settings changes — the underlying text file is fixed at build time.
 
 ### 3.8 Tests and CI
 
-| Item | Path |
-|---|---|
-| Only "test" script | `package.json` → `"test": "standard --verbose js/**/*.js main/*.js"` — **lint only, zero unit/integration tests** |
-| Lint script (mutating) | `package.json` → `"lint": "prettier --write ... && standard --fix ... | snazzy"` |
-| CI workflows | `.github/workflows/build-packages.yml` — **the only workflow** |
-| CI trigger | `on: [workflow_dispatch]` — manual only; **nothing runs on push or PR** |
-| CI steps | checkout → setup-node 25 → `npm install --omit=optional` → one `build*` command → upload artifact |
-| Test/lint in CI | **none.** No job runs `npm test` or `npm run lint`. |
-| Build scripts | `scripts/buildMain.js`, `buildBrowser.js` (browserify), `buildBrowserStyles.js`, `buildPreload.js`, `buildLocalization.js`, `watch.js` |
-| Packaging | `scripts/createPackage.js` (electron-builder API), `buildWindows.js`, `buildMac.js`, `buildDebian.js`, `buildRedhat.js`, `buildAppImage.js` |
-| Post-install fuse flipping | `scripts/setupDevEnv.js` (`postinstall`) — `@electron/fuses`, disables `GrantFileProtocolExtraPrivileges` |
+| Item                       | Path                                                                                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Only "test" script         | `package.json` → `"test": "standard --verbose js/**/*.js main/*.js"` — **lint only, zero unit/integration tests**                           |
+| Lint script (mutating)     | `package.json` → `"lint": "prettier --write ... && standard --fix ...                                                                       | snazzy"` |
+| CI workflows               | `.github/workflows/build-packages.yml` — **the only workflow**                                                                              |
+| CI trigger                 | `on: [workflow_dispatch]` — manual only; **nothing runs on push or PR**                                                                     |
+| CI steps                   | checkout → setup-node 25 → `npm install --omit=optional` → one `build*` command → upload artifact                                           |
+| Test/lint in CI            | **none.** No job runs `npm test` or `npm run lint`.                                                                                         |
+| Build scripts              | `scripts/buildMain.js`, `buildBrowser.js` (browserify), `buildBrowserStyles.js`, `buildPreload.js`, `buildLocalization.js`, `watch.js`      |
+| Packaging                  | `scripts/createPackage.js` (electron-builder API), `buildWindows.js`, `buildMac.js`, `buildDebian.js`, `buildRedhat.js`, `buildAppImage.js` |
+| Post-install fuse flipping | `scripts/setupDevEnv.js` (`postinstall`) — `@electron/fuses`, disables `GrantFileProtocolExtraPrivileges`                                   |
 
 ### 3.9 Electron Builder configuration
 
@@ -290,20 +290,20 @@ standard: Use JavaScript Standard Style (https://standardjs.com)
 
 Breakdown by rule:
 
-| Rule | Count |
-|---|---|
-| `no-undef` | 446 |
-| `indent` | 35 |
-| `spaced-comment` | 20 |
-| `semi` | 20 |
-| `no-unused-vars` | 16 |
-| `space-before-function-paren` | 14 |
-| `object-curly-spacing` | 14 |
-| `no-redeclare` | 10 |
-| `prefer-promise-reject-errors` | 4 |
-| `no-unreachable` | 4 |
-| `operator-linebreak` | 3 |
-| others | 57 |
+| Rule                           | Count |
+| ------------------------------ | ----- |
+| `no-undef`                     | 446   |
+| `indent`                       | 35    |
+| `spaced-comment`               | 20    |
+| `semi`                         | 20    |
+| `no-unused-vars`               | 16    |
+| `space-before-function-paren`  | 14    |
+| `object-curly-spacing`         | 14    |
+| `no-redeclare`                 | 10    |
+| `prefer-promise-reject-errors` | 4     |
+| `no-unreachable`               | 4     |
+| `operator-linebreak`           | 3     |
+| others                         | 57    |
 
 **This failure is upstream, not caused by this audit.** The tree is byte-identical to the archive (§1). The dominant cause is structural: 446 of 643 errors are `no-undef` for identifiers (`ipc`, `app`, `windows`, `destroyAllViews`, `getWindowWebContents`, `electron`, `DOMParser`) that exist only because `scripts/buildMain.js` concatenates files into one shared scope. `standard` lints each file in isolation and cannot see them. The `test` script cannot pass as written for this architecture.
 
@@ -386,14 +386,14 @@ Runtime userData created at `C:\Users\AKS-PC\AppData\Roaming\Min-development\` (
 
 ### Created by this audit
 
-| Path | Nature |
-|---|---|
-| `docs/BASELINE.md` | **the only intentional addition** |
-| `min-v1.35.7-source.zip` | downloaded archive (provenance artifact) |
-| `package-lock.json` | generated by `npm install` (383,044 bytes) — did not exist upstream |
-| `main.build.js` | generated by `npm run build` |
-| `dist/build.js`, `dist/bundle.js`, `dist/bundle.css`, `dist/localization.build.js`, `dist/preload.js` | generated by `npm run build` |
-| `node_modules/` | generated by `npm install` |
+| Path                                                                                                  | Nature                                                              |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `docs/BASELINE.md`                                                                                    | **the only intentional addition**                                   |
+| `min-v1.35.7-source.zip`                                                                              | downloaded archive (provenance artifact)                            |
+| `package-lock.json`                                                                                   | generated by `npm install` (383,044 bytes) — did not exist upstream |
+| `main.build.js`                                                                                       | generated by `npm run build`                                        |
+| `dist/build.js`, `dist/bundle.js`, `dist/bundle.css`, `dist/localization.build.js`, `dist/preload.js` | generated by `npm run build`                                        |
+| `node_modules/`                                                                                       | generated by `npm install`                                          |
 
 ### Modified
 
@@ -413,21 +413,21 @@ No repository was initialised. No clone, branch, commit, tag, or stash was creat
 
 ## 8. Baseline failures and warnings (summary)
 
-| # | Item | Status |
-|---|---|---|
-| F1 | `npm ci` | **FAIL** — no lockfile exists upstream |
-| F2 | `npm test` (`standard`) | **FAIL** — exit 1, 643 problems (446 `no-undef`) |
-| F3 | `prettier --check` | **FAIL** — exit 1, 37 unformatted files |
-| F4 | `npm install` | PASS — exit 0, but 28 vulnerabilities (17 high, 2 critical) |
-| F5 | `npm run build` | PASS — exit 0 |
-| F6 | `npm run start` | PASS — window `Min` confirmed on screen |
-| W1 | `.nvmrc` `15.7.0` vs CI Node 25 | Contradictory, stale metadata |
-| W2 | No `engines` field | Runtime is unenforced |
-| W3 | `UnknownVizError` at startup | Non-fatal GPU/viz rejection |
-| W4 | Electron 43 deprecation warnings | `canGoBack` / `canGoForward` |
-| W5 | `node-linker` unrecognised by npm 11 | Future npm breakage |
-| W6 | README lists `buildRaspi` / `buildLinuxArm64` | **Absent from `package.json`** — those commands fail |
-| W7 | No CI runs tests or lint | No regression safety net exists |
+| #   | Item                                          | Status                                                      |
+| --- | --------------------------------------------- | ----------------------------------------------------------- |
+| F1  | `npm ci`                                      | **FAIL** — no lockfile exists upstream                      |
+| F2  | `npm test` (`standard`)                       | **FAIL** — exit 1, 643 problems (446 `no-undef`)            |
+| F3  | `prettier --check`                            | **FAIL** — exit 1, 37 unformatted files                     |
+| F4  | `npm install`                                 | PASS — exit 0, but 28 vulnerabilities (17 high, 2 critical) |
+| F5  | `npm run build`                               | PASS — exit 0                                               |
+| F6  | `npm run start`                               | PASS — window `Min` confirmed on screen                     |
+| W1  | `.nvmrc` `15.7.0` vs CI Node 25               | Contradictory, stale metadata                               |
+| W2  | No `engines` field                            | Runtime is unenforced                                       |
+| W3  | `UnknownVizError` at startup                  | Non-fatal GPU/viz rejection                                 |
+| W4  | Electron 43 deprecation warnings              | `canGoBack` / `canGoForward`                                |
+| W5  | `node-linker` unrecognised by npm 11          | Future npm breakage                                         |
+| W6  | README lists `buildRaspi` / `buildLinuxArm64` | **Absent from `package.json`** — those commands fail        |
+| W7  | No CI runs tests or lint                      | No regression safety net exists                             |
 
 ---
 
@@ -487,12 +487,12 @@ Audited: 2026-10-16 (UTC). Builds on §1–§10 above. No git used.
 
 ### 11.1 What was added
 
-| Path | Nature |
-|---|---|
-| `scripts/smoke-baseline.js` | **new file** — the harness. Not part of Min's product code; not referenced by any Min build step. |
-| `package.json` | **modified** — exactly one added script line (diff below) |
+| Path                              | Nature                                                                                                                                          |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/smoke-baseline.js`       | **new file** — the harness. Not part of Min's product code; not referenced by any Min build step.                                               |
+| `package.json`                    | **modified** — exactly one added script line (diff below)                                                                                       |
 | `docs/backups/P0-02/package.json` | **backup** of `package.json` taken before the edit (byte-identical, SHA-256 `e393ebfdf3e1ed4101ea28da88fc5edc85cc70e6217c56511dc9e4923e988e39`) |
-| `docs/smoke-baseline.json` | generated evidence file, overwritten each run |
+| `docs/smoke-baseline.json`        | generated evidence file, overwritten each run                                                                                                   |
 
 No other file was touched. `main.build.js`, `dist/`, `node_modules/` were regenerated by the build but are generated artifacts.
 
@@ -523,13 +523,13 @@ Optional: `SMOKE_TIMEOUT_MS=120000 npm run smoke:baseline` to lengthen the launc
 
 ### 11.4 What it checks
 
-| # | Check | How it is verified |
-|---|---|---|
-| 1 | `npm run build` exits 0 | `spawnSync` exit code + duration |
-| 2 | Electron main process is running | an `electron.exe` whose command line contains `--development-mode` and **no** `--type=` |
-| 3 | A top-level window title contains `Min` | Win32 `MainWindowTitle` via `Get-Process` |
-| 4 | ≥1 loaded `webContents` (a real tab) | an `electron.exe` renderer with `--type=renderer` **and** `--enable-sandbox` |
-| 5 | Process tree terminated cleanly | post-teardown snapshot: 0 workspace-owned `electron.exe`, 0 workspace-owned dev-helper `node.exe` |
+| #   | Check                                   | How it is verified                                                                                |
+| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1   | `npm run build` exits 0                 | `spawnSync` exit code + duration                                                                  |
+| 2   | Electron main process is running        | an `electron.exe` whose command line contains `--development-mode` and **no** `--type=`           |
+| 3   | A top-level window title contains `Min` | Win32 `MainWindowTitle` via `Get-Process`                                                         |
+| 4   | ≥1 loaded `webContents` (a real tab)    | an `electron.exe` renderer with `--type=renderer` **and** `--enable-sandbox`                      |
+| 5   | Process tree terminated cleanly         | post-teardown snapshot: 0 workspace-owned `electron.exe`, 0 workspace-owned dev-helper `node.exe` |
 
 **Why check 4 needs no instrumentation.** Min creates tab views with `sandbox: true` (`main/viewManager.js:19`), while its own privileged UI windows (`BrowserWindow` sites in `main/main.js`, `main/prompt.js`) run with `nodeIntegration` and appear as `--no-sandbox` renderers. So a renderer carrying `--enable-sandbox` is a genuine web-content view. Observed steady state: `tabRenderers=1 uiRenderers=2`. No code is injected into the app, no debugging port is opened, and no Min source is modified to observe this.
 
@@ -572,7 +572,7 @@ SMOKE_EXIT=0  DURATION=11s
 
 Determinism: the two runs produced an **identical process shape** — `{allPassed:true, build:0, main:1, tabs:1, ui:2, electron:7, after:[0,0]}`. The 73s vs 11s difference is cold-start plus orphan reaping, not assertion variance.
 
-Window title observed: `extension at DuckDuckGo | Min`. This is Min's own title format `<tab title> | Min` (`js/browserUI.js:157-161`), i.e. a real remote page finished loading in the restored tab. The assertion only requires the title to *contain* `Min`, so it still passes if the restored tab fails to load (title would then be exactly `Min`).
+Window title observed: `extension at DuckDuckGo | Min`. This is Min's own title format `<tab title> | Min` (`js/browserUI.js:157-161`), i.e. a real remote page finished loading in the restored tab. The assertion only requires the title to _contain_ `Min`, so it still passes if the restored tab fails to load (title would then be exactly `Min`).
 
 ### 11.7 Teardown evidence
 
@@ -584,7 +584,7 @@ The pre-flight reap in run 1 did kill leftovers of an earlier interrupted manual
 
 ### 11.8 Note on `launch.exitCode`
 
-The recorded `launch.exitCode` is **1**. That is *not* a failure: it is `concurrently` reporting that its children were force-killed by the harness. The harness deliberately ignores it and asserts on window/process evidence instead. Do not treat it as a regression signal.
+The recorded `launch.exitCode` is **1**. That is _not_ a failure: it is `concurrently` reporting that its children were force-killed by the harness. The harness deliberately ignores it and asserts on window/process evidence instead. Do not treat it as a regression signal.
 
 Launch warnings captured (same as §6.3, unchanged): `util._extend` DEP0060, `webContents.canGoBack`/`canGoForward` Electron 43 deprecations.
 
@@ -592,12 +592,12 @@ Launch warnings captured (same as §6.3, unchanged): `util._extend` DEP0060, `we
 
 These are **excluded on purpose**, not fixed. Do not add them to a pass/fail gate.
 
-| Command | Status | Evidence | Why excluded |
-|---|---|---|---|
-| `npm ci` | **impossible** | `EUSAGE … can only install with an existing package-lock.json or npm-shrinkwrap.json` (exit 1) | Upstream v1.35.7 ships **no lockfile of any kind**. Use `npm install` (README line 56) / `npm install --omit=optional` (CI). |
-| `npm test` | **known failing** | exit 1, **643 problems**, **446 `no-undef`** | Upstream failure on an unmodified tree (§5.1). `standard` lints files in isolation but the main bundle relies on a shared global scope from `scripts/buildMain.js`, so the script cannot pass as written. |
-| `prettier --check` | **known failing** | exit 1, **37 files** unformatted | Upstream formatting drift (§5.3). |
-| `npm run lint` | **never run** | — | It is `prettier --write` + `standard --fix`; it **rewrites sources**. Running it would create a 37-file unrelated diff and violate the no-source-change constraint. |
+| Command            | Status            | Evidence                                                                                       | Why excluded                                                                                                                                                                                              |
+| ------------------ | ----------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm ci`           | **impossible**    | `EUSAGE … can only install with an existing package-lock.json or npm-shrinkwrap.json` (exit 1) | Upstream v1.35.7 ships **no lockfile of any kind**. Use `npm install` (README line 56) / `npm install --omit=optional` (CI).                                                                              |
+| `npm test`         | **known failing** | exit 1, **643 problems**, **446 `no-undef`**                                                   | Upstream failure on an unmodified tree (§5.1). `standard` lints files in isolation but the main bundle relies on a shared global scope from `scripts/buildMain.js`, so the script cannot pass as written. |
+| `prettier --check` | **known failing** | exit 1, **37 files** unformatted                                                               | Upstream formatting drift (§5.3).                                                                                                                                                                         |
+| `npm run lint`     | **never run**     | —                                                                                              | It is `prettier --write` + `standard --fix`; it **rewrites sources**. Running it would create a 37-file unrelated diff and violate the no-source-change constraint.                                       |
 
 The smoke harness deliberately gates on **build + launch + window + tab + teardown** only. It does not invoke `npm test`, `npm run lint`, or `prettier`.
 
@@ -609,26 +609,26 @@ Design-level evaluation only. **No extension API, manager UI, or product code wa
 
 Electron 43.0.0 ships Chromium `150.0.7871.46`. Citations are from the pinned `43-x-y` branch.
 
-| Capability | Status in 43.4.1 | Source |
-|---|---|---|
-| `ses.loadExtension()` | **Deprecated** since Electron 36 → use **`ses.extensions.loadExtension()`** | [session.md](https://github.com/electron/electron/blob/43-x-y/docs/api/session.md), [breaking-changes.md](https://github.com/electron/electron/blob/43-x-y/docs/breaking-changes.md) |
-| Packed `.crx` | **Not supported** — unpacked only | [extensions-api.md](https://github.com/electron/electron/blob/43-x-y/docs/api/extensions-api.md) |
-| Persistence across boots | **None** — must re-call every boot; persistent sessions only; not before `app` ready | same |
-| MV3 service workers | **Work, CI-tested** (register/launch/restart, can call extension APIs) | [extensions.spec.ts](https://github.com/electron/electron/blob/43-x-y/spec/extensions.spec.ts) |
-| MV3 `webRequest` bindings bug | Fixed in **43.3.0** ([#52265](https://github.com/electron/electron/issues/52265) / PR [#52503](https://github.com/electron/electron/pull/52503)) → **43.4.1 includes the fix** | [v43.3.0 notes](https://github.com/electron/electron/releases/tag/v43.3.0) |
-| Content scripts + content CSS | **Work, CI-tested** incl. `run_at` (document_start/idle/end) and `all_frames`, in a real isolated world | [extensions.spec.ts](https://github.com/electron/electron/blob/43-x-y/spec/extensions.spec.ts) |
-| `chrome.scripting` (incl. `executeScript`, `insertCSS`, `registerContentScripts`) | **Documented, all supported** | [extensions.md](https://github.com/electron/electron/blob/43-x-y/docs/api/extensions.md) |
-| `chrome.runtime` (sendMessage/onMessage/getURL/connect/id/getManifest) | **Documented, supported** | same |
-| `chrome.storage.local` | Supported — but **`storage.sync` and `storage.managed` are NOT** | same |
-| `chrome.tabs` | **Partial** (query/update/sendMessage/reload/executeScript); `-1` tabId errors | same |
-| `chrome.webRequest` (observing) | Supported; Electron's own `ses.webRequest` takes precedence | same |
-| `chrome.webRequest` **blocking** | **MV2 only.** Chromium 150 gates `webRequestBlocking` to `max_manifest_version: 2`, or MV3 only when `location: "policy"` — `loadExtension()` is not a policy install | [_permission_features.json](https://raw.githubusercontent.com/chromium/chromium/main/extensions/common/api/_permission_features.json) |
-| `declarativeNetRequest` | **Unverifiable / treat as unsupported** — no Electron docs, no tests, no wiring. Electron is designing its own replacement (`session.webRequest.setHeaderRules()`, PR [#53222](https://github.com/electron/electron/pull/53222), still open) | — |
-| `chrome.action` / `browserAction` / `pageAction` | **Hard no-op.** Every method logs `"chrome.action.X is not supported in Electron"`; `isEnabled`→false, `openPopup`→`""` | [extension_action_api.cc](https://github.com/electron/electron/blob/43-x-y/shell/browser/extensions/api/extension_action/extension_action_api.cc) |
-| Extension **popup UI** | **Not rendered.** `AllowPopup()` returns `false`; there is no toolbar | [electron_extensions_renderer_client.cc](https://github.com/electron/electron/blob/43-x-y/shell/renderer/extensions/electron_extensions_renderer_client.cc) |
-| Options page (`options_ui`, `runtime.openOptionsPage`) | Not in supported manifest keys — **unverified, likely non-functional**. Extension pages work only if you load the `chrome-extension://` URL yourself | [extensions.spec.ts](https://github.com/electron/electron/blob/43-x-y/spec/extensions.spec.ts) |
-| `cookies`, `contextMenus`, `commands`, `notifications`, `alarms`, `downloads`, `history`, `bookmarks`, `omnibox`, `sidePanel`, `offscreen`, `contentScripts` | **Undocumented ⇒ "provisional and may be removed"**; `cookies` PR [#22464](https://github.com/electron/electron/pull/22464) never merged; `contextMenus` [#50331](https://github.com/electron/electron/issues/50331) closed `not_planned`; `sidePanel` [#49830](https://github.com/electron/electron/issues/49830) | — |
-| Enumeration / removal | `ses.extensions.removeExtension()`, `getExtension()`, `getAllExtensions()`. **There is no `session.getExtensions()`** | [session.md](https://github.com/electron/electron/blob/43-x-y/docs/api/session.md) |
+| Capability                                                                                                                                                   | Status in 43.4.1                                                                                                                                                                                                                                                                                                   | Source                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ses.loadExtension()`                                                                                                                                        | **Deprecated** since Electron 36 → use **`ses.extensions.loadExtension()`**                                                                                                                                                                                                                                        | [session.md](https://github.com/electron/electron/blob/43-x-y/docs/api/session.md), [breaking-changes.md](https://github.com/electron/electron/blob/43-x-y/docs/breaking-changes.md) |
+| Packed `.crx`                                                                                                                                                | **Not supported** — unpacked only                                                                                                                                                                                                                                                                                  | [extensions-api.md](https://github.com/electron/electron/blob/43-x-y/docs/api/extensions-api.md)                                                                                     |
+| Persistence across boots                                                                                                                                     | **None** — must re-call every boot; persistent sessions only; not before `app` ready                                                                                                                                                                                                                               | same                                                                                                                                                                                 |
+| MV3 service workers                                                                                                                                          | **Work, CI-tested** (register/launch/restart, can call extension APIs)                                                                                                                                                                                                                                             | [extensions.spec.ts](https://github.com/electron/electron/blob/43-x-y/spec/extensions.spec.ts)                                                                                       |
+| MV3 `webRequest` bindings bug                                                                                                                                | Fixed in **43.3.0** ([#52265](https://github.com/electron/electron/issues/52265) / PR [#52503](https://github.com/electron/electron/pull/52503)) → **43.4.1 includes the fix**                                                                                                                                     | [v43.3.0 notes](https://github.com/electron/electron/releases/tag/v43.3.0)                                                                                                           |
+| Content scripts + content CSS                                                                                                                                | **Work, CI-tested** incl. `run_at` (document_start/idle/end) and `all_frames`, in a real isolated world                                                                                                                                                                                                            | [extensions.spec.ts](https://github.com/electron/electron/blob/43-x-y/spec/extensions.spec.ts)                                                                                       |
+| `chrome.scripting` (incl. `executeScript`, `insertCSS`, `registerContentScripts`)                                                                            | **Documented, all supported**                                                                                                                                                                                                                                                                                      | [extensions.md](https://github.com/electron/electron/blob/43-x-y/docs/api/extensions.md)                                                                                             |
+| `chrome.runtime` (sendMessage/onMessage/getURL/connect/id/getManifest)                                                                                       | **Documented, supported**                                                                                                                                                                                                                                                                                          | same                                                                                                                                                                                 |
+| `chrome.storage.local`                                                                                                                                       | Supported — but **`storage.sync` and `storage.managed` are NOT**                                                                                                                                                                                                                                                   | same                                                                                                                                                                                 |
+| `chrome.tabs`                                                                                                                                                | **Partial** (query/update/sendMessage/reload/executeScript); `-1` tabId errors                                                                                                                                                                                                                                     | same                                                                                                                                                                                 |
+| `chrome.webRequest` (observing)                                                                                                                              | Supported; Electron's own `ses.webRequest` takes precedence                                                                                                                                                                                                                                                        | same                                                                                                                                                                                 |
+| `chrome.webRequest` **blocking**                                                                                                                             | **MV2 only.** Chromium 150 gates `webRequestBlocking` to `max_manifest_version: 2`, or MV3 only when `location: "policy"` — `loadExtension()` is not a policy install                                                                                                                                              | [\_permission_features.json](https://raw.githubusercontent.com/chromium/chromium/main/extensions/common/api/_permission_features.json)                                               |
+| `declarativeNetRequest`                                                                                                                                      | **Unverifiable / treat as unsupported** — no Electron docs, no tests, no wiring. Electron is designing its own replacement (`session.webRequest.setHeaderRules()`, PR [#53222](https://github.com/electron/electron/pull/53222), still open)                                                                       | —                                                                                                                                                                                    |
+| `chrome.action` / `browserAction` / `pageAction`                                                                                                             | **Hard no-op.** Every method logs `"chrome.action.X is not supported in Electron"`; `isEnabled`→false, `openPopup`→`""`                                                                                                                                                                                            | [extension_action_api.cc](https://github.com/electron/electron/blob/43-x-y/shell/browser/extensions/api/extension_action/extension_action_api.cc)                                    |
+| Extension **popup UI**                                                                                                                                       | **Not rendered.** `AllowPopup()` returns `false`; there is no toolbar                                                                                                                                                                                                                                              | [electron_extensions_renderer_client.cc](https://github.com/electron/electron/blob/43-x-y/shell/renderer/extensions/electron_extensions_renderer_client.cc)                          |
+| Options page (`options_ui`, `runtime.openOptionsPage`)                                                                                                       | Not in supported manifest keys — **unverified, likely non-functional**. Extension pages work only if you load the `chrome-extension://` URL yourself                                                                                                                                                               | [extensions.spec.ts](https://github.com/electron/electron/blob/43-x-y/spec/extensions.spec.ts)                                                                                       |
+| `cookies`, `contextMenus`, `commands`, `notifications`, `alarms`, `downloads`, `history`, `bookmarks`, `omnibox`, `sidePanel`, `offscreen`, `contentScripts` | **Undocumented ⇒ "provisional and may be removed"**; `cookies` PR [#22464](https://github.com/electron/electron/pull/22464) never merged; `contextMenus` [#50331](https://github.com/electron/electron/issues/50331) closed `not_planned`; `sidePanel` [#49830](https://github.com/electron/electron/issues/49830) | —                                                                                                                                                                                    |
+| Enumeration / removal                                                                                                                                        | `ses.extensions.removeExtension()`, `getExtension()`, `getAllExtensions()`. **There is no `session.getExtensions()`**                                                                                                                                                                                              | [session.md](https://github.com/electron/electron/blob/43-x-y/docs/api/session.md)                                                                                                   |
 
 Supporting extension-store installs is an explicit Electron **non-goal** ([extensions.md](https://github.com/electron/electron/blob/43-x-y/docs/api/extensions.md)).
 
@@ -660,18 +660,18 @@ What **is** available and CI-tested upstream — content scripts + CSS with `run
 
 Rationale — Min's userscript host is the smaller change but is materially weaker, and the gaps are in the exact places a feasibility slice must prove:
 
-| Gap in Min's userscript host | Evidence |
-|---|---|
-| **No `GM_*` API surface at all** — real-world Tampermonkey scripts using `GM_xmlhttpRequest`/`GM_setValue` throw immediately | `grep GM_ js/` → zero hits |
-| Match patterns are a **naive ordered-substring test**, not Chrome/Tampermonkey match patterns; `https://*.example.com/*` over-matches | `js/userscripts.js:57-68` |
+| Gap in Min's userscript host                                                                                                                               | Evidence                        |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| **No `GM_*` API surface at all** — real-world Tampermonkey scripts using `GM_xmlhttpRequest`/`GM_setValue` throw immediately                               | `grep GM_ js/` → zero hits      |
+| Match patterns are a **naive ordered-substring test**, not Chrome/Tampermonkey match patterns; `https://*.example.com/*` over-matches                      | `js/userscripts.js:57-68`       |
 | `run-at` is parsed but **explicitly not honoured** — upstream `// TODO run different types of scripts at the correct time`; everything runs at `dom-ready` | `js/userscripts.js:194`, `:214` |
-| Injection is `executeJavaScript` in the page's **main world** — no isolated world, so page script can see/tamper with the userscript | `js/userscripts.js:184` |
-| No extension storage, no messaging channel, no CSS injection API | — |
-| Gated behind `userscriptsEnabled`, which has **no default in code** (only `settings.listen`) | `js/userscripts.js:205` |
+| Injection is `executeJavaScript` in the page's **main world** — no isolated world, so page script can see/tamper with the userscript                       | `js/userscripts.js:184`         |
+| No extension storage, no messaging channel, no CSS injection API                                                                                           | —                               |
+| Gated behind `userscriptsEnabled`, which has **no default in code** (only `settings.listen`)                                                               | `js/userscripts.js:205`         |
 
 Electron's host gives isolated worlds, CI-tested `run_at`/`all_frames`, `chrome.scripting`, `chrome.storage.local` and `chrome.runtime` messaging **for free**, on the platform's supported path. Attaching it is small: `app.on('session-created')` is already used at `main/filtering.js:258`.
 
-**Fallback (documented, not chosen):** if the slice turns out to require toolbar buttons, popups, or an options page, `loadExtension` cannot deliver them and the userscript path (plus Min-native UI) becomes the pragmatic route. Decide this *before* writing slice code, not after.
+**Fallback (documented, not chosen):** if the slice turns out to require toolbar buttons, popups, or an options page, `loadExtension` cannot deliver them and the userscript path (plus Min-native UI) becomes the pragmatic route. Decide this _before_ writing slice code, not after.
 
 ### 13.5 Approval-ready next scope (P0-03)
 
@@ -689,13 +689,13 @@ Smallest slice that proves the route, with explicit exclusions:
 
 ## 14. P0-02 changed files (summary)
 
-| Path | Change |
-|---|---|
-| `scripts/smoke-baseline.js` | created |
-| `package.json` | modified — 1 added line (§11.2) |
+| Path                              | Change                                    |
+| --------------------------------- | ----------------------------------------- |
+| `scripts/smoke-baseline.js`       | created                                   |
+| `package.json`                    | modified — 1 added line (§11.2)           |
 | `docs/backups/P0-02/package.json` | created (pre-edit backup, byte-identical) |
-| `docs/smoke-baseline.json` | created (generated evidence) |
-| `docs/BASELINE.md` | modified — §7 cross-ref + §11–§14 added |
+| `docs/smoke-baseline.json`        | created (generated evidence)              |
+| `docs/BASELINE.md`                | modified — §7 cross-ref + §11–§14 added   |
 
 Verified product diff against the pristine archive:
 
@@ -745,7 +745,7 @@ At t=469ms the main process and the window already exist, and the window title i
 
 ### 15.2 The state dependency
 
-Under `npm run start` the tab set came from **session restore**, not from the harness. The P0-02 runs prove it — the observed window title changed run to run (`extension at DuckDuckGo | Min`, then `Chrome Web Store | Min`), i.e. the harness was asserting on user profile state it neither created nor controlled. Min does normally create a tab (`js/sessionRestore.js:84-104`: first run opens the tour, a non-restorable state falls back to `browserUI.addTab(tasks.getSelected().tabs.add())`, and a task with zero tabs gets `tabs.add()`), but *which* tab, whether it had committed by the time of evaluation, and whether the internal `min://newtab` view loaded were all outside the harness's control.
+Under `npm run start` the tab set came from **session restore**, not from the harness. The P0-02 runs prove it — the observed window title changed run to run (`extension at DuckDuckGo | Min`, then `Chrome Web Store | Min`), i.e. the harness was asserting on user profile state it neither created nor controlled. Min does normally create a tab (`js/sessionRestore.js:84-104`: first run opens the tour, a non-restorable state falls back to `browserUI.addTab(tasks.getSelected().tabs.add())`, and a task with zero tabs gets `tabs.add()`), but _which_ tab, whether it had committed by the time of evaluation, and whether the internal `min://newtab` view loaded were all outside the harness's control.
 
 ### 15.3 The early-break amplifier
 
@@ -786,11 +786,11 @@ This works through Min's own argv handling, not through any new mechanism: `main
 
 All three invoked as `npm run smoke:baseline`.
 
-| # | Exit | Wall | `npm run build` | main | tabRenderers | uiRenderers | Window title | After teardown (electron, devHelpers) | `taskkill /F /T` exit | Strays reaped | Temp file cleanup |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | **0** | 7s | 0 (1531ms) | 1 | **1** | 2 | `Min Agent Smoke Tab \| Min` | (0, 0) | 0 | none | `{removed:true, stillPresent:false}` |
-| 2 | **0** | 7s | 0 (1519ms) | 1 | **1** | 2 | `Min Agent Smoke Tab \| Min` | (0, 0) | 0 | none | `{removed:true, stillPresent:false}` |
-| 3 | **0** | 6s | 0 (1524ms) | 1 | **1** | 2 | `Min Agent Smoke Tab \| Min` | (0, 0) | 0 | none | `{removed:true, stillPresent:false}` |
+| #   | Exit  | Wall | `npm run build` | main | tabRenderers | uiRenderers | Window title                 | After teardown (electron, devHelpers) | `taskkill /F /T` exit | Strays reaped | Temp file cleanup                    |
+| --- | ----- | ---- | --------------- | ---- | ------------ | ----------- | ---------------------------- | ------------------------------------- | --------------------- | ------------- | ------------------------------------ |
+| 1   | **0** | 7s   | 0 (1531ms)      | 1    | **1**        | 2           | `Min Agent Smoke Tab \| Min` | (0, 0)                                | 0                     | none          | `{removed:true, stillPresent:false}` |
+| 2   | **0** | 7s   | 0 (1519ms)      | 1    | **1**        | 2           | `Min Agent Smoke Tab \| Min` | (0, 0)                                | 0                     | none          | `{removed:true, stillPresent:false}` |
+| 3   | **0** | 6s   | 0 (1524ms)      | 1    | **1**        | 2           | `Min Agent Smoke Tab \| Min` | (0, 0)                                | 0                     | none          | `{removed:true, stillPresent:false}` |
 
 Representative output:
 
@@ -827,12 +827,12 @@ The `finally` block removed the pre-existing sentinel and its directory even tho
 
 ## 19. P0-02A changed files and backups
 
-| Path | Change |
-|---|---|
-| `scripts/smoke-baseline.js` | **modified** — controlled tab file, direct Electron launch, `try/finally` cleanup, machine-neutral evidence fields, one extra check |
+| Path                                            | Change                                                                                                                                  |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/smoke-baseline.js`                     | **modified** — controlled tab file, direct Electron launch, `try/finally` cleanup, machine-neutral evidence fields, one extra check     |
 | `docs/backups/P0-02A/scripts-smoke-baseline.js` | **created** — pre-edit backup, byte-identical (`cmp` clean), SHA-256 `af779e3535bd03bf487ee308b7e3ecc413a2bdc48a3d9ed6ac1157101862de63` |
-| `docs/BASELINE.md` | modified — §11 superseded banner, §14.1 note, §15–§19 added |
-| `docs/smoke-baseline.json` | regenerated by the runs |
+| `docs/BASELINE.md`                              | modified — §11 superseded banner, §14.1 note, §15–§19 added                                                                             |
+| `docs/smoke-baseline.json`                      | regenerated by the runs                                                                                                                 |
 
 `package.json` was **not** modified in P0-02A (its P0-02 backup in `docs/backups/P0-02/package.json` remains the relevant one).
 
@@ -858,15 +858,15 @@ Audited: 2026-10-16 (UTC). Gate for Phase 2. Full capability matrix lives in **`
 
 A **gated, development-only** extension host plus a feasibility fixture. No manager UI, no install/remove path, no CRX, no store integration, no blocker changes.
 
-| Path | Nature |
-|---|---|
-| `main/extensionHost.js` | **new** — shared-global style, no `module.exports`; loads exactly one hard-coded path |
-| `extensions/test-min-agent-extension/{manifest.json,content.js,content.css,background.js}` | **new** — MV3 feasibility fixture |
-| `scripts/buildMain.js` | **modified** — one module appended |
-| `js/preload/siteUnbreak.js` | **modified** — `window.chrome` stub made conditional |
-| `scripts/extension-probe.js` | **new** — dev-only evidence generator (`'!scripts/'` excludes it from packages) |
-| `docs/EXTENSION-COMPATIBILITY.md` | **new** |
-| `docs/extension-probe.json` | generated evidence |
+| Path                                                                                       | Nature                                                                                |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `main/extensionHost.js`                                                                    | **new** — shared-global style, no `module.exports`; loads exactly one hard-coded path |
+| `extensions/test-min-agent-extension/{manifest.json,content.js,content.css,background.js}` | **new** — MV3 feasibility fixture                                                     |
+| `scripts/buildMain.js`                                                                     | **modified** — one module appended                                                    |
+| `js/preload/siteUnbreak.js`                                                                | **modified** — `window.chrome` stub made conditional                                  |
+| `scripts/extension-probe.js`                                                               | **new** — dev-only evidence generator (`'!scripts/'` excludes it from packages)       |
+| `docs/EXTENSION-COMPATIBILITY.md`                                                          | **new**                                                                               |
+| `docs/extension-probe.json`                                                                | generated evidence                                                                    |
 
 Backups taken before editing: `docs/backups/P0-03/scripts_buildMain.js`, `docs/backups/P0-03/js_preload_siteUnbreak.js`, `docs/backups/P0-03/js_util_settings_settingsMain.js` (all `cmp`-verified; settingsMain was ultimately left unchanged), and `docs/backups/P0-03/Min-development_settings.json` (the dev profile settings, temporarily flipped for one smoke run and then **restored byte-identical**).
 
@@ -994,12 +994,12 @@ Backup: `docs/backups/P0-04/scripts_createPackage.js` (`cmp`-verified before edi
 
 New fixture `extensions/test-min-agent-docstart/` — MV3, `content_scripts` with `"world": "MAIN"`, `run_at: "document_start"`, `all_frames: false`, matching only `http://127.0.0.1/*` and `https://example.com/*`. Kept in a **separate** extension so a manifest rejection cannot take down the ISOLATED control.
 
-Ordering is measured *inside the page's own inline `<head>` script*, which is the exact question being asked.
+Ordering is measured _inside the page's own inline `<head>` script_, which is the exact question being asked.
 
-| Target | ISOLATED world | MAIN world | Result |
-|---|---|---|---|
-| `http://127.0.0.1:<port>/probe.html` | `pageSawIsolated: "yes"` on every record | `pageSawMainWorld: "yes"` on every record | **PASS — both worlds arrive before page scripts** |
-| `file://` probe page (P0-03) | `documentStartSeenByPage: "no"` on every record | not tested then | **FAIL for `file://`** |
+| Target                               | ISOLATED world                                  | MAIN world                                | Result                                            |
+| ------------------------------------ | ----------------------------------------------- | ----------------------------------------- | ------------------------------------------------- |
+| `http://127.0.0.1:<port>/probe.html` | `pageSawIsolated: "yes"` on every record        | `pageSawMainWorld: "yes"` on every record | **PASS — both worlds arrive before page scripts** |
+| `file://` probe page (P0-03)         | `documentStartSeenByPage: "no"` on every record | not tested then                           | **FAIL for `file://`**                            |
 
 `"world": "MAIN"` is **accepted** by Chromium 150 in Electron 43.4.1 — the fixture loaded with **no manifest error**, `id=nkhdbhbikdgokhjabbfpplhphopnpchl`, and its script reached the page's JS context (the page script read `window.__minAgentSeq[0]`).
 
@@ -1011,11 +1011,11 @@ One fixture artefact is recorded rather than hidden: the `seq` attribute showed 
 
 A loopback-only HTTP server (`127.0.0.1`, ephemeral port, two fixed routes, closed on every exit path) served a page containing a **same-origin iframe**.
 
-| Target | Result | Evidence |
-|---|---|---|
-| same-origin iframe over `http://127.0.0.1` | **PASS** | `url: "http://127.0.0.1:<port>/frame.html"`, `senderFrameId: 5`, `isTop: false`, `cssMarkerSeen: "yes"` — repeated on both launches |
-| same-origin iframe over `file://` (P0-03) | **FAIL (not observed)** | only `senderFrameId: 0` |
-| `https` page with an iframe | **NOT TESTED** | `https://example.com/` has no controllable iframe; top-frame injection on `https` was confirmed (`senderFrameId: 0`, `css: "yes"`) but nothing about frames may be inferred |
+| Target                                     | Result                  | Evidence                                                                                                                                                                    |
+| ------------------------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| same-origin iframe over `http://127.0.0.1` | **PASS**                | `url: "http://127.0.0.1:<port>/frame.html"`, `senderFrameId: 5`, `isTop: false`, `cssMarkerSeen: "yes"` — repeated on both launches                                         |
+| same-origin iframe over `file://` (P0-03)  | **FAIL (not observed)** | only `senderFrameId: 0`                                                                                                                                                     |
+| `https` page with an iframe                | **NOT TESTED**          | `https://example.com/` has no controllable iframe; top-frame injection on `https` was confirmed (`senderFrameId: 0`, `css: "yes"`) but nothing about frames may be inferred |
 
 So P0-03's "not observed" was a **`file://` artefact**, not an Electron limitation.
 
@@ -1034,30 +1034,28 @@ So P0-03's "not observed" was a **`file://` artefact**, not an Electron limitati
 
 Gate preserved both ways, with the dev-profile `settings.json` flipped and then restored byte-identical:
 
-| Gate | Smoke | Host activity observed |
-|---|---|---|
+| Gate                              | Smoke                                          | Host activity observed                                                                        |
+| --------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `experimentalExtensionHost: true` | 6/6 PASS, `main=1`, `tabs=1`, teardown `[0,0]` | 13 `[extension-host]` lines; **both** fixtures loaded into `default` and `persist:webcontent` |
-| setting removed (restored) | 6/6 PASS, `tabs=1`, teardown `[0,0]` | **0** `[extension-host]` lines — nothing loads |
+| setting removed (restored)        | 6/6 PASS, `tabs=1`, teardown `[0,0]`           | **0** `[extension-host]` lines — nothing loads                                                |
 
 Post-run: 0 `electron.exe`, probe temp dir removed (`runDirRemoved: true`).
 
 ## 30. P0-04 changed files and backups
 
-| Path | Change |
-|---|---|
-| `scripts/createPackage.js` | **modified** — one `'!extensions/'` exclusion |
-| `main/extensionHost.js` | **modified** — fixture list, per-session slot tracking |
-| `extensions/test-min-agent-docstart/{manifest.json,main-world.js}` | **new** — MAIN-world fixture |
-| `extensions/test-min-agent-extension/{content.js,background.js}` | **modified** — ordering report + `minAgentOrder` storage key |
-| `scripts/extension-probe.js` | **rewritten** — loopback server, ordering, frame records, https control, retrying cleanup |
-| `docs/EXTENSION-COMPATIBILITY.md` | **modified** — §1/§2 definite results, §6 Phase-4 design note |
-| `docs/extension-probe.json` | regenerated |
+| Path                                                               | Change                                                                                    |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `scripts/createPackage.js`                                         | **modified** — one `'!extensions/'` exclusion                                             |
+| `main/extensionHost.js`                                            | **modified** — fixture list, per-session slot tracking                                    |
+| `extensions/test-min-agent-docstart/{manifest.json,main-world.js}` | **new** — MAIN-world fixture                                                              |
+| `extensions/test-min-agent-extension/{content.js,background.js}`   | **modified** — ordering report + `minAgentOrder` storage key                              |
+| `scripts/extension-probe.js`                                       | **rewritten** — loopback server, ordering, frame records, https control, retrying cleanup |
+| `docs/EXTENSION-COMPATIBILITY.md`                                  | **modified** — §1/§2 definite results, §6 Phase-4 design note                             |
+| `docs/extension-probe.json`                                        | regenerated                                                                               |
 
 Backups (all `cmp`-verified before editing): `docs/backups/P0-04/{scripts_createPackage.js, main_extensionHost.js, scripts_extension-probe.js, extensions_test-min-agent-extension_manifest.json, extensions_test-min-agent-extension_content.js, extensions_test-min-agent-extension_background.js}`.
 
 Min product files still differ from the pristine archive only at `js/preload/siteUnbreak.js`, `scripts/buildMain.js`, `scripts/createPackage.js`, and the one-line `package.json` script. No formatting changes anywhere.
-
-
 
 ---
 
@@ -1119,30 +1117,30 @@ Bonus from the same run: `pageSawIsolated: "yes"` and `pageSawMainWorld: "yes"` 
 
 ## 34. Regression evidence (P0-05)
 
-| Step | Result |
-|---|---|
-| `npm run build` | exit **0** |
-| `npm run smoke:baseline` ×3 | exit **0, 0, 0** — **6/6 PASS** each, 6–7s each |
-| `main` / `tabRenderers` | `main=1`, `tabRenderers=1`, `uiRenderers=2` |
-| teardown | `[0, 0]` (`electron=0 devHelpers=0`), `strayReap.killed=[]` |
-| host gate **enabled** | 6/6 PASS, 13 `[extension-host]` lines, both fixtures in `default` **and** `persist:webcontent`, remove probe **did not fire** (its setting unset) |
-| host gate **disabled** | 6/6 PASS, **0** `[extension-host]` lines |
-| dev profile `settings.json` | restored **byte-identical** (`cmp` clean) |
-| after all runs | 0 `electron.exe`, no `min-agent-ext-probe` temp dir, loopback servers closed |
+| Step                        | Result                                                                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build`             | exit **0**                                                                                                                                        |
+| `npm run smoke:baseline` ×3 | exit **0, 0, 0** — **6/6 PASS** each, 6–7s each                                                                                                   |
+| `main` / `tabRenderers`     | `main=1`, `tabRenderers=1`, `uiRenderers=2`                                                                                                       |
+| teardown                    | `[0, 0]` (`electron=0 devHelpers=0`), `strayReap.killed=[]`                                                                                       |
+| host gate **enabled**       | 6/6 PASS, 13 `[extension-host]` lines, both fixtures in `default` **and** `persist:webcontent`, remove probe **did not fire** (its setting unset) |
+| host gate **disabled**      | 6/6 PASS, **0** `[extension-host]` lines                                                                                                          |
+| dev profile `settings.json` | restored **byte-identical** (`cmp` clean)                                                                                                         |
+| after all runs              | 0 `electron.exe`, no `min-agent-ext-probe` temp dir, loopback servers closed                                                                      |
 
 Note on method: the smoke harness captures Electron stdout into `docs/smoke-baseline.json`, not into the console. Counting `[extension-host]` lines from the console log yields 0 even when the host is active — count them from the evidence file.
 
 ## 35. P0-05 changed files and backups
 
-| File | Change |
-|---|---|
-| `main/extensionHost.js` | **modified** — dev-only `experimentalExtensionRemoveProbe` hook + `removeLoadedExtensionsFromSession()` |
-| `extensions/test-min-agent-docstart/manifest.json` | **modified** — added `https://127.0.0.1/*` to matches |
-| `scripts/extension-probe.js` | **rewritten** — three runs (http / https / removal), self-signed loopback TLS, title sampling |
-| `docs/EXTENSION-COMPATIBILITY.md` | **modified** — https frames PASS, https ordering PASS, removeExtension PASS + §2.1 per-session trap |
-| `docs/PHASE1-DESIGN.md` | **new** |
-| `docs/BASELINE.md` | **modified** — this addendum |
-| `docs/extension-probe.json` | regenerated |
+| File                                               | Change                                                                                                  |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `main/extensionHost.js`                            | **modified** — dev-only `experimentalExtensionRemoveProbe` hook + `removeLoadedExtensionsFromSession()` |
+| `extensions/test-min-agent-docstart/manifest.json` | **modified** — added `https://127.0.0.1/*` to matches                                                   |
+| `scripts/extension-probe.js`                       | **rewritten** — three runs (http / https / removal), self-signed loopback TLS, title sampling           |
+| `docs/EXTENSION-COMPATIBILITY.md`                  | **modified** — https frames PASS, https ordering PASS, removeExtension PASS + §2.1 per-session trap     |
+| `docs/PHASE1-DESIGN.md`                            | **new**                                                                                                 |
+| `docs/BASELINE.md`                                 | **modified** — this addendum                                                                            |
+| `docs/extension-probe.json`                        | regenerated                                                                                             |
 
 Backups (all `cmp`-verified before editing): `docs/backups/P0-05/{main_extensionHost.js, scripts_extension-probe.js, extensions_test-min-agent-docstart_manifest.json, extensions_test-min-agent-docstart_main-world.js}`.
 
@@ -1164,35 +1162,35 @@ Implemented: transport, auth, validation, `browser_status`, `browser_tabs`. Not 
 
 Unit + live transport: `npm run test:agent-rpc` — **89/89 checks**. The product file is loaded into a Node `vm` with stubbed Electron globals; the real server is then started and driven with real loopback requests.
 
-| Check | Result |
-|---|---|
-| bound to `127.0.0.1`, ephemeral port | `127.0.0.1:52821` |
-| non-loopback interface refused | `192.168.0.150` → `ECONNREFUSED` |
-| per-launch token is random, 64 hex | yes; hard-coded test token → `401` |
-| missing / wrong / short / non-Bearer auth | `401` each |
-| token never echoed | confirmed in error body and response body |
-| Host tampering, bare `127.0.0.1` without port, empty Host, rebinding Host | `403` each |
-| `Origin` present | `403` |
-| `Sec-Fetch-Site: cross-site` present | `403` |
-| GET / wrong path / path traversal | `405`, `404`, `404` |
-| wrong content-type | `415` |
-| malformed JSON, empty body, array/scalar envelope, bad `jsonrpc`, bad `id` | `400` each, no crash |
-| oversize body (>64 KiB) | `413` |
-| raw malformed request line | `HTTP/1.1 400 Bad Request` via `clientError` |
-| rate limit (20/s) | engages, `429` |
-| unknown method / camelCase injection | `404 -32601` / `400 -32600` (pattern rejects before dispatch) |
-| `params` on a no-param command | rejected, not ignored |
-| no CORS header ever sent | `access-control-allow-origin` absent |
-| discovery file written / removed on stop | yes / yes |
+| Check                                                                      | Result                                                        |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| bound to `127.0.0.1`, ephemeral port                                       | `127.0.0.1:52821`                                             |
+| non-loopback interface refused                                             | `192.168.0.150` → `ECONNREFUSED`                              |
+| per-launch token is random, 64 hex                                         | yes; hard-coded test token → `401`                            |
+| missing / wrong / short / non-Bearer auth                                  | `401` each                                                    |
+| token never echoed                                                         | confirmed in error body and response body                     |
+| Host tampering, bare `127.0.0.1` without port, empty Host, rebinding Host  | `403` each                                                    |
+| `Origin` present                                                           | `403`                                                         |
+| `Sec-Fetch-Site: cross-site` present                                       | `403`                                                         |
+| GET / wrong path / path traversal                                          | `405`, `404`, `404`                                           |
+| wrong content-type                                                         | `415`                                                         |
+| malformed JSON, empty body, array/scalar envelope, bad `jsonrpc`, bad `id` | `400` each, no crash                                          |
+| oversize body (>64 KiB)                                                    | `413`                                                         |
+| raw malformed request line                                                 | `HTTP/1.1 400 Bad Request` via `clientError`                  |
+| rate limit (20/s)                                                          | engages, `429`                                                |
+| unknown method / camelCase injection                                       | `404 -32601` / `400 -32600` (pattern rejects before dispatch) |
+| `params` on a no-param command                                             | rejected, not ignored                                         |
+| no CORS header ever sent                                                   | `access-control-allow-origin` absent                          |
+| discovery file written / removed on stop                                   | yes / yes                                                     |
 
 End-to-end against **real Min**: `npm run probe:agent-rpc`, evidence `docs/agent-rpc-probe.json`.
 
-| Launch | Result |
-|---|---|
-| without `--agent-rpc` | discovery file absent, **0** `[agent-rpc]` stdout lines |
-| with `--agent-rpc` | file appears, `url` loopback, token 64 hex, `pid` matches the spawned child, `version 1.35.7`; stdout contains only `[agent-rpc] listening on 127.0.0.1:57497` — **no token** |
-| tampering against real Min | `noAuth 401, wrongToken 401, badHost 403, badOrigin 403, badSecFetch 403, GET 405, unknownMethod 404, malformedJson 400` |
-| after force-kill | server closed (`ECONNREFUSED`); discovery file **left behind** — see §38 |
+| Launch                     | Result                                                                                                                                                                        |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| without `--agent-rpc`      | discovery file absent, **0** `[agent-rpc]` stdout lines                                                                                                                       |
+| with `--agent-rpc`         | file appears, `url` loopback, token 64 hex, `pid` matches the spawned child, `version 1.35.7`; stdout contains only `[agent-rpc] listening on 127.0.0.1:57497` — **no token** |
+| tampering against real Min | `noAuth 401, wrongToken 401, badHost 403, badOrigin 403, badSecFetch 403, GET 405, unknownMethod 404, malformedJson 400`                                                      |
+| after force-kill           | server closed (`ECONNREFUSED`); discovery file **left behind** — see §38                                                                                                      |
 
 ## 38. New findings
 
@@ -1205,13 +1203,13 @@ End-to-end against **real Min**: `npm run probe:agent-rpc`, evidence `docs/agent
 
 `npm run probe:capture` runs `scripts/fixtures/capture-probe-main.js`, a throwaway Electron app (not Min) reproducing Min's exact shape: `BrowserWindow` + `WebContentsView` attached through `win.contentView`. Electron 43.4.1. Evidence: `docs/capture-page-probe.json`.
 
-| Case | Result |
-|---|---|
-| A `show: false`, view attached | **rejected** — `Current display surface not available for capture` |
-| B `show: false` + `backgroundThrottling: false` | **rejected** — same error; disabling throttling does not help |
-| C view removed from the view tree | **rejected** — same error |
-| D visible window (control) | **works** — 2420×1513, 9 distinct colours |
-| E visible, then minimised | **works** — 2420×1513, 9 distinct colours |
+| Case                                            | Result                                                             |
+| ----------------------------------------------- | ------------------------------------------------------------------ |
+| A `show: false`, view attached                  | **rejected** — `Current display surface not available for capture` |
+| B `show: false` + `backgroundThrottling: false` | **rejected** — same error; disabling throttling does not help      |
+| C view removed from the view tree               | **rejected** — same error                                          |
+| D visible window (control)                      | **works** — 2420×1513, 9 distinct colours                          |
+| E visible, then minimised                       | **works** — 2420×1513, 9 distinct colours                          |
 
 **Conclusion: background/hidden capture is not available as designed.** A never-shown window cannot be captured. A window that was shown and then minimised can be. Phase 1 acceptance must therefore either require a visible launch, or create the window shown and immediately minimise/move it off-screen.
 
@@ -1221,11 +1219,11 @@ Corollary, pre-existing and not fixed here: Min's guard at `main/viewManager.js:
 
 `npm test` still exits 1 (known baseline failure). Counts:
 
-| | Baseline | Now | Delta |
-|---|---|---|---|
-| total findings | 643 | 677 | +34 |
-| `no-undef` | 446 | 480 | +34 |
-| non-`no-undef` | 197 | 197 | **0** |
+|                | Baseline | Now | Delta |
+| -------------- | -------- | --- | ----- |
+| total findings | 643      | 677 | +34   |
+| `no-undef`     | 446      | 480 | +34   |
+| non-`no-undef` | 197      | 197 | **0** |
 
 The +34 are `main/agentRpc.js` (18) and `main/extensionHost.js` (16, added in P0-03), all references to the shared globals that the concatenation build in `scripts/buildMain.js` provides. `main/agentRpc.js` introduces **no new lint category**; three genuine issues found in it (control-character regex literal, unhandled `clientError` argument, redundant escape) were fixed rather than suppressed.
 
@@ -1233,14 +1231,14 @@ The +34 are `main/agentRpc.js` (18) and `main/extensionHost.js` (16, added in P0
 
 `scripts/createPackage.js` was **not modified** in P0-06. Pattern-level review of the `files` list:
 
-| Path | Ships? |
-|---|---|
-| `main.build.js` (contains the bridge) | yes — intended |
-| `main/agentRpc.js` source | covered by the pre-existing `'!**/main'` rule, same as `main/main.js` — no new packaging surface |
-| `scripts/agent-rpc-test.js`, `scripts/fixtures/capture-probe-main.js` | excluded by `'!scripts/'` |
-| `extensions/**` | excluded by `'!extensions/'` (P0-04) |
-| `docs/*.md` | excluded by `'!**/*.md'` |
-| **`docs/*.json` evidence (4 files) and `docs/backups/**` (18 files)** | **NOT excluded — would ship** |
+| Path                                                                    | Ships?                                                                                           |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `main.build.js` (contains the bridge)                                   | yes — intended                                                                                   |
+| `main/agentRpc.js` source                                               | covered by the pre-existing `'!**/main'` rule, same as `main/main.js` — no new packaging surface |
+| `scripts/agent-rpc-test.js`, `scripts/fixtures/capture-probe-main.js`   | excluded by `'!scripts/'`                                                                        |
+| `extensions/**`                                                         | excluded by `'!extensions/'` (P0-04)                                                             |
+| `docs/*.md`                                                             | excluded by `'!**/*.md'`                                                                         |
+| **`docs/*.json` evidence (4 files) and `docs/backups/**` (18 files)\*\* | **NOT excluded — would ship**                                                                    |
 
 22 files / 298 KB under `docs/` are not matched by any exclusion. Pristine Min's `docs/` contains only `statistics.md`, so upstream never hits this; it is entirely an artefact of this audit workspace. It includes `docs/backups/P0-03/Min-development_settings.json`, a copy of a real settings file. Proposed one-line fix, **awaiting approval** (same approval route as P0-04's `'!extensions/'`):
 
@@ -1254,31 +1252,31 @@ The full package build was again not run: electron-builder's first Windows run d
 
 ## 42. Regression evidence (P0-06)
 
-| Step | Result |
-|---|---|
-| `npm run build` | exit **0** |
-| `npm run smoke:baseline` ×3 | exit **0, 0, 0** — **6/6 PASS** each, 6–7s |
-| `[agent-rpc]` lines during smoke | **0** — the bridge is inert without the flag |
-| `[extension-host]` lines during smoke | **0** — P0-03 gate still inert |
-| teardown | `electronProcesses: 0` |
-| `npm run test:agent-rpc` | **89/89**, exit 0 |
-| `npm run probe:agent-rpc` | exit 0, temp profile removed |
-| `npm run probe:capture` | exit 0 |
-| leftover `electron.exe` | 0 |
+| Step                                  | Result                                       |
+| ------------------------------------- | -------------------------------------------- |
+| `npm run build`                       | exit **0**                                   |
+| `npm run smoke:baseline` ×3           | exit **0, 0, 0** — **6/6 PASS** each, 6–7s   |
+| `[agent-rpc]` lines during smoke      | **0** — the bridge is inert without the flag |
+| `[extension-host]` lines during smoke | **0** — P0-03 gate still inert               |
+| teardown                              | `electronProcesses: 0`                       |
+| `npm run test:agent-rpc`              | **89/89**, exit 0                            |
+| `npm run probe:agent-rpc`             | exit 0, temp profile removed                 |
+| `npm run probe:capture`               | exit 0                                       |
+| leftover `electron.exe`               | 0                                            |
 
 ## 43. P0-06 changed files and backups
 
-| File | Change |
-|---|---|
-| `main/agentRpc.js` | **new** — product code, gated by `--agent-rpc` |
-| `scripts/buildMain.js` | **modified** — one module entry, placed last |
-| `package.json` | **modified** — three scripts: `test:agent-rpc`, `probe:agent-rpc`, `probe:capture` |
-| `scripts/agent-rpc-test.js` | **new** — 89-check unit + live transport test |
-| `scripts/agent-rpc-probe.js` | **new** — real-Min end-to-end probe |
-| `scripts/capture-page-probe.js`, `scripts/fixtures/capture-probe-main.js` | **new** — hidden-view capture measurement |
-| `docs/PHASE1-DESIGN.md` | **modified** — §14 implementation status, deviations, measured findings |
-| `docs/BASELINE.md` | **modified** — this addendum |
-| `docs/agent-rpc-probe.json`, `docs/capture-page-probe.json` | **new** evidence |
+| File                                                                      | Change                                                                             |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `main/agentRpc.js`                                                        | **new** — product code, gated by `--agent-rpc`                                     |
+| `scripts/buildMain.js`                                                    | **modified** — one module entry, placed last                                       |
+| `package.json`                                                            | **modified** — three scripts: `test:agent-rpc`, `probe:agent-rpc`, `probe:capture` |
+| `scripts/agent-rpc-test.js`                                               | **new** — 89-check unit + live transport test                                      |
+| `scripts/agent-rpc-probe.js`                                              | **new** — real-Min end-to-end probe                                                |
+| `scripts/capture-page-probe.js`, `scripts/fixtures/capture-probe-main.js` | **new** — hidden-view capture measurement                                          |
+| `docs/PHASE1-DESIGN.md`                                                   | **modified** — §14 implementation status, deviations, measured findings            |
+| `docs/BASELINE.md`                                                        | **modified** — this addendum                                                       |
+| `docs/agent-rpc-probe.json`, `docs/capture-page-probe.json`               | **new** evidence                                                                   |
 
 Backups (all `cmp`-verified before editing): `docs/backups/P0-06/{scripts_buildMain.js, package.json}`.
 
@@ -1343,12 +1341,16 @@ and identically for `saveViewCapture` (`view.webContents.downloadURL(image.toDat
 New shared handler, placed above `getCapture`:
 
 ```js
-var captureUnavailableCount = 0
-function handleCaptureRejection () {
-  captureUnavailableCount++
+var captureUnavailableCount = 0;
+function handleCaptureRejection() {
+  captureUnavailableCount++;
   /* Rate-limited: tab previews can retry hidden views many times a session. */
   if (captureUnavailableCount <= 5 || captureUnavailableCount % 50 === 0) {
-    console.warn('[capture]', 'CAPTURE_UNAVAILABLE', 'count=' + captureUnavailableCount)
+    console.warn(
+      "[capture]",
+      "CAPTURE_UNAVAILABLE",
+      "count=" + captureUnavailableCount
+    );
   }
 }
 ```
@@ -1369,12 +1371,12 @@ Real Min, gated probe run — all three expectations met:
 
 This refines the P0-06 conclusion. On Electron 43.4.1 there are **two distinct hidden-capture failure modes**:
 
-| State of the view | capturePage() result | Covered by |
-|---|---|---|
-| Never attached to any window (never rendered) | resolves with **0x0** image | Min's original zero-size guard (`main/viewManager.js:449`), kept |
-| Attached + rendered, then detached (the state of **every non-selected tab view** after `hideCurrentView`) | **rejects** — `Current display surface not available for capture` | the new `.catch` |
-| Hidden window (`show: false`, view attached, rendered) | **rejects** — same error | the new `.catch` |
-| Window shown, then minimized | **works** — 2420×1513, 9 colours | n/a |
+| State of the view                                                                                         | capturePage() result                                              | Covered by                                                       |
+| --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Never attached to any window (never rendered)                                                             | resolves with **0x0** image                                       | Min's original zero-size guard (`main/viewManager.js:449`), kept |
+| Attached + rendered, then detached (the state of **every non-selected tab view** after `hideCurrentView`) | **rejects** — `Current display surface not available for capture` | the new `.catch`                                                 |
+| Hidden window (`show: false`, view attached, rendered)                                                    | **rejects** — same error                                          | the new `.catch`                                                 |
+| Window shown, then minimized                                                                              | **works** — 2420×1513, 9 colours                                  | n/a                                                              |
 
 Corroborating evidence that the handler fires in ordinary use: a **plain** Min dev launch (no probe settings) logged `[capture] CAPTURE_UNAVAILABLE count=1` naturally during startup, with no `UnhandledPromiseRejection` anywhere — previously this was an unhandled rejection.
 
@@ -1386,29 +1388,29 @@ New pre-existing product bugs found during verification (reproduced, **not fixed
 
 ## 48. Regression evidence (P0-07)
 
-| Step | Result |
-|---|---|
-| `npm run build` | exit **0** |
-| `npm run test:agent-rpc` | **89/89**, exit 0 |
-| `npm run smoke:baseline` ×3 | exit **0, 0, 0** — **6/6 PASS** each, 6–7s, title `Min Agent Smoke Tab &#124; Min` |
-| gated features in smoke | `[capture]`=0, `[capture-probe]`=0, `[agent-rpc]`=0, `[extension-host]`=0 — all inert |
-| `npm run probe:capture` | exit **0**; conclusions: visibleCaptureWorks ✓, hiddenCaptureRejectedByElectron ✓, minHiddenRejectionHandled ✓, minNoUnhandledRejections ✓, minimizedStillWorks ✓ |
-| leftover `electron.exe` / temp dirs | 0 / none |
-| `npm test` deltas | total 677 → **685** (+8), non-no-undef **197 → 197** (unchanged) |
+| Step                                | Result                                                                                                                                                            |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build`                     | exit **0**                                                                                                                                                        |
+| `npm run test:agent-rpc`            | **89/89**, exit 0                                                                                                                                                 |
+| `npm run smoke:baseline` ×3         | exit **0, 0, 0** — **6/6 PASS** each, 6–7s, title `Min Agent Smoke Tab &#124; Min`                                                                                |
+| gated features in smoke             | `[capture]`=0, `[capture-probe]`=0, `[agent-rpc]`=0, `[extension-host]`=0 — all inert                                                                             |
+| `npm run probe:capture`             | exit **0**; conclusions: visibleCaptureWorks ✓, hiddenCaptureRejectedByElectron ✓, minHiddenRejectionHandled ✓, minNoUnhandledRejections ✓, minimizedStillWorks ✓ |
+| leftover `electron.exe` / temp dirs | 0 / none                                                                                                                                                          |
+| `npm test` deltas                   | total 677 → **685** (+8), non-no-undef **197 → 197** (unchanged)                                                                                                  |
 
 The +8 `no-undef` are the probe hook's shared-scope references (`app`, `settings`, `isDevelopmentMode`, `WebContentsView`, `windows`, `viewMap`) — same concatenation class as all prior deltas. No new lint category; every non-`no-undef` finding in `main/viewManager.js` sits on pre-existing lines (17–370; additions start at 440).
 
 ## 49. P0-07 changed files and backups
 
-| File | Change |
-|---|---|
-| `scripts/createPackage.js` | **modified** — `+ '!docs/'` (one hunk, two lines) |
-| `main/viewManager.js` | **modified** — `handleCaptureRejection`, `.catch` on both capture sites, dev-gated probe hook |
-| `scripts/capture-page-probe.js` | **modified** — real-Min phase, crash/exit tracking, raw-output tail, distinct-file launch |
-| `scripts/fixtures/capture-probe-main.js` | **modified** — explicit `unhandledRejection` recording, D-case retry |
-| `docs/backups/P0-03/Min-development_settings.REDACTED.txt` | **new** (original settings copy deleted) |
-| `docs/capture-page-probe.json` | regenerated |
-| `docs/BASELINE.md`, `docs/PHASE1-DESIGN.md` | updated |
+| File                                                       | Change                                                                                        |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `scripts/createPackage.js`                                 | **modified** — `+ '!docs/'` (one hunk, two lines)                                             |
+| `main/viewManager.js`                                      | **modified** — `handleCaptureRejection`, `.catch` on both capture sites, dev-gated probe hook |
+| `scripts/capture-page-probe.js`                            | **modified** — real-Min phase, crash/exit tracking, raw-output tail, distinct-file launch     |
+| `scripts/fixtures/capture-probe-main.js`                   | **modified** — explicit `unhandledRejection` recording, D-case retry                          |
+| `docs/backups/P0-03/Min-development_settings.REDACTED.txt` | **new** (original settings copy deleted)                                                      |
+| `docs/capture-page-probe.json`                             | regenerated                                                                                   |
+| `docs/BASELINE.md`, `docs/PHASE1-DESIGN.md`                | updated                                                                                       |
 
 Backups (`cmp`-verified before editing): `docs/backups/P0-07/{scripts_createPackage.js, main_viewManager.js, scripts_capture-page-probe.js, scripts_fixtures_capture-probe-main.js}`. One-off diagnostic scripts (`tmp-diag*.js`) were used, documented, and deleted; the two-URL repro is a one-line command recorded in §47.
 
@@ -1435,25 +1437,25 @@ Bisection chain (all evidence produced by throwaway launches, no product code ch
 
 `npm run probe:two-url-argv` (evidence `docs/two-url-argv-probe.json`, exit 0) asserts the current documented behaviour:
 
-| Scenario | Verdict |
-|---|---|
-| one bare URL | runs; window; argv tab loads; title correct |
+| Scenario                 | Verdict                                                                  |
+| ------------------------ | ------------------------------------------------------------------------ |
+| one bare URL             | runs; window; argv tab loads; title correct                              |
 | two bare positional URLs | **runtime death exit 4294967295 pre-JS — documented, unfixable in-repo** |
-| two URLs after `--` | runs; **both** argv tabs load |
-| three URLs after `--` | runs; **all three** argv tabs load |
-| unhandled rejections | none anywhere |
+| two URLs after `--`      | runs; **both** argv tabs load                                            |
+| three URLs after `--`    | runs; **all three** argv tabs load                                       |
+| unhandled rejections     | none anywhere                                                            |
 
 ## 51. Part B: the detach "crash" is a native hang, now guarded
 
 With the deterministic `--probe-detach` hook (development mode + literal argv flag, never persisted; `scripts/detach-probe.js`, evidence `docs/detach-probe.json`, scenarios D0/D1/D2/D3/G):
 
-| Scenario | Outcome |
-|---|---|
-| D0 capture the selected view **while attached** | resolves 3841×2010 — safe |
-| D1 **detach** the selected view, wait 4s, reattach (no capture) | completes — **detach alone is safe** |
-| D2 detach + `capturePage()` **same tick** | **main process hangs**: markers stop, no DONE, no exception, no exit event, no render/child gone |
-| D3 capture an **already-settled detached** background view | clean rejection (`CAPTURE_UNAVAILABLE`, handled) |
-| G the product guard's attachment check in the exact D2 state | returns `false` → **guard blocks the deadly call** |
+| Scenario                                                        | Outcome                                                                                          |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| D0 capture the selected view **while attached**                 | resolves 3841×2010 — safe                                                                        |
+| D1 **detach** the selected view, wait 4s, reattach (no capture) | completes — **detach alone is safe**                                                             |
+| D2 detach + `capturePage()` **same tick**                       | **main process hangs**: markers stop, no DONE, no exception, no exit event, no render/child gone |
+| D3 capture an **already-settled detached** background view      | clean rejection (`CAPTURE_UNAVAILABLE`, handled)                                                 |
+| G the product guard's attachment check in the exact D2 state    | returns `false` → **guard blocks the deadly call**                                               |
 
 **Classification: pre-existing native fragility of `capturePage()` in the same tick after `removeChildView`** — neither the detach itself (D1) nor settled detached capture (D3) is unsafe. The main process never returns (not a JS exception; the earlier "silent crash" label was a hang misread from lost markers).
 
@@ -1463,30 +1465,30 @@ With the deterministic `--probe-detach` hook (development mode + literal argv fl
 
 ## 52. Part C: regression evidence
 
-| Step | Result |
-|---|---|
-| `npm run build` | exit **0** |
-| `npm run test:agent-rpc` | **89/89**, exit 0 |
-| `npm run probe:capture` | exit 0 — **all 5 conclusions true** |
-| `npm run probe:two-url-argv` (new) | exit 0 — 5/5 verdicts true |
-| `npm run probe:detach` (new) | exit 0 — full classification incl. guard verdict |
-| `npm run smoke:baseline` ×3 | exit **0,0,0** — **6/6 PASS** each, 6–7s, title `Min Agent Smoke Tab &#124; Min` |
-| gated features in smoke | `[agent-rpc]`=0, `[extension-host]`=0, `[capture-probe]`=0, `[detach-probe]`=0 — all inert |
-| leftover electron / temp dirs | 0 / none (incl. pristine test dirs) |
-| `npm test` deltas | 685 → **692** (+7, all no-undef from the detach hook/guard), non-no-undef **197 → 197 unchanged** |
-| diff vs pristine | product files changed now: `js/preload/siteUnbreak.js`, `scripts/buildMain.js`, `scripts/createPackage.js`, `package.json`, `main/viewManager.js`; new: `main/agentRpc.js`, `main/extensionHost.js`. **`main/main.js` remains pristine** |
+| Step                               | Result                                                                                                                                                                                                                                   |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build`                    | exit **0**                                                                                                                                                                                                                               |
+| `npm run test:agent-rpc`           | **89/89**, exit 0                                                                                                                                                                                                                        |
+| `npm run probe:capture`            | exit 0 — **all 5 conclusions true**                                                                                                                                                                                                      |
+| `npm run probe:two-url-argv` (new) | exit 0 — 5/5 verdicts true                                                                                                                                                                                                               |
+| `npm run probe:detach` (new)       | exit 0 — full classification incl. guard verdict                                                                                                                                                                                         |
+| `npm run smoke:baseline` ×3        | exit **0,0,0** — **6/6 PASS** each, 6–7s, title `Min Agent Smoke Tab &#124; Min`                                                                                                                                                         |
+| gated features in smoke            | `[agent-rpc]`=0, `[extension-host]`=0, `[capture-probe]`=0, `[detach-probe]`=0 — all inert                                                                                                                                               |
+| leftover electron / temp dirs      | 0 / none (incl. pristine test dirs)                                                                                                                                                                                                      |
+| `npm test` deltas                  | 685 → **692** (+7, all no-undef from the detach hook/guard), non-no-undef **197 → 197 unchanged**                                                                                                                                        |
+| diff vs pristine                   | product files changed now: `js/preload/siteUnbreak.js`, `scripts/buildMain.js`, `scripts/createPackage.js`, `package.json`, `main/viewManager.js`; new: `main/agentRpc.js`, `main/extensionHost.js`. **`main/main.js` remains pristine** |
 
 ## 53. P0-08 changed files and backups
 
-| File | Change |
-|---|---|
-| `main/viewManager.js` | **modified** — `isViewAttachedToAnyWindow` guard in `getCapture`/`saveViewCapture`; argv-gated detach probe hook (D0–D3, G) |
-| `scripts/two-url-argv-probe.js` | **new** — Part A acceptance probe |
-| `scripts/detach-probe.js` | **new** — Part B deterministic probe |
-| `scripts/fixtures/argv-bisect-main.js` | **new** — minimal zero-Min repro fixture (kept for upstream report) |
-| `package.json` | **modified** — two scripts (`probe:two-url-argv`, `probe:detach`) |
-| `docs/two-url-argv-probe.json`, `docs/detach-probe.json` | **new** evidence |
-| `docs/BASELINE.md`, `docs/PHASE1-DESIGN.md` | updated |
+| File                                                     | Change                                                                                                                      |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `main/viewManager.js`                                    | **modified** — `isViewAttachedToAnyWindow` guard in `getCapture`/`saveViewCapture`; argv-gated detach probe hook (D0–D3, G) |
+| `scripts/two-url-argv-probe.js`                          | **new** — Part A acceptance probe                                                                                           |
+| `scripts/detach-probe.js`                                | **new** — Part B deterministic probe                                                                                        |
+| `scripts/fixtures/argv-bisect-main.js`                   | **new** — minimal zero-Min repro fixture (kept for upstream report)                                                         |
+| `package.json`                                           | **modified** — two scripts (`probe:two-url-argv`, `probe:detach`)                                                           |
+| `docs/two-url-argv-probe.json`, `docs/detach-probe.json` | **new** evidence                                                                                                            |
+| `docs/BASELINE.md`, `docs/PHASE1-DESIGN.md`              | updated                                                                                                                     |
 
 Backups (`cmp`-verified before editing): `docs/backups/P0-08/{main_main.js, main_viewManager.js, package.json, default_app_main_extracted.js}`. Temp instrumentation scripts were used, documented, and deleted; the two-URL completions determinism is fully covered by `npm run probe:two-url-argv`.
 
@@ -1511,17 +1513,17 @@ Option 1 (fixed-source executeJavaScript), hardened to **zero interpolation**: t
 
 `npm run probe:agent-snapshot` (`docs/agent-snapshot-probe.json`) — **27/27, exit 0** (83s; includes a 75s TTL window). Real Min, `--agent-rpc`, two controlled pages + a self-refreshing page:
 
-| Asserted | Result |
-|---|---|
-| interactive roles (button/link/textbox/checkbox/combobox/heading) enumerated | ✓ (5 buttons, 1 link, 3 textboxes, 1 combobox, 1 heading) |
-| password + email redacted end-to-end (length-only; `S3cretPW!7` absent from the raw body) | ✓ |
-| caps: page 500 cap, requested-200 slice, byte cap with `truncated` flags, ≤ 66000 on the wire | ✓ |
-| 120-char name truncation; control chars stripped from title | ✓ |
-| duplicate names → distinct refs, `nameIndex` 0/1; disabled state; checkbox state on a nameless node | ✓ |
-| hostile text (`eval("PWNED-TOKEN-1")`, `"><img onerror…>`) returned as inert data, exact equality | ✓ |
-| refs opaque, fresh per snapshot, disjoint across tabs, refStore self-status, navigate-clear at t+4s, TTL expiry at read time | ✓ |
-| unknown tabId → `-32002 not_found`; text format bounded with `ref=` handles; single-window attribution marked (`active`/`windowId`), not guessed | ✓ |
-| no page content in `[agent-rpc]` stdout | ✓ |
+| Asserted                                                                                                                                         | Result                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| interactive roles (button/link/textbox/checkbox/combobox/heading) enumerated                                                                     | ✓ (5 buttons, 1 link, 3 textboxes, 1 combobox, 1 heading) |
+| password + email redacted end-to-end (length-only; `S3cretPW!7` absent from the raw body)                                                        | ✓                                                         |
+| caps: page 500 cap, requested-200 slice, byte cap with `truncated` flags, ≤ 66000 on the wire                                                    | ✓                                                         |
+| 120-char name truncation; control chars stripped from title                                                                                      | ✓                                                         |
+| duplicate names → distinct refs, `nameIndex` 0/1; disabled state; checkbox state on a nameless node                                              | ✓                                                         |
+| hostile text (`eval("PWNED-TOKEN-1")`, `"><img onerror…>`) returned as inert data, exact equality                                                | ✓                                                         |
+| refs opaque, fresh per snapshot, disjoint across tabs, refStore self-status, navigate-clear at t+4s, TTL expiry at read time                     | ✓                                                         |
+| unknown tabId → `-32002 not_found`; text format bounded with `ref=` handles; single-window attribution marked (`active`/`windowId`), not guessed | ✓                                                         |
+| no page content in `[agent-rpc]` stdout                                                                                                          | ✓                                                         |
 
 Regression: `npm run build` exit 0; `test:agent-rpc` **102/102** (13 new schema/cap assertions); `probe:capture` all 5 conclusions true; `probe:detach` exit 0 (run in-task); `smoke:baseline` ×3 **6/6 PASS**, `[agent-rpc]`=0, `[extension-host]`=0, `[capture-probe]`=0, `[detach-probe]`=0 — all gated features inert. Lint: total 692 → 700, `no-undef` 495 → 501 (+6, all shared-scope refs in the new code), **non-no-undef 197 → 197** (two transient findings introduced and fixed in-task: control regex in generated page source, a stray indent; the delta is again exactly the concatenation class).
 
@@ -1541,16 +1543,16 @@ Dispatch is native-only: `sendInputEvent` mouseDown/Up at the located box center
 
 Refs resolve by re-enumerating the page in `locate` mode of the SAME page function that snapped it (page-side argument: fixed `'locate'` literal + validated integer ordinal only), then matching server-side:
 
-| Case | Behaviour |
-|---|---|
-| strict (enumeration length unchanged AND stored-ordinal element matches role+name+nameIndex) | resolved |
-| page changed, exactly one role+name match in the current enumeration | resolved (element moved), `moved: true` |
-| zero role+name matches | `ref_stale` (404) |
-| multiple role+name matches | **`ambiguous` (-32011, 409) — fail, never guess** |
-| TTL expired (60s, live semantics) | `ref_expired` (410) |
-| ref present only in another tab's store | `ref_mismatch` (404) |
-| view not attached to any live window | `view_not_attached` (409) |
-| unknown/malformed ref | `ref_not_found` / schema `invalid_params` |
+| Case                                                                                         | Behaviour                                         |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| strict (enumeration length unchanged AND stored-ordinal element matches role+name+nameIndex) | resolved                                          |
+| page changed, exactly one role+name match in the current enumeration                         | resolved (element moved), `moved: true`           |
+| zero role+name matches                                                                       | `ref_stale` (404)                                 |
+| multiple role+name matches                                                                   | **`ambiguous` (-32011, 409) — fail, never guess** |
+| TTL expired (60s, live semantics)                                                            | `ref_expired` (410)                               |
+| ref present only in another tab's store                                                      | `ref_mismatch` (404)                              |
+| view not attached to any live window                                                         | `view_not_attached` (409)                         |
+| unknown/malformed ref                                                                        | `ref_not_found` / schema `invalid_params`         |
 
 Pre-dispatch policy: disabled elements (`disabled`, 409); typing into password/email/tel/sensitive-autocomplete (`sensitive_field`, 403 — no bypass exists); purchase/payment-named clicks (`risky_action`, 403 by default) with `--agent-rpc-allow-risky` as the launch-time approval literal.
 
@@ -1558,19 +1560,19 @@ Pre-dispatch policy: disabled elements (`disabled`, 409); typing into password/e
 
 `npm run probe:agent-actions` (`docs/agent-actions-probe.json`) — **22/22, exit 0** (81s, three launches: default policy, fresh page set, allow-risky):
 
-| Asserted | Result |
-|---|---|
-| click on changing button → `dom-change`, verified | ✓ |
-| click on link → `navigation`, verified | ✓ |
-| type into text field (existing value replaced) → `value`, verified | ✓ |
-| type into password → `sensitive_field` 403 (refused pre-dispatch) | ✓ |
-| click disabled → `disabled` 409 | ✓ |
-| ambiguous after live mutation (Add-Ambiguous click shifts enumeration; old ref → role+name matches 2) → `ambiguous` 409 | ✓ |
-| expired ref (61s) → `ref_expired` 410 | ✓ |
-| cross-tab ref → `ref_mismatch` 404; detached (background) view → `view_not_attached` 409 | ✓ |
-| no-effect click → honest `focus` kind (verified) | ✓ |
-| `Pay Now` refused by default; allowed with `--agent-rpc-allow-risky` → `dom-change` | ✓ |
-| unknown/malformed ref structured errors; typed text + page content absent from `[agent-rpc]` stdout | ✓ |
+| Asserted                                                                                                                | Result |
+| ----------------------------------------------------------------------------------------------------------------------- | ------ |
+| click on changing button → `dom-change`, verified                                                                       | ✓      |
+| click on link → `navigation`, verified                                                                                  | ✓      |
+| type into text field (existing value replaced) → `value`, verified                                                      | ✓      |
+| type into password → `sensitive_field` 403 (refused pre-dispatch)                                                       | ✓      |
+| click disabled → `disabled` 409                                                                                         | ✓      |
+| ambiguous after live mutation (Add-Ambiguous click shifts enumeration; old ref → role+name matches 2) → `ambiguous` 409 | ✓      |
+| expired ref (61s) → `ref_expired` 410                                                                                   | ✓      |
+| cross-tab ref → `ref_mismatch` 404; detached (background) view → `view_not_attached` 409                                | ✓      |
+| no-effect click → honest `focus` kind (verified)                                                                        | ✓      |
+| `Pay Now` refused by default; allowed with `--agent-rpc-allow-risky` → `dom-change`                                     | ✓      |
+| unknown/malformed ref structured errors; typed text + page content absent from `[agent-rpc]` stdout                     | ✓      |
 
 Regression: `npm run build` exit 0; `test:agent-rpc` **114/114** (+12: click/type schemas incl. rejected coordinate/css/js params, control-char and length rejections with real `String.fromCharCode` payloads); `probe:capture` 5/5; `probe:detach` exit 0 (guard intact); `probe:agent-snapshot` 27/27 (run in-task); `smoke:baseline` ×3 **6/6 PASS**, all gated features 0 lines. Lint: total 701, `no-undef` 504 (+3 shared-scope), **non-no-undef 197 → 197 unchanged**.
 
@@ -1600,23 +1602,23 @@ Three commands joined the closed set (8 total) with no new dependencies and no p
 
 `npm run probe:nps` (`docs/agent-nps-probe.json`) — **26/26, exit 0**:
 
-| Section | Asserted |
-|---|---|
-| navigate | allowed file URL → navigation + finalUrl/title; SECOND navigation clears the tab's refs (refStore live count → 0); `javascript:`/`data:`/`vbscript:`/`telnet://` → 403 blocked; >300 chars → 400; unreachable host → `load_failed` 502; unknown tabId → 404 |
-| press | form field click → focus; Tab → focus moves (focus kind); Enter → delivered and verified via the page keylog marker (dom-change; implicit submission documented as a runtime limitation); Escape on a keylog-free page → `dispatched-unverified`, verified=false; `Meta+A`/lowercase `enter` → 400 |
-| screenshot | PNG magic + width/height + ≤5 MiB on the attached view; detached view → `view_not_attached` 409; zero files written; nothing page-derived in stdout |
+| Section    | Asserted                                                                                                                                                                                                                                                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| navigate   | allowed file URL → navigation + finalUrl/title; SECOND navigation clears the tab's refs (refStore live count → 0); `javascript:`/`data:`/`vbscript:`/`telnet://` → 403 blocked; >300 chars → 400; unreachable host → `load_failed` 502; unknown tabId → 404                                        |
+| press      | form field click → focus; Tab → focus moves (focus kind); Enter → delivered and verified via the page keylog marker (dom-change; implicit submission documented as a runtime limitation); Escape on a keylog-free page → `dispatched-unverified`, verified=false; `Meta+A`/lowercase `enter` → 400 |
+| screenshot | PNG magic + width/height + ≤5 MiB on the attached view; detached view → `view_not_attached` 409; zero files written; nothing page-derived in stdout                                                                                                                                                |
 
 Regression (all on the final code state): `test:agent-rpc` **137/137** (+23); `probe:capture` 5/5; `probe:detach` exit 0; `probe:agent-actions` 22/22; `probe:agent-snapshot` 27/27; `smoke:baseline` ×3 **6/6 PASS**, gated features 0 lines, teardown 0. Lint: `no-undef` +8 (shared-scope refs: loadURLInView, new command names), **non-no-undef 197 → 197 unchanged** (one transient indent + unused-var pair introduced and fixed in-task).
 
 ## 64. P0-11 changed files and backups
 
-| File | Change |
-|---|---|
-| `main/agentRpc.js` | **modified** — navigate/press/screenshot commands, URL validator, key translator, screenshot size gate + per-attempt retry, press-mode verification |
-| `scripts/agent-nps-probe.js` | **new** |
-| `scripts/fixtures/keymap-probe-main.js` | **new** — key-translation measurement fixture (kept; documents the accelerator vocabulary) |
-| `package.json` | **modified** — `probe:nps` |
-| `docs/*` | PHASE1-DESIGN §19, BASELINE this addendum, `docs/agent-nps-probe.json` |
+| File                                    | Change                                                                                                                                              |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main/agentRpc.js`                      | **modified** — navigate/press/screenshot commands, URL validator, key translator, screenshot size gate + per-attempt retry, press-mode verification |
+| `scripts/agent-nps-probe.js`            | **new**                                                                                                                                             |
+| `scripts/fixtures/keymap-probe-main.js` | **new** — key-translation measurement fixture (kept; documents the accelerator vocabulary)                                                          |
+| `package.json`                          | **modified** — `probe:nps`                                                                                                                          |
+| `docs/*`                                | PHASE1-DESIGN §19, BASELINE this addendum, `docs/agent-nps-probe.json`                                                                              |
 
 Backups (`cmp`-verified): `docs/backups/P0-11/{main_agentRpc.js, scripts_agent-rpc-test.js, package.json}`. `main/main.js` and `main/viewManager.js` untouched this task. Temporary diagnostics removed; findings recorded in §60-61.
 

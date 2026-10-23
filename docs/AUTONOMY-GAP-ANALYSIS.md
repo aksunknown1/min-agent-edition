@@ -8,6 +8,7 @@ repo's tool inventory), not assumptions.
 ## Where the interruptions actually came from
 
 ### 1. Instruction-driven confirmation gates (the dominant cause —
+
 ### orchestration behavior, NOT browser capability)
 
 During P1-01F the per-step stops happened because the governing rules of that
@@ -22,7 +23,7 @@ questions. Verified lesson: **the autonomous loop works; it must be declared
 as the default for clearly-authorized tasks instead of being re-negotiated
 per step.**
 
-Classification: missing *agent planning/authorization-scope handling* —
+Classification: missing _agent planning/authorization-scope handling_ —
 corrected by the P1-02 loop contract (Stage 2, in mcp/README.md §"Autonomous
 execution loop") and by the user's standing authorization rules
 (Stage 3 interruption rules).
@@ -31,6 +32,7 @@ execution loop") and by the user's standing authorization rules
 
 These stops were legitimate at the time and remain legitimate; the fix is
 only to ask ONCE and consolidated:
+
 - identity details (first/last name, mailbox name) — not inventable;
 - password/secret entry — must never transit chat/logs; entered in the
   visible window or via handoff file at the user's explicit choice;
@@ -50,8 +52,8 @@ only to ask ONCE and consolidated:
 - **Observation compaction**: full snapshots were taken even when a fresh
   one was only needed to re-locate one element after a DOM change. The
   compact patterns already exist in the bridge (`locate` is used by every
-  action; `content` mode; `selcheck`) — what was missing was *agent
-  behavior*: P1-01F already used `locate`-backed actions for steps 4–11, so
+  action; `content` mode; `selcheck`) — what was missing was _agent
+  behavior_: P1-01F already used `locate`-backed actions for steps 4–11, so
   the remaining gap is documentation + the batch tool making the efficient
   path the default.
 - **Wait policy**: waits existed (P1-01D) but the P1-01F run used fixed
@@ -72,13 +74,13 @@ only to ask ONCE and consolidated:
 
 ## What P1-02 delivers against each gap
 
-| gap | delivery |
-|---|---|
+| gap                          | delivery                                                                                                                                                    |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | per-step authorization churn | Stage 2 loop contract (mcp/README.md) — one consolidated question session for missing info; blanket authorization for ordinary steps within the stated goal |
-| round-trip cost | typed `browser_batch` (bridge + MCP), stop-on-error, bounded, per-step compact results, telemetry-measured |
-| inefficient observation | loop contract: compact/focused observation by default; full snapshot only for unfamiliar/ambiguous/recovery |
-| genuine user info | consolidated single question rule (Stage 3) |
-| CAPTCHA/blocked/pause | unchanged handoff contract + automatic `browser_state` re-check + resume |
+| round-trip cost              | typed `browser_batch` (bridge + MCP), stop-on-error, bounded, per-step compact results, telemetry-measured                                                  |
+| inefficient observation      | loop contract: compact/focused observation by default; full snapshot only for unfamiliar/ambiguous/recovery                                                 |
+| genuine user info            | consolidated single question rule (Stage 3)                                                                                                                 |
+| CAPTCHA/blocked/pause        | unchanged handoff contract + automatic `browser_state` re-check + resume                                                                                    |
 
 ## Explicitly NOT automation gaps (kept human)
 

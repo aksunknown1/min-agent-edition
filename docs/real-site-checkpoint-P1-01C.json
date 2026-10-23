@@ -22,9 +22,7 @@
         "redacted": 0,
         "httpMs": 5
       },
-      "topNodes": [
-        "link:Learn more"
-      ]
+      "topNodes": ["link:Learn more"]
     },
     {
       "site": "news.ycombinator.com",

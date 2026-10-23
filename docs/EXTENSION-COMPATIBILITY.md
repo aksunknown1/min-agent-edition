@@ -17,42 +17,42 @@ The probe starts a **loopback-only** HTTP server (`127.0.0.1`, ephemeral port, t
 
 ## 1. Proven in this runtime (observed evidence)
 
-| Capability | Status | Evidence |
-|---|---|---|
-| `ses.extensions.loadExtension(path, {allowFileAccess:false})` | **PASS** | Loaded into both the default session and `persist:webcontent`. `id=lgjffmdghonadknllapamfdomolbabig` |
-| Load into Min's **tab** session | **PASS** | `[extension-host] loaded: … session=persist:webcontent` |
-| `ses.extensions.getAllExtensions()` | **PASS** | `after load [persist:webcontent] count=1 ids=lgjffmdghonadknllapamfdomolbabig` |
-| Extension **ID stable across app restart** | **PASS** | Same ID on launch 1 and launch 2; `idStableAcrossRestart: true` |
-| Reload from settings on restart (no install step) | **PASS** | Second launch loaded with no install command, driven only by the persisted setting |
-| MV3 `background.service_worker` starts | **PASS** | Service worker handled `runtime.onMessage` and completed a storage read-back |
-| `chrome.runtime.sendMessage` content→service worker, async `sendResponse` (`return true`) | **PASS** | Round-trip returned `ok` with the read-back value |
-| `chrome.storage.local` set + get | **PASS** | `{"count":N,"marker":"P0-03"}` written and read back |
-| `chrome.storage.local` **persists across restart** | **PASS** | Counter went `1,2` on launch 1 → `3,4` on launch 2, same profile |
-| `content_scripts.js` on a `file://` page | **PASS** | Content script ran with `allowFileAccess: false` |
-| `content_scripts.js` on `https://` pages | **PASS** | `senderUrl: "https://example.com/"` and `"https://minbrowser.org/min/tour/"` |
-| `content_scripts.css` applied | **PASS** | `cssMarkerSeen: "yes"` — `--min-agent-css-marker: rgb(251, 191, 36)` is defined only by the extension's `content.css` |
-| Extension visible DOM marker injected | **PASS** | `#min-agent-extension-marker` created by the content script |
-| Host does not regress Min | **PASS** | `npm run smoke:baseline` 6/6 with the host **enabled**; `tabRenderers=1`, clean teardown |
-| `content_scripts` `"world": "MAIN"` accepted by this runtime | **PASS** | `test-min-agent-docstart` loaded with **no manifest error**; `id=nkhdbhbikdgokhjabbfpplhphopnpchl` |
-| MAIN-world script reaches the page's JS context | **PASS** | the page's own inline `<head>` script read `window.__minAgentSeq[0] === 'ext-main-document-start'` → `pageSawMainWorld: "yes"` |
-| `run_at: document_start` **before page scripts**, over `http://127.0.0.1` | **PASS** | ISOLATED control: `pageSawIsolated: "yes"` on every probe-page record |
-| `run_at: document_start` **before page scripts**, MAIN world, over `http://127.0.0.1` | **PASS** | `pageSawMainWorld: "yes"` on every probe-page record |
-| `all_frames: true` into a **same-origin `http` iframe** | **PASS** | `url: "http://127.0.0.1:<port>/frame.html"`, `senderFrameId: 5`, `isTop: false`, `cssMarkerSeen: "yes"` |
-| Two fixtures loaded side by side, both sessions | **PASS** | both IDs present in `default` and `persist:webcontent` |
-| Both fixture IDs stable across restart | **PASS** | isolated `lgjff…` identical on launches 1 and 2; docstart `nkhdb…` identical across all three runs |
-| `all_frames: true` into a same-origin **`https`** iframe | **PASS** | P0-05 run B: `url: "https://127.0.0.1:<port>/frame.html"`, `senderFrameId: 5`, three times. Cert was a throwaway self-signed loopback cert, `--ignore-certificate-errors` for that run only |
-| `run_at: document_start` before page scripts over **`https`** | **PASS** | P0-05 run B: `pageSawIsolated: "yes"` and `pageSawMainWorld: "yes"` on every `https://127.0.0.1` probe-page record |
-| `ses.extensions.removeExtension(id)` mid-session | **PASS, per session** | P0-05 run C: `before remove count=2` → `after remove count=0 ids=none`, no restart; the next document reported `PROBE iso=no css=no main=no` |
+| Capability                                                                                | Status                | Evidence                                                                                                                                                                                    |
+| ----------------------------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ses.extensions.loadExtension(path, {allowFileAccess:false})`                             | **PASS**              | Loaded into both the default session and `persist:webcontent`. `id=lgjffmdghonadknllapamfdomolbabig`                                                                                        |
+| Load into Min's **tab** session                                                           | **PASS**              | `[extension-host] loaded: … session=persist:webcontent`                                                                                                                                     |
+| `ses.extensions.getAllExtensions()`                                                       | **PASS**              | `after load [persist:webcontent] count=1 ids=lgjffmdghonadknllapamfdomolbabig`                                                                                                              |
+| Extension **ID stable across app restart**                                                | **PASS**              | Same ID on launch 1 and launch 2; `idStableAcrossRestart: true`                                                                                                                             |
+| Reload from settings on restart (no install step)                                         | **PASS**              | Second launch loaded with no install command, driven only by the persisted setting                                                                                                          |
+| MV3 `background.service_worker` starts                                                    | **PASS**              | Service worker handled `runtime.onMessage` and completed a storage read-back                                                                                                                |
+| `chrome.runtime.sendMessage` content→service worker, async `sendResponse` (`return true`) | **PASS**              | Round-trip returned `ok` with the read-back value                                                                                                                                           |
+| `chrome.storage.local` set + get                                                          | **PASS**              | `{"count":N,"marker":"P0-03"}` written and read back                                                                                                                                        |
+| `chrome.storage.local` **persists across restart**                                        | **PASS**              | Counter went `1,2` on launch 1 → `3,4` on launch 2, same profile                                                                                                                            |
+| `content_scripts.js` on a `file://` page                                                  | **PASS**              | Content script ran with `allowFileAccess: false`                                                                                                                                            |
+| `content_scripts.js` on `https://` pages                                                  | **PASS**              | `senderUrl: "https://example.com/"` and `"https://minbrowser.org/min/tour/"`                                                                                                                |
+| `content_scripts.css` applied                                                             | **PASS**              | `cssMarkerSeen: "yes"` — `--min-agent-css-marker: rgb(251, 191, 36)` is defined only by the extension's `content.css`                                                                       |
+| Extension visible DOM marker injected                                                     | **PASS**              | `#min-agent-extension-marker` created by the content script                                                                                                                                 |
+| Host does not regress Min                                                                 | **PASS**              | `npm run smoke:baseline` 6/6 with the host **enabled**; `tabRenderers=1`, clean teardown                                                                                                    |
+| `content_scripts` `"world": "MAIN"` accepted by this runtime                              | **PASS**              | `test-min-agent-docstart` loaded with **no manifest error**; `id=nkhdbhbikdgokhjabbfpplhphopnpchl`                                                                                          |
+| MAIN-world script reaches the page's JS context                                           | **PASS**              | the page's own inline `<head>` script read `window.__minAgentSeq[0] === 'ext-main-document-start'` → `pageSawMainWorld: "yes"`                                                              |
+| `run_at: document_start` **before page scripts**, over `http://127.0.0.1`                 | **PASS**              | ISOLATED control: `pageSawIsolated: "yes"` on every probe-page record                                                                                                                       |
+| `run_at: document_start` **before page scripts**, MAIN world, over `http://127.0.0.1`     | **PASS**              | `pageSawMainWorld: "yes"` on every probe-page record                                                                                                                                        |
+| `all_frames: true` into a **same-origin `http` iframe**                                   | **PASS**              | `url: "http://127.0.0.1:<port>/frame.html"`, `senderFrameId: 5`, `isTop: false`, `cssMarkerSeen: "yes"`                                                                                     |
+| Two fixtures loaded side by side, both sessions                                           | **PASS**              | both IDs present in `default` and `persist:webcontent`                                                                                                                                      |
+| Both fixture IDs stable across restart                                                    | **PASS**              | isolated `lgjff…` identical on launches 1 and 2; docstart `nkhdb…` identical across all three runs                                                                                          |
+| `all_frames: true` into a same-origin **`https`** iframe                                  | **PASS**              | P0-05 run B: `url: "https://127.0.0.1:<port>/frame.html"`, `senderFrameId: 5`, three times. Cert was a throwaway self-signed loopback cert, `--ignore-certificate-errors` for that run only |
+| `run_at: document_start` before page scripts over **`https`**                             | **PASS**              | P0-05 run B: `pageSawIsolated: "yes"` and `pageSawMainWorld: "yes"` on every `https://127.0.0.1` probe-page record                                                                          |
+| `ses.extensions.removeExtension(id)` mid-session                                          | **PASS, per session** | P0-05 run C: `before remove count=2` → `after remove count=0 ids=none`, no restart; the next document reported `PROBE iso=no css=no main=no`                                                |
 
 ## 2. Proven NOT to work as expected (observed evidence)
 
-| Capability | Status | Observed |
-|---|---|---|
-| `run_at: "document_start"` before page scripts **on `file://` pages** | **FAIL** | P0-03: a `file://` probe page with an inline `<head>` script reported `documentStartSeenByPage: "no"` on every record. The same fixture on `http://127.0.0.1` reports `"yes"` (see §1). **The ordering guarantee holds for `http(s)` and does not hold for `file://`.** |
-| `all_frames: true` into a same-origin **`file://`** iframe | **FAIL (not observed)** | P0-03: only `senderFrameId: 0`. Over `http://127.0.0.1` the same fixture produces `senderFrameId: 5` (see §1). **Works for `http(s)` iframes; not observed for `file://` iframes.** |
-| Content-script `document.title` reaching Min's window title | **FAIL** | Window title stayed `Min` although the content script's callback demonstrably ran (it wrote the second storage record). Do not use the window title as an extension evidence channel. |
-| Extension service-worker `console.log` reaching the main process stdout | **FAIL (not observed)** | `[min-agent-test-extension] service worker started` never appeared on stdout. Extension SW console output is not forwarded to the parent process. |
-| `all_frames` on an **`https`** page with an iframe | **NOT TESTED** | `https://example.com/` was used as a top-frame control only; no controllable `https` page with an iframe was available. Do not infer either way. |
+| Capability                                                              | Status                  | Observed                                                                                                                                                                                                                                                                |
+| ----------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `run_at: "document_start"` before page scripts **on `file://` pages**   | **FAIL**                | P0-03: a `file://` probe page with an inline `<head>` script reported `documentStartSeenByPage: "no"` on every record. The same fixture on `http://127.0.0.1` reports `"yes"` (see §1). **The ordering guarantee holds for `http(s)` and does not hold for `file://`.** |
+| `all_frames: true` into a same-origin **`file://`** iframe              | **FAIL (not observed)** | P0-03: only `senderFrameId: 0`. Over `http://127.0.0.1` the same fixture produces `senderFrameId: 5` (see §1). **Works for `http(s)` iframes; not observed for `file://` iframes.**                                                                                     |
+| Content-script `document.title` reaching Min's window title             | **FAIL**                | Window title stayed `Min` although the content script's callback demonstrably ran (it wrote the second storage record). Do not use the window title as an extension evidence channel.                                                                                   |
+| Extension service-worker `console.log` reaching the main process stdout | **FAIL (not observed)** | `[min-agent-test-extension] service worker started` never appeared on stdout. Extension SW console output is not forwarded to the parent process.                                                                                                                       |
+| `all_frames` on an **`https`** page with an iframe                      | **NOT TESTED**          | `https://example.com/` was used as a top-frame control only; no controllable `https` page with an iframe was available. Do not infer either way.                                                                                                                        |
 
 ### 2.1 removeExtension is per-session — a real trap
 
@@ -64,7 +64,7 @@ Also note the reverse: removal does not delete the extension's `chrome.storage.l
 
 ### 2.2 Fixture artefact worth recording, not a capability failure
 
-The `seq` attribute captured `"ext-main-document-start"` without the page's own `"page-head"` entry. The MAIN-world script publishes the shared array at `document_start` and again at `DOMContentLoaded`; the ISOLATED script reads the attribute at its own `DOMContentLoaded`, and listener order across worlds is not guaranteed, so the earlier snapshot was captured. The **authoritative** ordering signal is `pageSawIsolated` / `pageSawMainWorld`, measured *inside the page's own head script*, and both were `"yes"` on every probe-page record.
+The `seq` attribute captured `"ext-main-document-start"` without the page's own `"page-head"` entry. The MAIN-world script publishes the shared array at `document_start` and again at `DOMContentLoaded`; the ISOLATED script reads the attribute at its own `DOMContentLoaded`, and listener order across worlds is not guaranteed, so the earlier snapshot was captured. The **authoritative** ordering signal is `pageSawIsolated` / `pageSawMainWorld`, measured _inside the page's own head script_, and both were `"yes"` on every probe-page record.
 
 ## 3. Documented elsewhere but NOT tested here — treat as unsupported
 
@@ -112,7 +112,7 @@ No manager UI exists and none is proposed here. This is the smallest enable/disa
 **Loading.**
 
 - Reuse the existing path: `app.on('session-created', …)` plus the explicit `defaultSession` / `persist:webcontent` calls at `app.on('ready')` (`main/extensionHost.js`). That already covers every session Min uses.
-- Load the allowlist on **every** launch. Electron does not persist loaded extensions, so there is no "installed" state to reconcile — the allowlist *is* the state.
+- Load the allowlist on **every** launch. Electron does not persist loaded extensions, so there is no "installed" state to reconcile — the allowlist _is_ the state.
 - Enable/disable therefore means: edit the list, then restart. Electron 43 has `ses.extensions.removeExtension(id)`, but unloading mid-session is untested here and must not be assumed to work; **do not promise live enable/disable** until it is spiked.
 
 **Failure handling — must be explicit, never silent.**
@@ -128,4 +128,4 @@ No manager UI exists and none is proposed here. This is the smallest enable/disa
 - No popup/toolbar rendering — Electron renders none (§3); any extension UI is Min's own and is a separate decision.
 - No permission-prompt emulation. Extensions get whatever the session already grants; that must be surfaced in the UI text, not hidden.
 
-**The one thing Phase 4 must decide first:** whether the allowlist is *paths* (simple, matches today's host, but requires the user to place files on disk) or *copied-into-userData* extensions (nicer, but then Min owns a copy step, a de-dup step, and a deletion path — real product surface). The evidence does not force either; it only shows path-based loading works and is stable across restart.
+**The one thing Phase 4 must decide first:** whether the allowlist is _paths_ (simple, matches today's host, but requires the user to place files on disk) or _copied-into-userData_ extensions (nicer, but then Min owns a copy step, a de-dup step, and a deletion path — real product surface). The evidence does not force either; it only shows path-based loading works and is stable across restart.

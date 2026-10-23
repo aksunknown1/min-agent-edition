@@ -14,23 +14,23 @@ echoed). Snapshots remain sub-10 ms.
 
 ### Live sites (medians of 3, default navigation settings)
 
-| site | navigate total | settle (load event) | stability verify | snapshot | snapshot nodes |
-|---|---|---|---|---|---|
-| https://example.com/ | 1589 ms | 16 ms | 1561 ms | 2 ms | 1 |
-| https://news.ycombinator.com/ | 1859 ms | 301 ms | 1556 ms | 11 ms | 200 |
-| https://account.proton.me/login | 1876 ms | 288 ms | 1575 ms | 10 ms | 17 |
+| site                            | navigate total | settle (load event) | stability verify | snapshot | snapshot nodes |
+| ------------------------------- | -------------- | ------------------- | ---------------- | -------- | -------------- |
+| https://example.com/            | 1589 ms        | 16 ms               | 1561 ms          | 2 ms     | 1              |
+| https://news.ycombinator.com/   | 1859 ms        | 301 ms              | 1556 ms          | 11 ms    | 200            |
+| https://account.proton.me/login | 1876 ms        | 288 ms              | 1575 ms          | 10 ms    | 17             |
 
 Raw runs (incl. per-run values, `waitedMs`, `finalUrl`): see
 `docs/performance-baseline-measurements.json` (`liveSites.*.runs`).
 
 ### Local fixtures
 
-| fixture | tool | median | note |
-|---|---|---|---|
-| controlled React-style input (`resolve`) | browser_type | 6–8 ms | first-strategy verified, `native-insert` |
-| hostile input (beforeinput-blocked) | browser_type | ~310 ms | fallback path ≈ 5 s BEFORE P1-01D (measured 5010/5019 ms in P1-01C evidence); fast-path detects demonstrably-not-accepted input at ~700 ms |
-| rejecting controlled input | browser_type | ~310 ms | structured `rejected-input`, verified=false |
-| snapshot over fixtures | browser_snapshot | 2–5 ms | |
+| fixture                                  | tool             | median  | note                                                                                                                                       |
+| ---------------------------------------- | ---------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| controlled React-style input (`resolve`) | browser_type     | 6–8 ms  | first-strategy verified, `native-insert`                                                                                                   |
+| hostile input (beforeinput-blocked)      | browser_type     | ~310 ms | fallback path ≈ 5 s BEFORE P1-01D (measured 5010/5019 ms in P1-01C evidence); fast-path detects demonstrably-not-accepted input at ~700 ms |
+| rejecting controlled input               | browser_type     | ~310 ms | structured `rejected-input`, verified=false                                                                                                |
+| snapshot over fixtures                   | browser_snapshot | 2–5 ms  |                                                                                                                                            |
 
 ## 2. Stage 2 — browser_wait
 
@@ -48,6 +48,7 @@ second) — so **the bridge silently disabled ad blocking on every session**
 listener" in old comments was never true for `onBeforeRequest`.
 
 New architecture (structurally guaranteed):
+
 - `main/filtering.js` remains the ONLY `onBeforeRequest` registrant (asserted
   by a probe check against the built bundle: exactly 1 match).
 - filtering's `handleRequest` calls the bridge's hoisted
@@ -56,7 +57,7 @@ New architecture (structurally guaranteed):
 - The bridge registers only `onCompleted`/`onErrorOccurred` decoders (unused
   by any other module).
 - `browser_status → bridge.net` exposes `{inflight, observedTotal,
-  settledTotal, blockedTotal, filteringBlockedCount}` —
+settledTotal, blockedTotal, filteringBlockedCount}` —
   `filteringBlockedCount` is Min's own persisted counter, read through the
   settings store.
 
@@ -79,24 +80,24 @@ prefer `browser_wait` for real conditions.
 
 ### Waits probe results (`npm run probe:waits` → 16/16)
 
-| check | result |
-|---|---|
-| selector_visible on an element appearing 900 ms after load | satisfied, waitedMs within [600, 7500] |
-| selector_visible timeout (never-appearing selector) | satisfied=false ≤2 s, reason present |
+| check                                                                           | result                                                                                          |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| selector_visible on an element appearing 900 ms after load                      | satisfied, waitedMs within [600, 7500]                                                          |
+| selector_visible timeout (never-appearing selector)                             | satisfied=false ≤2 s, reason present                                                            |
 | network_idle across a delayed XHR (starts 1.2 s post-load, server holds 800 ms) | satisfied only after the XHR drained; `observedTotal` grew → blocker-handler integration proven |
-| network_idle on an idle http page | satisfied < 3.5 s |
-| bridge responsiveness during a pending 6 s wait | status round-trip completed < 1.5 s while the wait was pending |
-| pending wait completes honestly after the concurrency check | satisfied=false |
+| network_idle on an idle http page                                               | satisfied < 3.5 s                                                                               |
+| bridge responsiveness during a pending 6 s wait                                 | status round-trip completed < 1.5 s while the wait was pending                                  |
+| pending wait completes honestly after the concurrency check                     | satisfied=false                                                                                 |
 
 ## 3. Stage 3 — measured optimizations
 
 ### B. Input fallback latency — measured before/after
 
-| scenario | before (P1-01C) | after (P1-01D) | how |
-|---|---|---|---|
-| hostile input (first strategy demonstrably not accepted) | 5010 ms | ~310 ms | typed-value read-back detects "located target, identity strict, length 0 while non-empty text dispatched" at two consecutive early polls (~700 ms) → the ONE bounded native-setter fallback engages immediately |
-| rejecting controlled input | 5017 ms | ~310 ms | same early signal; final structured `rejected-input` unchanged |
-| ordinary + delayed-acceptance inputs | 6–8 ms | 6–8 ms | unchanged (first-poll acceptance) |
+| scenario                                                 | before (P1-01C) | after (P1-01D) | how                                                                                                                                                                                                             |
+| -------------------------------------------------------- | --------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| hostile input (first strategy demonstrably not accepted) | 5010 ms         | ~310 ms        | typed-value read-back detects "located target, identity strict, length 0 while non-empty text dispatched" at two consecutive early polls (~700 ms) → the ONE bounded native-setter fallback engages immediately |
+| rejecting controlled input                               | 5017 ms         | ~310 ms        | same early signal; final structured `rejected-input` unchanged                                                                                                                                                  |
+| ordinary + delayed-acceptance inputs                     | 6–8 ms          | 6–8 ms         | unchanged (first-poll acceptance)                                                                                                                                                                               |
 
 All four input fixture classes still pass (`probe:inputs` 20/20). Retry count
 is still ≤1 with a different strategy.
@@ -140,6 +141,7 @@ is still ≤1 with a different strategy.
 ### D. Batching design proposal (design only — not implemented)
 
 `browser_batch` proposal (deferred to the roadmap task it belongs to):
+
 - Input: `actions: [{tool, params}, ...]` — ONLY typed browser actions from
   the fixed ENUM of existing bridge methods (validated by the same
   AGENT_RPC_PARAM_SCHEMAS); arbitrary JS/shell/CDP are impossible by
@@ -165,12 +167,12 @@ repeated on this build as part of the baseline measurement (medians in
 
 ## 5. Stage 5 — before/after summary
 
-| metric | before P1-01D | after P1-01D | evidence |
-|---|---|---|---|
-| input fallback latency (hostile fixture) | 5010 ms | ~310 ms | P1-01C evidence vs docs/agent-inputs-probe.json |
-| live navigate+snapshot (per site, incl. stability window) | 4.2–6.3 s (P1-01C checkpoint, window=4000) | 1.6–1.9 s + 2–10 ms (window=1500, medians of 3) | performance-baseline-measurements.json |
-| navigation duration split | single waitedMs | settleMs + stabilityMs + stabilityWindowMs | navigate results |
-| ad blocking with bridge active | **silently disabled** (webRequest replacement bug) | structurally preserved (single registrant + live block-count gate) | waits probe binary check + blockedTotal 0→2 |
-| selector_visible reliability | always "not found" (call-site arg bug) | monitored honestly (16/16 waits incl. delayed element + timeout) | waits probe |
-| offscreen-element actions | silently missed (viewport coords) | scrolled into view first, fresh box used | real-world matrix before/after (PlayLab type/checkbox switched to PASS) |
-| MCP round trips for a wait+act workflow | n/a (no waits coverage) | waits measured 0.9–6.9 s tool time; batch tool proposed, not implemented | waits probe timings |
+| metric                                                    | before P1-01D                                      | after P1-01D                                                             | evidence                                                                |
+| --------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| input fallback latency (hostile fixture)                  | 5010 ms                                            | ~310 ms                                                                  | P1-01C evidence vs docs/agent-inputs-probe.json                         |
+| live navigate+snapshot (per site, incl. stability window) | 4.2–6.3 s (P1-01C checkpoint, window=4000)         | 1.6–1.9 s + 2–10 ms (window=1500, medians of 3)                          | performance-baseline-measurements.json                                  |
+| navigation duration split                                 | single waitedMs                                    | settleMs + stabilityMs + stabilityWindowMs                               | navigate results                                                        |
+| ad blocking with bridge active                            | **silently disabled** (webRequest replacement bug) | structurally preserved (single registrant + live block-count gate)       | waits probe binary check + blockedTotal 0→2                             |
+| selector_visible reliability                              | always "not found" (call-site arg bug)             | monitored honestly (16/16 waits incl. delayed element + timeout)         | waits probe                                                             |
+| offscreen-element actions                                 | silently missed (viewport coords)                  | scrolled into view first, fresh box used                                 | real-world matrix before/after (PlayLab type/checkbox switched to PASS) |
+| MCP round trips for a wait+act workflow                   | n/a (no waits coverage)                            | waits measured 0.9–6.9 s tool time; batch tool proposed, not implemented | waits probe timings                                                     |

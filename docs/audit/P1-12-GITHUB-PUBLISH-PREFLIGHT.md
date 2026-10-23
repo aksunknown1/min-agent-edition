@@ -11,11 +11,11 @@ Date: 2026-10-19 · Status: **READY_TO_PUBLISH** (publish set proven; awaiting u
 
 ## 2. Effective publish set (Phase 2 — emulator `scripts/p112-publish-set.js`, evidence `docs/p112-publish-set.json`)
 
-| metric | value |
-|---|---|
-| included files | **412** |
-| included size | **15.0 MB** (15,748,919 B) |
-| excluded | `dist/` (2.4 GB), `node_modules/` (711 MB), `dev-archive/` (14 MB), `docs/backups/` (5.1 MB), `extensions/real/` (37 MB), `docs/demo-atomic-mail/` (2.8 MB), `min-v1.35.7-source.zip` (7.1 MB), `main.build.js` (861 KB), `*.log`, `tmp-*` |
+| metric         | value                                                                                                                                                                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| included files | **412**                                                                                                                                                                                                                                    |
+| included size  | **15.0 MB** (15,748,919 B)                                                                                                                                                                                                                 |
+| excluded       | `dist/` (2.4 GB), `node_modules/` (711 MB), `dev-archive/` (14 MB), `docs/backups/` (5.1 MB), `extensions/real/` (37 MB), `docs/demo-atomic-mail/` (2.8 MB), `min-v1.35.7-source.zip` (7.1 MB), `main.build.js` (861 KB), `*.log`, `tmp-*` |
 
 Mandatory checks: dev-archive excluded ✓ · docs/backups excluded ✓ · extensions/real +
 demo-atomic-mail excluded ✓ · dist/installers/zip/unpacked excluded ✓ · personal
@@ -86,6 +86,7 @@ repo must keep the distinct identity per RELEASE_NOTES.
 # P1-12 Extension — Independently Observed Findings (2026-10-19)
 
 ## E1. README.md fork identity (repaired)
+
 README identified the project as "Min" and directed users to official Min releases,
 wiki, issue tracker and Discord as if they were this project's resources. Rewritten:
 fork banner ("Min Agent Edition — a developer fork of Min… separate product"), explicit
@@ -94,6 +95,7 @@ references only, build/dev sections updated to Agent Edition tooling (npm ci + l
 launch:agent, CONTRIBUTING). Backups: `docs/backups/P1-11.1/README.pre-p112ext`.
 
 ## E2. `package.json` repository field (pending — no invented URL)
+
 `repository.url` pointed at `https://github.com/minbrowser/min.git` (upstream), which
 misdescribes this fork. The field was REMOVED until the user provides/creates the actual
 Agent Edition repository. Backup: `docs/backups/P1-11.1/package.pre-p112ext`. Remaining
@@ -101,6 +103,7 @@ action for the owner: re-add `repository` (and optional `homepage`/`bugs`) once 
 publish URL is chosen — documented in RELEASE_NOTES as pending.
 
 ## E3. Lockfile reproducibility (evaluated, then applied with tests)
+
 - CI workflow used `npm install --omit=optional` (non-reproducible, ignores the lockfile),
   and the lockfile's root name was `min` while `package.json` says `min-agent-edition`.
 - **Test evidence (disposable copy):** old-lockfile `npm ci --omit=optional` succeeds
@@ -116,12 +119,14 @@ publish URL is chosen — documented in RELEASE_NOTES as pending.
 - Lockfile was never deleted at any point.
 
 ## E4. Node version alignment (tested config only)
+
 `.nvmrc` said 15.7.0 (inherited, stale); CI used Node 25 (untested here). All
 verification on this project ran on **Node v24.19.0**. Applied: `.nvmrc` → `24.19.0`,
 CI `node-version` → `24` with an in-file comment (backup
 `docs/backups/P1-11.1/nvmrc.pre-p112ext` / `build-packages.yml.pre-p112ext`).
 
 ## E5. Session/report files review
+
 - `docs/atomic-live-session.json` (temp-profile paths + PID),
   `docs/atomic-recon.json`, `docs/atomic-live-launch.log`: P1-03 live
   account-creation session metadata → **excluded from publish set** (gitignore), kept
@@ -135,6 +140,7 @@ CI `node-version` → `24` with an in-file comment (backup
   provenance.
 
 ## E6. Post-extension verification
+
 Publish set recomputed: **410 files / 15.0 MB** (atomic artifacts out, lockfile in).
 `npm run build` clean (main.create timestamp only), `test:agent-rpc` 182/182, updater
 18/18, smoke 6/6, secret scan re-run on 410 files: 0 hard findings (2 upstream
@@ -144,5 +150,6 @@ processes. `.gitignore` change backups: `docs/backups/P1-11.1/gitignore.pre-p112
 (pre-extension state included in the P1-12 preflight backup chain).
 
 ## Extension status: **READY_TO_PUBLISH** still holds, now with identity, lockfile,
+
 reproducibility, Node-version and session-metadata items resolved or explicitly
 documented. Awaiting user approval for the actual git init/commit/push.

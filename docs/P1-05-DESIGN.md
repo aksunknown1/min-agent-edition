@@ -70,4 +70,5 @@
 
 New (5): `browser_download_start`, `browser_download_wait`, `browser_download_cancel`,
 `browser_download_pause`, `browser_download_resume`. Census 25 → 30 (bridge + MCP adapter
-+ tests updated together). `mcp/README.md` autonomy contract updated.
+
+- tests updated together). `mcp/README.md` autonomy contract updated.

@@ -176,22 +176,8 @@
   },
   "localFixtures": {
     "source": "docs/agent-inputs-probe.json (P1-01D build)",
-    "typeCallsMs": [
-      7,
-      6,
-      311,
-      310,
-      4,
-      2
-    ],
-    "snapshotCallsMs": [
-      4,
-      3,
-      2,
-      3,
-      2,
-      2
-    ],
+    "typeCallsMs": [7, 6, 311, 310, 4, 2],
+    "snapshotCallsMs": [4, 3, 2, 3, 2, 2],
     "snapshotMedianMs": 3,
     "note": "type calls: 6-8ms first-strategy; ~310ms fallback path (P1-01D early not-accepted detection; was ~5010ms before)"
   }

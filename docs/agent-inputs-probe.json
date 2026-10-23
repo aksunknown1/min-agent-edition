@@ -1,11 +1,61 @@
 {
-  "ranAt": "2026-10-19T03:06:35.585Z",
+  "ranAt": "2026-10-20T04:12:03.932Z",
   "passed": 20,
   "total": 20,
   "timings": [
     {
       "method": "browser_snapshot",
+      "ms": 5,
+      "status": 200
+    },
+    {
+      "method": "browser_type",
+      "ms": 12,
+      "status": 200
+    },
+    {
+      "method": "browser_click",
+      "ms": 10,
+      "status": 200
+    },
+    {
+      "method": "browser_content",
+      "ms": 5,
+      "status": 200
+    },
+    {
+      "method": "browser_type",
+      "ms": 11,
+      "status": 200
+    },
+    {
+      "method": "browser_snapshot",
+      "ms": 3,
+      "status": 200
+    },
+    {
+      "method": "browser_type",
+      "ms": 320,
+      "status": 200
+    },
+    {
+      "method": "browser_snapshot",
       "ms": 6,
+      "status": 200
+    },
+    {
+      "method": "browser_type",
+      "ms": 313,
+      "status": 200
+    },
+    {
+      "method": "browser_snapshot",
+      "ms": 3,
+      "status": 200
+    },
+    {
+      "method": "browser_snapshot",
+      "ms": 2,
       "status": 200
     },
     {
@@ -15,57 +65,7 @@
     },
     {
       "method": "browser_click",
-      "ms": 9,
-      "status": 200
-    },
-    {
-      "method": "browser_content",
-      "ms": 3,
-      "status": 200
-    },
-    {
-      "method": "browser_type",
-      "ms": 8,
-      "status": 200
-    },
-    {
-      "method": "browser_snapshot",
-      "ms": 3,
-      "status": 200
-    },
-    {
-      "method": "browser_type",
-      "ms": 316,
-      "status": 200
-    },
-    {
-      "method": "browser_snapshot",
-      "ms": 2,
-      "status": 200
-    },
-    {
-      "method": "browser_type",
-      "ms": 318,
-      "status": 200
-    },
-    {
-      "method": "browser_snapshot",
-      "ms": 2,
-      "status": 200
-    },
-    {
-      "method": "browser_snapshot",
-      "ms": 1,
-      "status": 200
-    },
-    {
-      "method": "browser_type",
-      "ms": 9,
-      "status": 200
-    },
-    {
-      "method": "browser_click",
-      "ms": 6,
+      "ms": 415,
       "status": 200
     },
     {
@@ -75,7 +75,7 @@
     },
     {
       "method": "browser_click",
-      "ms": 7,
+      "ms": 424,
       "status": 200
     },
     {
@@ -168,7 +168,7 @@
     {
       "name": "type into nested shadow field -> verified value",
       "pass": true,
-      "detail": "{\"status\":200,\"error\":null,\"result\":{\"tabId\":\"91955597636635310\",\"ref\":\"rg\",\"target\":{\"role\":\"textbox\",\"name\":\"Shadow Field\",\"nameIndex\":0,\"shadowPath\":\"::shadow::shadow\"},\"strategy\":\"native-insert\",\"dispatched\":true,\"ve"
+      "detail": "{\"status\":200,\"error\":null,\"result\":{\"tabId\":\"38138082460798590\",\"ref\":\"rg\",\"target\":{\"role\":\"textbox\",\"name\":\"Shadow Field\",\"nameIndex\":0,\"shadowPath\":\"::shadow::shadow\"},\"strategy\":\"native-insert\",\"inputMode\":\"native\","
     },
     {
       "name": "click deep shadow button dispatched+verified",

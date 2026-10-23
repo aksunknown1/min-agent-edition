@@ -1,0 +1,855 @@
+{
+  "probe": "realweb",
+  "layer": "C",
+  "ranAt": "2026-10-20T04:20:00.487Z",
+  "network": {
+    "mode": "LIVE",
+    "live": true,
+    "checks": [
+      {
+        "site": "example",
+        "url": "https://example.com/",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "promises",
+        "url": "https://the-internet.herokuapp.com/",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "selenium",
+        "url": "https://www.selenium.dev/selenium/web/web-form.html",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "httpbin",
+        "url": "https://httpbin.org/html",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "canvas",
+        "url": "https://www.w3schools.com/html/html5_canvas.asp",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "w3readonly",
+        "url": "https://www.w3schools.com/tags/att_input_readonly.asp",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "wikipedia",
+        "url": "https://en.wikipedia.org/wiki/CSS",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "promises2",
+        "url": "https://the-internet.herokuapp.com/add_remove_elements/",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "example",
+        "url": "https://example.com/",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "promises",
+        "url": "https://the-internet.herokuapp.com/",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "selenium",
+        "url": "https://www.selenium.dev/selenium/web/web-form.html",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "httpbin",
+        "url": "https://httpbin.org/html",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "canvas",
+        "url": "https://www.w3schools.com/html/html5_canvas.asp",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "w3readonly",
+        "url": "https://www.w3schools.com/tags/att_input_readonly.asp",
+        "ok": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "site": "wikipedia",
+        "url": "https://en.wikipedia.org/wiki/CSS",
+        "ok": true,
+        "status": 200,
+        "error": null
+      }
+    ],
+    "why": "every pinned origin answered from this machine"
+  },
+  "canonicalToolCount": 39,
+  "standin": {
+    "base": "http://127.0.0.1:49697",
+    "pinnedOrigins": [
+      "example.com",
+      "the-internet.herokuapp.com",
+      "www.selenium.dev",
+      "httpbin.org",
+      "www.w3schools.com",
+      "en.wikipedia.org"
+    ],
+    "leakViolations": []
+  },
+  "live": {
+    "counts": {
+      "pass": 62,
+      "fail": 0,
+      "blocked": 0,
+      "drift": 1,
+      "total": 63
+    },
+    "results": [
+      {
+        "id": "harness.launch",
+        "site": "local",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "Min ready; 39-tool adapter census; attached tab 30972167446910692",
+        "observed": null,
+        "at": "2026-10-20T04:18:54.089Z"
+      },
+      {
+        "id": "nav",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "verified navigation; finalUrl=https://example.com/ title=\"Example Domain\"",
+        "observed": {
+          "finalUrl": "https://example.com/",
+          "title": "Example Domain",
+          "settleMs": 9
+        },
+        "at": "2026-10-20T04:18:54.619Z"
+      },
+      {
+        "id": "content",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "real page text observed; readyState=complete; 3594 chars",
+        "observed": {
+          "readyState": "complete"
+        },
+        "at": "2026-10-20T04:18:55.857Z"
+      },
+      {
+        "id": "redirect",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "two-hop redirect followed to https://httpbin.org/get",
+        "observed": {
+          "finalUrl": "https://httpbin.org/get"
+        },
+        "at": "2026-10-20T04:18:57.638Z"
+      },
+      {
+        "id": "wait",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "real delayed response; network_idle satisfied drained=false inFlight=2",
+        "observed": {
+          "drained": false,
+          "inFlight": 2
+        },
+        "at": "2026-10-20T04:19:08.451Z"
+      },
+      {
+        "id": "snapshot",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "1 interactive node(s); link ref r0 \"Learn more\"",
+        "observed": {
+          "nodeCount": 1
+        },
+        "at": "2026-10-20T04:19:09.029Z"
+      },
+      {
+        "id": "snapshot.verify",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "selector+text verification on a real page",
+        "observed": null,
+        "at": "2026-10-20T04:19:09.033Z"
+      },
+      {
+        "id": "ax",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "real Chromium AX tree: 38 nodes, roles=RootWebArea,none,paragraph,StaticText,InlineTextBox,link",
+        "observed": {
+          "nodeCount": 38,
+          "roles": [
+            "RootWebArea",
+            "none",
+            "paragraph",
+            "StaticText",
+            "InlineTextBox",
+            "link"
+          ]
+        },
+        "at": "2026-10-20T04:19:09.572Z"
+      },
+      {
+        "id": "eval",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "page-context read: h1=\"Herman Melville - Moby-Dick\", p=1",
+        "observed": null,
+        "at": "2026-10-20T04:19:10.770Z"
+      },
+      {
+        "id": "canvas",
+        "site": "canvas",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "real <canvas> 270x160 pixels=64",
+        "observed": null,
+        "at": "2026-10-20T04:19:11.542Z"
+      },
+      {
+        "id": "screenshot",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "image/png 427720b source=full 3841x2010",
+        "observed": {
+          "width": 3841,
+          "height": 2010,
+          "bytes": 427720
+        },
+        "at": "2026-10-20T04:19:12.303Z"
+      },
+      {
+        "id": "screenshot.jpg",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "jpeg 3841x2010 177524b",
+        "observed": {
+          "bytes": 177524
+        },
+        "at": "2026-10-20T04:19:12.410Z"
+      },
+      {
+        "id": "element",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "crop 786x146 < full 3841x2010; visible-area after scrollIntoView; NOT full-page or offscreen capture",
+        "observed": null,
+        "at": "2026-10-20T04:19:13.160Z"
+      },
+      {
+        "id": "fullpage",
+        "site": "wikipedia",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "stitched 19 slices into 1298x12915 (viewport 3841x2010, page css 23508px, scale 0.338, complete=true)",
+        "observed": {
+          "full": {
+            "tabId": "30972167446910692",
+            "screenshotId": "ss6",
+            "mimeType": "image/png",
+            "width": 1298,
+            "height": 12915,
+            "bytes": 5800359,
+            "source": "fullpage",
+            "scaled": false,
+            "attempts": null,
+            "ladder": [],
+            "cropLimited": "none",
+            "coordinateUnits": "viewport-css-px",
+            "captureMode": "scroll-stitch-composited",
+            "scaledBy": 0.338,
+            "slices": 19,
+            "sliceHeightCss": 1063,
+            "documentHeightCss": 20000,
+            "capturedHeightCss": 20197,
+            "truncated": false,
+            "completeCapture": true,
+            "overByteCap": true,
+            "scrollRestoredTo": 0,
+            "limitations": "scroll-stitch: fixed/sticky elements repeat across slices; content that only loads on scroll may be blank; capture is sequential, not one atomic frame. completeCapture:false means the image is NOT the whole document."
+          },
+          "viewport": {
+            "width": 3841,
+            "height": 2010
+          },
+          "cssScrollHeight": 23508
+        },
+        "at": "2026-10-20T04:19:20.186Z"
+      },
+      {
+        "id": "fullpage.honest",
+        "site": "wikipedia",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "completeCapture=true: the image is the whole document",
+        "observed": null,
+        "at": "2026-10-20T04:19:20.186Z"
+      },
+      {
+        "id": "fullpage.scroll-restored",
+        "site": "wikipedia",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "scroll position restored to the top after stitching",
+        "observed": null,
+        "at": "2026-10-20T04:19:20.189Z"
+      },
+      {
+        "id": "pdf",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "print-to-PDF of a real page: 54580 bytes, header \"%PDF-1.4\"",
+        "observed": {
+          "bytes": 54580,
+          "scale": 1
+        },
+        "at": "2026-10-20T04:19:21.057Z"
+      },
+      {
+        "id": "input.type",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "typed into a real public form and verified by value (NOT submitted)",
+        "observed": null,
+        "at": "2026-10-20T04:19:21.851Z"
+      },
+      {
+        "id": "input.press",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "press dispatched; delivery=attested verified=true",
+        "observed": null,
+        "at": "2026-10-20T04:19:21.858Z"
+      },
+      {
+        "id": "input.hover",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "hover dispatched on a real button (page effect not asserted: compositor limit)",
+        "observed": null,
+        "at": "2026-10-20T04:19:21.864Z"
+      },
+      {
+        "id": "input.keyboard",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "keyboard-mode typing verified on a real page; delivered via keyboard-events (7 chars), the field reads \"kb-mode\"",
+        "observed": {
+          "strategy": "keyboard-events",
+          "keyboard": {
+            "nonAscii": false,
+            "chars": 7,
+            "physicalKeys": true
+          }
+        },
+        "at": "2026-10-20T04:19:21.980Z"
+      },
+      {
+        "id": "controls.snapshot",
+        "site": "selenium",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "16 form controls with state enumerated: heading=null,button=null,textbox=null,textbox=null,textbox=null,textbox=null",
+        "observed": null,
+        "at": "2026-10-20T04:19:22.949Z"
+      },
+      {
+        "id": "controls.check",
+        "site": "selenium",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "checkbox \"Checked checkbox\" changed true -> false; a NEW snapshot re-read the state",
+        "observed": {
+          "before": true,
+          "after": false
+        },
+        "at": "2026-10-20T04:19:22.960Z"
+      },
+      {
+        "id": "controls.select",
+        "site": "selenium",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "select r1i chose option \"One\" (value 1); the real page reports value=\"1\" index=1",
+        "observed": {
+          "value": {
+            "v": "1",
+            "i": 1,
+            "n": 4
+          },
+          "options": 4
+        },
+        "at": "2026-10-20T04:19:27.984Z"
+      },
+      {
+        "id": "readonly",
+        "site": "selenium",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "real readonly input r1w refused typing (\"readonly -32015: target element is read-only; its value cannot be edited through the UI\") and its value is unchanged",
+        "observed": null,
+        "at": "2026-10-20T04:19:28.545Z"
+      },
+      {
+        "id": "scroll.down",
+        "site": "wikipedia",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "browser_scroll moved the real page to scrollY=899.9999389648438",
+        "observed": null,
+        "at": "2026-10-20T04:19:30.104Z"
+      },
+      {
+        "id": "scroll.bottom",
+        "site": "wikipedia",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "scroll to bottom reached 22444.97265625 of 22445",
+        "observed": null,
+        "at": "2026-10-20T04:19:30.104Z"
+      },
+      {
+        "id": "frames",
+        "site": "promises",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "2 frame(s) listed, sample: https://the-internet.herokuapp.com/iframe",
+        "observed": {
+          "frames": [
+            {
+              "url": "https://the-internet.herokuapp.com/iframe"
+            },
+            {
+              "url": "about:srcdoc"
+            }
+          ]
+        },
+        "at": "2026-10-20T04:19:33.512Z"
+      },
+      {
+        "id": "frames.identity",
+        "site": "promises",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "child frame has its own routing identity (4)",
+        "observed": null,
+        "at": "2026-10-20T04:19:33.512Z"
+      },
+      {
+        "id": "tabs.open.background",
+        "site": "promises2",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "background tab created and the current view stayed on the-internet.herokuapp.com",
+        "observed": null,
+        "at": "2026-10-20T04:19:40.920Z"
+      },
+      {
+        "id": "tabs.select",
+        "site": "promises2",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "selected tab resolves to its own document (the-internet.herokuapp.com); state url https://the-internet.herokuapp.com/add_remove_elements/",
+        "observed": {
+          "stateUrl": "https://the-internet.herokuapp.com/add_remove_elements/"
+        },
+        "at": "2026-10-20T04:19:40.945Z"
+      },
+      {
+        "id": "tabs.open.foreground",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "foreground open loaded and switched to the requested origin",
+        "observed": null,
+        "at": "2026-10-20T04:19:47.152Z"
+      },
+      {
+        "id": "tabs.close",
+        "site": "promises2",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "tab closed and no longer enumerated",
+        "observed": null,
+        "at": "2026-10-20T04:19:47.159Z"
+      },
+      {
+        "id": "mouse.click",
+        "site": "promises",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "coordinate click performed a REAL navigation / -> /abtest",
+        "observed": null,
+        "at": "2026-10-20T04:19:48.827Z"
+      },
+      {
+        "id": "mouse.move",
+        "site": "promises",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "move dispatched (delivery=unverified) — standalone mouseMove delivery is dropped by the compositor in Min production windows on this Electron build (P1-06.1); v",
+        "observed": null,
+        "at": "2026-10-20T04:19:48.828Z"
+      },
+      {
+        "id": "wheel",
+        "site": "wikipedia",
+        "mode": "live",
+        "status": "DRIFT",
+        "detail": "synthesized wheel did not scroll on this Electron/OS build (known limitation): \"mouseWheel synthesized per Electron contract with canScroll:true; on this Electron build/OS synthesized wheel events are dropped by the compositor (verified by",
+        "observed": null,
+        "at": "2026-10-20T04:19:50.951Z"
+      },
+      {
+        "id": "hover",
+        "site": "promises",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "hover dispatched on a real link",
+        "observed": null,
+        "at": "2026-10-20T04:19:51.772Z"
+      },
+      {
+        "id": "viewport",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "per-tab zoom 1 -> 1.5 changed innerWidth 2032 -> 1355 (tab-only zoom, not window control)",
+        "observed": {
+          "before": {
+            "iw": 2032,
+            "z": "1"
+          },
+          "after": {
+            "iw": 1355,
+            "scale": 1,
+            "wc": 2.8350000381469727
+          }
+        },
+        "at": "2026-10-20T04:19:52.648Z"
+      },
+      {
+        "id": "transform",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "shipped transform API changed a real public page",
+        "observed": {
+          "pre": {
+            "h": "Herman Melville - Moby-Dick",
+            "len": 27,
+            "c": "rgb(0, 0, 0)"
+          },
+          "mid": {
+            "h": "R2-TRANSFORMED",
+            "len": 14,
+            "c": "rgb(0, 0, 0)"
+          }
+        },
+        "at": "2026-10-20T04:19:53.439Z"
+      },
+      {
+        "id": "transform.status",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "transform status read from the real page: {\"tabId\":\"30972167446910692\",\"active\":1,\"ops\":{\"replace_text\":1},\"drift\":[],\"cleared\":false}",
+        "observed": null,
+        "at": "2026-10-20T04:19:53.439Z"
+      },
+      {
+        "id": "transform.restore",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "restore returned the real page to its original text and colour",
+        "observed": null,
+        "at": "2026-10-20T04:19:53.439Z"
+      },
+      {
+        "id": "upload",
+        "site": "promises",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "REAL file input on a public page accepted 1 file (files-attached); form was NOT submitted",
+        "observed": {
+          "filesCount": 1
+        },
+        "at": "2026-10-20T04:19:54.909Z"
+      },
+      {
+        "id": "upload.files",
+        "site": "promises",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "page-side FileList reports \"standin.svg\" (114 bytes)",
+        "observed": null,
+        "at": "2026-10-20T04:19:54.912Z"
+      },
+      {
+        "id": "helper.page_summary",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "observed real page: title=\"Example Domain\" readyState=complete nodes=1",
+        "observed": null,
+        "at": "2026-10-20T04:19:55.504Z"
+      },
+      {
+        "id": "helper.form_control_inventory",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "13 real controls: button,textbox,radio,checkbox",
+        "observed": null,
+        "at": "2026-10-20T04:19:56.322Z"
+      },
+      {
+        "id": "helper.no_values",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "no value/valueLength keys in a real-page control inventory",
+        "observed": null,
+        "at": "2026-10-20T04:19:56.322Z"
+      },
+      {
+        "id": "helper.list",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "frozen built-in catalogue listed: 2 entries",
+        "observed": null,
+        "at": "2026-10-20T04:19:56.323Z"
+      },
+      {
+        "id": "download",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "terminal state=completed received=2048 bytes",
+        "observed": {
+          "received": 2048
+        },
+        "at": "2026-10-20T04:19:56.710Z"
+      },
+      {
+        "id": "download.list",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "download appears in browser_downloads (1 row(s))",
+        "observed": null,
+        "at": "2026-10-20T04:19:56.710Z"
+      },
+      {
+        "id": "downloads",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "download ledger readable after real downloads (1 rows)",
+        "observed": null,
+        "at": "2026-10-20T04:19:56.712Z"
+      },
+      {
+        "id": "download.png",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "PNG image download completed (8090 bytes)",
+        "observed": null,
+        "at": "2026-10-20T04:19:56.976Z"
+      },
+      {
+        "id": "health",
+        "site": "local",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "overall=degraded; profile matches the launched temp profile",
+        "observed": null,
+        "at": "2026-10-20T04:19:56.979Z"
+      },
+      {
+        "id": "health.status",
+        "site": "local",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "browser_status reports 2 open tab(s) on a live bridge",
+        "observed": null,
+        "at": "2026-10-20T04:19:56.981Z"
+      },
+      {
+        "id": "grant",
+        "site": "httpbin",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "single-use risky_click grant issued for a real submit button (never used: no click is sent)",
+        "observed": null,
+        "at": "2026-10-20T04:19:57.809Z"
+      },
+      {
+        "id": "predict",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "read-only prediction: sideEffectClass=navigation-external href evidence observed",
+        "observed": {
+          "evidence": [
+            "anchor href=https://iana.org/help/example-domains (resolved)",
+            "destination origin differs from the current page origin",
+            "current page: https://example.com/"
+          ]
+        },
+        "at": "2026-10-20T04:19:58.400Z"
+      },
+      {
+        "id": "batch",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "3-step batch against a real page, all steps ok",
+        "observed": {
+          "steps": [
+            "browser_wait",
+            "browser_content",
+            "browser_verify"
+          ]
+        },
+        "at": "2026-10-20T04:19:58.939Z"
+      },
+      {
+        "id": "overlay.default-off",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "browser_state carries no overlay field until a profile opts in",
+        "observed": null,
+        "at": "2026-10-20T04:19:59.472Z"
+      },
+      {
+        "id": "overlay.opt-in",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "policy.json debugClickOverlay:true enables the overlay (0 records until a click)",
+        "observed": null,
+        "at": "2026-10-20T04:19:59.476Z"
+      },
+      {
+        "id": "overlay.marker",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "2 marker element(s) rendered on a real page",
+        "observed": null,
+        "at": "2026-10-20T04:19:59.644Z"
+      },
+      {
+        "id": "overlay.no-page-text",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "page innerText length unchanged (917) with the marker present",
+        "observed": null,
+        "at": "2026-10-20T04:19:59.644Z"
+      },
+      {
+        "id": "overlay.non-interactive",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "marker has pointer-events:none and cannot intercept input",
+        "observed": null,
+        "at": "2026-10-20T04:19:59.645Z"
+      },
+      {
+        "id": "overlay.navigation-clear",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "a real navigation removed all overlay nodes (a new document starts clean)",
+        "observed": null,
+        "at": "2026-10-20T04:20:00.483Z"
+      },
+      {
+        "id": "overlay.disable",
+        "site": "example",
+        "mode": "live",
+        "status": "PASS",
+        "detail": "switching the policy off removes the overlay surface entirely",
+        "observed": null,
+        "at": "2026-10-20T04:20:00.486Z"
+      }
+    ]
+  },
+  "standinEvidence": {
+    "counts": {
+      "pass": 0,
+      "fail": 0,
+      "blocked": 0,
+      "drift": 0,
+      "total": 0
+    },
+    "results": []
+  },
+  "verdict": {
+    "ok": true,
+    "livePass": 62,
+    "liveFail": 0,
+    "liveBlocked": 0,
+    "standinPass": 0,
+    "standinFail": 0,
+    "reason": "live evidence green"
+  }
+}

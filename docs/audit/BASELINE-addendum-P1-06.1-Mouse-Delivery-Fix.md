@@ -18,7 +18,7 @@ The P1-06 in-process diagnostic (temp `WebContentsView` created INSIDE Min's pro
 
 So the drop is a renderer-side/compositor-level behavior specific to Min's existing production
 page views (created through Min's full `createView` pipeline with its preload bundle and
-navigation history). It is *not* a coordinate, focus, schema, or bridge issue, and *not* the
+navigation history). It is _not_ a coordinate, focus, schema, or bridge issue, and _not_ the
 `preventDefault` bug from P1-05 (that class was already fixed).
 
 ## 2. Additional verified root cause + fix found this phase
@@ -65,26 +65,26 @@ diagnostic check was added as further evidence).
   - `page received ordered path events (>=80% delivered)` [target=30 received=0]
   - `queued moves flushed by trailing button event` [after-path=0 after-flush=0]
   - `page registered drop INSIDE B` (same standalone-move limitation; down/up deliver)
-  + fixed this phase: the 2032x200 out-of-bounds collapse class (was blocking even syntax-valid
-  paths after programmatic re-attach).
+  * fixed this phase: the 2032x200 out-of-bounds collapse class (was blocking even syntax-valid
+    paths after programmatic re-attach).
 
 ## 6. Full regression gate (exact commands, exit codes, counts)
 
-| command | exit | result |
-|---|---|---|
-| `npm run build` (+ `node --check main/agentRpc.js`) | 0 | clean |
-| `npm run test:agent-rpc` | 0 | 182/182 (census 31) |
-| `node scripts/mcp-e2e.js` | 0 | **56/56** (image content + mouse transport over stdio) |
-| `npm run probe:mouse` ×3 | 2 | **23/26** each (above) |
-| `npm run probe:transform` | 0 | 18/18 |
-| `npm run probe:downloads` | 0 | 33/33 |
-| `npm run probe:pav` / `inputs` / `captcha` / `waits` | 0 | 15/15, 20/20, 14/14, 16/16 |
-| `npm run probe:tabs` ×5 | 0 | 16/16 each |
-| `probe:agent-actions` / `agent-snapshot` / `nps` | 0 | 33/33, 27/27, 38/38 |
-| `probe:capture` / `detach` | 0 | exit 0 |
-| `npm run smoke:baseline` ×3 | 0 | 6/6 each |
-| stray electrons | — | 0 |
-| ad-blocker invariant | — | exactly 1 effective `onBeforeRequest` (main/filtering.js:272); bridge registers 0; network observation works (nps/waits green) |
+| command                                              | exit | result                                                                                                                         |
+| ---------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run build` (+ `node --check main/agentRpc.js`)  | 0    | clean                                                                                                                          |
+| `npm run test:agent-rpc`                             | 0    | 182/182 (census 31)                                                                                                            |
+| `node scripts/mcp-e2e.js`                            | 0    | **56/56** (image content + mouse transport over stdio)                                                                         |
+| `npm run probe:mouse` ×3                             | 2    | **23/26** each (above)                                                                                                         |
+| `npm run probe:transform`                            | 0    | 18/18                                                                                                                          |
+| `npm run probe:downloads`                            | 0    | 33/33                                                                                                                          |
+| `npm run probe:pav` / `inputs` / `captcha` / `waits` | 0    | 15/15, 20/20, 14/14, 16/16                                                                                                     |
+| `npm run probe:tabs` ×5                              | 0    | 16/16 each                                                                                                                     |
+| `probe:agent-actions` / `agent-snapshot` / `nps`     | 0    | 33/33, 27/27, 38/38                                                                                                            |
+| `probe:capture` / `detach`                           | 0    | exit 0                                                                                                                         |
+| `npm run smoke:baseline` ×3                          | 0    | 6/6 each                                                                                                                       |
+| stray electrons                                      | —    | 0                                                                                                                              |
+| ad-blocker invariant                                 | —    | exactly 1 effective `onBeforeRequest` (main/filtering.js:272); bridge registers 0; network observation works (nps/waits green) |
 
 ## 7. Live validation (scripts/p1-06-live.js — 7/7 PASS after the fix)
 

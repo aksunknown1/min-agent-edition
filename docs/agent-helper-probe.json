@@ -1,0 +1,182 @@
+{
+  "ts": "2026-10-20T04:12:11.772Z",
+  "results": [
+    {
+      "name": "bridge discovery appeared",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C1: helper_list exposes exactly the two approved built-ins",
+      "pass": true,
+      "detail": "[\"page_summary\",\"form_control_inventory\"]"
+    },
+    {
+      "name": "C4: helper_list allowlist is the six read-only tools",
+      "pass": true,
+      "detail": "browser_content,browser_snapshot,browser_state,browser_status,browser_tabs,browser_verify"
+    },
+    {
+      "name": "startup tab enumerated",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B: page_summary returns a complete status",
+      "pass": true,
+      "detail": "complete"
+    },
+    {
+      "name": "B: page_summary reports the real url",
+      "pass": true,
+      "detail": "file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-helper-probe/form.html"
+    },
+    {
+      "name": "B: page_summary reports the real title",
+      "pass": true,
+      "detail": "Helper Fixture"
+    },
+    {
+      "name": "B: page_summary reports readyState",
+      "pass": true,
+      "detail": "complete"
+    },
+    {
+      "name": "B: page_summary states that readiness is not app readiness",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B: page_summary includes bounded topNodes with refs",
+      "pass": true,
+      "detail": 10
+    },
+    {
+      "name": "B: page_summary never copies node values",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B: page_summary sequence is exactly state then snapshot",
+      "pass": true,
+      "detail": "browser_state>browser_snapshot"
+    },
+    {
+      "name": "B: form_control_inventory returns a complete status",
+      "pass": true,
+      "detail": "complete"
+    },
+    {
+      "name": "B: form_control_inventory is FLAT (no grouping claim)",
+      "pass": true,
+      "detail": true
+    },
+    {
+      "name": "B: inventory found real controls of several roles",
+      "pass": true,
+      "detail": "textbox,textbox,textbox,checkbox,combobox,textbox,textbox,textbox,button"
+    },
+    {
+      "name": "B: inventory reports disabled state (reliable)",
+      "pass": true,
+      "detail": "snapshot=heading:Helper Fixture | textbox:Username | textbox:Email | textbox:Password | checkbox:Agree | combobox:Choice | textbox:Notes | textbox:Disabled:disabled | textbox:Readonly:ro | button:Do Nothing"
+    },
+    {
+      "name": "B4: readonly input reports readOnly === true",
+      "pass": true,
+      "detail": "true"
+    },
+    {
+      "name": "B4: writable input reports readOnly === false",
+      "pass": true,
+      "detail": "false"
+    },
+    {
+      "name": "B4: disabled input reports disabled:true and readOnly:false (independent flags)",
+      "pass": true,
+      "detail": "{\"d\":true,\"ro\":false}"
+    },
+    {
+      "name": "B4: readOnly is never null for a supported <input>",
+      "pass": true,
+      "detail": "[\"Username=false\",\"Email=false\",\"Password=false\",\"Notes=false\",\"Disabled=false\",\"Readonly=true\"]"
+    },
+    {
+      "name": "B: inventory reports redaction as a FLAG for sensitive controls",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C8: password VALUE never appears in the inventory",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C8: email sentinel VALUE never appears in the inventory",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C8: no numeric control field exposes the password length",
+      "pass": true,
+      "detail": "no numeric fields"
+    },
+    {
+      "name": "C8: no valueLength field is exposed for any control",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C8: no raw \"value\" key is exposed for any control",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C5: url unchanged after both helpers",
+      "pass": true,
+      "detail": "file:///C:/Users/AKS-PC/AppData/Local/Temp/min-agent-helper-probe/form.html"
+    },
+    {
+      "name": "C5: title unchanged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C5: page text length unchanged (no DOM mutation)",
+      "pass": true,
+      "detail": "105 -> 105"
+    },
+    {
+      "name": "C5: fixture marker still \"untouched\" (nothing interacted)",
+      "pass": true,
+      "detail": "untouched"
+    },
+    {
+      "name": "C5: no tab was opened or closed by a helper",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C1: selecting a privileged tool by name is refused",
+      "pass": true,
+      "detail": "not_found"
+    },
+    {
+      "name": "C3: missing tabId refused",
+      "pass": true,
+      "detail": "invalid_params"
+    },
+    {
+      "name": "C9: unknown tab returns truthful error or unavailable status",
+      "pass": true,
+      "detail": "unavailable"
+    },
+    {
+      "name": "C6: an injected step list is rejected by the schema",
+      "pass": true,
+      "detail": "invalid_params"
+    }
+  ],
+  "pass": 35,
+  "total": 35
+}

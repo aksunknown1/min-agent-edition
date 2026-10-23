@@ -23,6 +23,7 @@
    arrays over stdio.
 
 ## Key defects found & fixed during the close-out pass
+
 - `rec.op: 'replace_text'` hardcoded for ALL ops (highlight/set_style/hide
   were stored with the wrong label) → fixed: `op: r.op`.
 - `rec.ref`/`rec.selector` recorded as null for selector-targeted entries →
@@ -33,11 +34,13 @@
   skipped → fixed.
 
 ## Verified via transformdiag (stable, repeat run)
+
 - apply: rendered text = replacement ✓
 - restore: rendered text = original ✓ (browser_verify cross-checked)
 - invalid_params HTTP 400 for unsafe style values ✓
 
 ## Remaining probe failures (probe-side, documented)
+
 - **item 7** (ref-based stale): headingRef extraction from browser_snapshot —
   the heading node's ref is not being extracted correctly by the probe's
   name-based find. The engine's ref-based stale path IS verified via the
@@ -55,12 +58,14 @@ These are all PROBE-FIXTURE/race issues, not engine correctness. One more
 focused probe iteration is needed to convert them to PASS.
 
 ## Regression results (all actually run on this build)
+
 `test:agent-rpc` 182/182; `probe:pav` 15/15; `probe:inputs` 20/20; `probe:captcha`
 14/14; `probe:waits` 16/16; `probe:tabs` ×5 16/16; `probe:agent-actions` 33/33;
 `probe:agent-snapshot` 27/27; `probe:nps` 38/38; probe:capture/detach 0;
 smoke ×3 6/6; MCP-e2e 52/52; 0 hung electrons.
 
 ## Gate decision
+
 Transform engine: **verified** (apply/restore/verify cycle confirmed via
 transformdiag with browser_verify cross-checks). Probe: **PARTIAL** (17/20 local;
 3 remaining fail due to probe sequencing, not engine correctness). The closure

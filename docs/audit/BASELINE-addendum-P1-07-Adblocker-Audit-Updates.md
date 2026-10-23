@@ -5,6 +5,7 @@ Date: 2026-10-18 · Electron 43.4.1 · Parser fork: `ext/abp-filter-parser-modif
 ## 1. Baseline audit (source)
 
 `main/filtering.js` (294 lines):
+
 - Single `webRequest.onBeforeRequest` owner = `registerFiltering(ses)` — called once at
   app-ready for `session.defaultSession` and once per `app.on('session-created')`.
 - Bridge registers **0** handlers (P1-01D contract; grep-verified throughout this phase).
@@ -16,11 +17,11 @@ Date: 2026-10-18 · Electron 43.4.1 · Parser fork: `ext/abp-filter-parser-modif
 
 ## 2. Lists baseline (sizes/hashes/counts)
 
-| file | bytes | lines | sha256(12…) | parse |
-|---|---|---|---|---|
-| easylist+easyprivacy-noelementhiding.txt | 2,703,896 | 108,446 (ht: 108,446) | e0deaa…0475 | 242 ms (chunked non-blocking) |
-| minFilters.txt | 41 | 1 line (`@@/browserinfo$domain=accounts.google.com`) | 20143f…23db | 0 ms |
-| userData customFilters.txt (fresh profile: absent) | — | — | — | — |
+| file                                               | bytes     | lines                                                | sha256(12…) | parse                         |
+| -------------------------------------------------- | --------- | ---------------------------------------------------- | ----------- | ----------------------------- |
+| easylist+easyprivacy-noelementhiding.txt           | 2,703,896 | 108,446 (ht: 108,446)                                | e0deaa…0475 | 242 ms (chunked non-blocking) |
+| minFilters.txt                                     | 41        | 1 line (`@@/browserinfo$domain=accounts.google.com`) | 20143f…23db | 0 ms                          |
+| userData customFilters.txt (fresh profile: absent) | —         | —                                                    | —           | —                             |
 
 mtime of the combined list: 2026-08-23 (≈ 2 months old at audit start).
 
@@ -44,14 +45,14 @@ mtime of the combined list: 2026-08-23 (≈ 2 months old at audit start).
 
 ## 5. Implemented changes (backed)
 
-| file | backup |
-|---|---|
-| `filterUpdate.js` (NEW, repo root — used via runtime require, consistent with the existing `./ext/...` parser require) | — (new file) |
-| `main/filtering.js` — atomic candidate-swap init, userData-cache priority with bundled fallback, updater scheduling (startup-stale + daily interval, unref) | `docs/backups/P1-07/main_filtering.js` |
-| `scripts/buildMain.js` — unchanged list order (filterUpdate loaded at runtime via require) | `docs/backups/P1-07/scripts_buildMain.js` |
-| `ext/filterLists/updateEasylist.js` — hardening (timeout, byte cap, status/validation, temp+rename, exit 1, transform parity) | `docs/backups/P1-07/updateEasylist.js` |
-| `scripts/p1-07-updater-test.js`, `scripts/p1-07-baseline-perf.js`, `scripts/p1-07-live-block.js` (new diagnostic suite) | — (new) |
-| `package.json` — `probe:mouse` retained; no count changes | `docs/backups/P1-07/package.json` |
+| file                                                                                                                                                        | backup                                    |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `filterUpdate.js` (NEW, repo root — used via runtime require, consistent with the existing `./ext/...` parser require)                                      | — (new file)                              |
+| `main/filtering.js` — atomic candidate-swap init, userData-cache priority with bundled fallback, updater scheduling (startup-stale + daily interval, unref) | `docs/backups/P1-07/main_filtering.js`    |
+| `scripts/buildMain.js` — unchanged list order (filterUpdate loaded at runtime via require)                                                                  | `docs/backups/P1-07/scripts_buildMain.js` |
+| `ext/filterLists/updateEasylist.js` — hardening (timeout, byte cap, status/validation, temp+rename, exit 1, transform parity)                               | `docs/backups/P1-07/updateEasylist.js`    |
+| `scripts/p1-07-updater-test.js`, `scripts/p1-07-baseline-perf.js`, `scripts/p1-07-live-block.js` (new diagnostic suite)                                     | — (new)                                   |
+| `package.json` — `probe:mouse` retained; no count changes                                                                                                   | `docs/backups/P1-07/package.json`         |
 
 `main/agentRpc.js`, `main/download.js`, `js/` untouched: bridge still registers **0**
 `onBeforeRequest` handlers (grep-verified `main/agentRpc.js` `.onBeforeRequest(` count: 0).
@@ -84,32 +85,32 @@ agent dispatch, settings toggles — no extra handlers.
 
 ## 8. Performance (measured, scripts/p1-07-baseline-perf.js)
 
-| metric | value |
-|---|---|
-| loaded rules (combined) | 108,446 in 2.7 MB |
-| cold parse (chunked, non-blocking) | 242 ms |
+| metric                                           | value                          |
+| ------------------------------------------------ | ------------------------------ |
+| loaded rules (combined)                          | 108,446 in 2.7 MB              |
+| cold parse (chunked, non-blocking)               | 242 ms                         |
 | allowed-request matches (per call, 1000 samples) | allowed 2.9 µs, allowed 5.5 µs |
-| blocked-request matches (per call, 1000 samples) | 13.3 µs, 6.5 µs |
-| heap after parse | 55.9 MB heapUsed |
+| blocked-request matches (per call, 1000 samples) | 13.3 µs, 6.5 µs                |
+| heap after parse                                 | 55.9 MB heapUsed               |
 
 No matching-path rewrite; latencies non-regressing (documented). Cold-start first-enabled
 filtering unchanged (chunked, 16 ms granularity, no main-thread freeze).
 
 ## 9. Test matrix (this phase)
 
-| command | exit | result |
-|---|---|---|
-| `npm run build` / `node --check main/agentRpc.js` / `node --check main.build.js` | 0 | clean |
-| `npm run test:agent-rpc` | 0 | **182/182** (census 31) |
-| `node scripts/p1-07-updater-test.js` | 0 | **18/18** (all Phase-7 scenarios: source validation, status codes, timeout, partial, oversize, redirect allow/deny, HTML masquerade, truncated, second-source, 304 with/without cached parts, corrupt cache, offline, concurrent single-flight) |
-| `npm run probe:mouse` ×3 | 2 | 26/27 (unchanged: wheel-documented fail) |
-| `node scripts/mcp-e2e.js` | 0 | 56/56 |
-| probe:transform / downloads / pav / inputs / captcha / waits | 0 | 18/18, 33/33, 15/15, 20/20, 14/14, 16/16 |
-| probe:tabs ×5 | 0 | 16/16 each |
-| agent-actions / snapshot / nps | 0 | 33/33, 27/27, 38/38 |
-| capture/detach, smoke ×3 | 0 | 0, 0, 6/6 each |
-| stray electrons | — | 0 |
-| ad-blocker invariant | — | exactly 1 effective `onBeforeRequest` (filtering.js:272); bridge 0 |
+| command                                                                          | exit | result                                                                                                                                                                                                                                          |
+| -------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build` / `node --check main/agentRpc.js` / `node --check main.build.js` | 0    | clean                                                                                                                                                                                                                                           |
+| `npm run test:agent-rpc`                                                         | 0    | **182/182** (census 31)                                                                                                                                                                                                                         |
+| `node scripts/p1-07-updater-test.js`                                             | 0    | **18/18** (all Phase-7 scenarios: source validation, status codes, timeout, partial, oversize, redirect allow/deny, HTML masquerade, truncated, second-source, 304 with/without cached parts, corrupt cache, offline, concurrent single-flight) |
+| `npm run probe:mouse` ×3                                                         | 2    | 26/27 (unchanged: wheel-documented fail)                                                                                                                                                                                                        |
+| `node scripts/mcp-e2e.js`                                                        | 0    | 56/56                                                                                                                                                                                                                                           |
+| probe:transform / downloads / pav / inputs / captcha / waits                     | 0    | 18/18, 33/33, 15/15, 20/20, 14/14, 16/16                                                                                                                                                                                                        |
+| probe:tabs ×5                                                                    | 0    | 16/16 each                                                                                                                                                                                                                                      |
+| agent-actions / snapshot / nps                                                   | 0    | 33/33, 27/27, 38/38                                                                                                                                                                                                                             |
+| capture/detach, smoke ×3                                                         | 0    | 0, 0, 6/6 each                                                                                                                                                                                                                                  |
+| stray electrons                                                                  | —    | 0                                                                                                                                                                                                                                               |
+| ad-blocker invariant                                                             | —    | exactly 1 effective `onBeforeRequest` (filtering.js:272); bridge 0                                                                                                                                                                              |
 
 ## 10. Live validation
 

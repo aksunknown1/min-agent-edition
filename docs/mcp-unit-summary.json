@@ -1,7 +1,7 @@
 {
-  "ranAt": "2026-10-19T03:39:40.100Z",
-  "passed": 56,
-  "total": 56,
+  "ranAt": "2026-10-20T04:10:32.900Z",
+  "passed": 93,
+  "total": 93,
   "results": [
     {
       "name": "initialize returns a supported protocol version",
@@ -14,7 +14,7 @@
       "detail": ""
     },
     {
-      "name": "tools/list returns exactly the 31 bridge tools (P1-06: + browser_mouse)",
+      "name": "tools/list returns exactly the 39 bridge tools (ADR-09 Option C: + browser_helper/browser_helper_list)",
       "pass": true,
       "detail": ""
     },
@@ -26,7 +26,7 @@
     {
       "name": "browser_status with Min down -> isError with launcher guidance",
       "pass": true,
-      "detail": "Min is not running, or its agent-rpc discovery file is missing, under \"C:\\Users\\AKS-PC\\AppData\\Local\\Temp\\min-mcp-e2e-unit-1792381165827\". Start Min first: node scripts/min-launch.js (visible window, "
+      "detail": "Min is not running, or its agent-rpc discovery file is missing, under \"C:\\Users\\AKS-PC\\AppData\\Local\\Temp\\min-mcp-e2e-unit-1792469408897\". Start Min first: node scripts/min-launch.js (visible window, "
     },
     {
       "name": "unknown tool -> invalid params (-32602)",
@@ -99,9 +99,9 @@
       "detail": "\"navigation\""
     },
     {
-      "name": "browser_screenshot -> PNG image block (magic, mime, size)",
+      "name": "browser_screenshot -> real image block (png magic or ladder jpeg rung; len>1000)",
       "pass": true,
-      "detail": "49888"
+      "detail": "image/png 49888 prefix=iVBORw0KGgoAAAANSUhEUgAADwEA"
     },
     {
       "name": "browser_screenshot metadata: screenshotId + viewport + dpr + cssPerPixel present",
@@ -109,14 +109,199 @@
       "detail": "{\"id\":\"ss1\",\"vp\":{\"width\":2032,\"height\":1063,\"dpr\":1.8900001049041748,\"scrollX\":0,\"scrollY\":0},\"f\":1.890255905511811}"
     },
     {
+      "name": "element screenshot: navigated back to the act page",
+      "pass": true,
+      "detail": "{\"tabId\":\"58403815789268400\",\"requestedUrl\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-mcp-e2e/act.html\",\"finalUrl\":\"file:///C:/Users/A"
+    },
+    {
+      "name": "D1-F3: element screenshot delivers a REAL cropped image",
+      "pass": true,
+      "detail": "image/png 1532b"
+    },
+    {
+      "name": "D1-F3: element crop is materially smaller than the full capture",
+      "pass": true,
+      "detail": "element 130x40 vs full 3841x2010"
+    },
+    {
+      "name": "D1-F3: element crop stays inside the viewport (NOT a full-page claim)",
+      "pass": true,
+      "detail": "{\"width\":2032,\"height\":1063,\"dpr\":1.8900001049041748,\"scrollX\":0,\"scrollY\":226.98411560058594}"
+    },
+    {
+      "name": "D1-F3: element capture honours the size cap and stays bounded",
+      "pass": true,
+      "detail": "3152b cap=5200"
+    },
+    {
+      "name": "D1-F3: invalid selector fails with a structured error",
+      "pass": true,
+      "detail": "invalid_params -32602: Failed to execute 'querySelector' on 'Document': '\"\"' is not a valid selector."
+    },
+    {
+      "name": "D1-F3: missing target fails clearly, never a silent full-page image",
+      "pass": true,
+      "detail": "invalid_params -32602: selector matched no element"
+    },
+    {
+      "name": "D2-B: browser_health returns an overall verdict in the fixed vocabulary",
+      "pass": true,
+      "detail": "degraded"
+    },
+    {
+      "name": "D2-B: health is read-only and reports per-check status",
+      "pass": true,
+      "detail": "12 checks"
+    },
+    {
+      "name": "D2-B: every check uses healthy/degraded/unavailable/unknown",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2-B: health names the configured profile for recovery",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2-B: health NEVER returns the bridge token",
+      "pass": true,
+      "detail": "no 64-hex token in health output"
+    },
+    {
+      "name": "D2-B: health reports honest known limitations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2-C: browser_state reports document.readyState",
+      "pass": true,
+      "detail": "complete"
+    },
+    {
+      "name": "D2-C: browser_state reports a dialog block with the safe-dialogs truth",
+      "pass": true,
+      "detail": "{\"recent\":false,\"n\":0}"
+    },
+    {
+      "name": "D2-C: dialog observation never stores dialog message text",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2-C: browser_wait until=ready_state reaches interactive/complete",
+      "pass": true,
+      "detail": "{\"satisfied\":true,\"waitedMs\":0,\"readyState\":\"complete\",\"url\":\"file:///C:/Users/AKS-PC/AppData/Local/Temp/min-mcp-e2e/act.html\",\"reason\":\"document.readyState rea"
+    },
+    {
+      "name": "D2-D: network_idle resolves and states its semantics explicitly",
+      "pass": true,
+      "detail": "{\"satisfied\":true,\"drained\":true,\"waitedMs\":617,\"quietMs\":600,\"semantics\":\"no NEW request started in this tab for the quiet window and the tab is drained; requests already in flight when the wait bega"
+    },
+    {
+      "name": "D2-D: network_idle reports openLongLived separately from \"stopped\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2-D: navigated to the http SSE fixture",
+      "pass": true,
+      "detail": "{\"tabId\":\"58403815789268400\",\"requestedUrl\":\"http://127.0.0.1:50144/\",\"finalUrl\":\"http://127.0.0.1:50144/\",\"title\":\"D2 SSE\",\"verified\":true,"
+    },
+    {
+      "name": "D2-D: a NEVER-ENDING SSE stream does not block network_idle",
+      "pass": true,
+      "detail": "{\"satisfied\":true,\"drained\":false,\"waitedMs\":3084,\"quietMs\":800,\"maxQuietMs\":3000,\"semantics\":\"no request started for maxQuietMs, but the tab was NOT drained - this is a quiet-by-timeout result, NOT p"
+    },
+    {
+      "name": "D2-D: the still-open SSE connection is disclosed as openLongLived",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "name": "D2-C: ready_state still resolves on an SSE page",
+      "pass": true,
+      "detail": "{\"satisfied\":true,\"waitedMs\":2,\"readyState\":\"complete\",\"url\":\"http://127.0.0.1:50144/\",\"reason\":\"document.readyState reached complete\"}"
+    },
+    {
+      "name": "D2-D: the SSE fixture is snapshot-able (semantic path still works)",
+      "pass": true,
+      "detail": "r6"
+    },
+    {
+      "name": "D2-A: click reports a DISPATCHED stage",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2-A: click reports an explicit DELIVERY stage",
+      "pass": true,
+      "detail": "unverified"
+    },
+    {
+      "name": "D2-A: click reports an independent VERIFIED stage",
+      "pass": true,
+      "detail": "true"
+    },
+    {
+      "name": "D2-A: delivered and verified are separate fields, not merged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2-A: an effect claimed by verification is independently confirmed",
+      "pass": true,
+      "detail": "{\"tabId\":\"58403815789268400\",\"url\":\"http://127.0.0.1:50144/\",\"title\":\"D2 SSE\",\"checks\":{\"selectorVisible\":true,\"selectorMatches\":1,\"textContains\":true},\"verified\":true,\"waitedMs\":2}"
+    },
+    {
+      "name": "D2-A: press(verification:none) still reports delivery honestly",
+      "pass": true,
+      "detail": "{\"d\":\"unverified\",\"v\":false}"
+    },
+    {
+      "name": "D2-G2: browser_pdf returns real PDF bytes",
+      "pass": true,
+      "detail": "42508b"
+    },
+    {
+      "name": "D2-G2: PDF metadata is bounded and honest about scope",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2-E: element capture reports source=element through MCP (F-21 fixed)",
+      "pass": true,
+      "detail": "element"
+    },
+    {
+      "name": "D2-E: metadata exposes scaled/attempts/ladder",
+      "pass": true,
+      "detail": "{\"s\":false,\"a\":1,\"l\":1}"
+    },
+    {
+      "name": "D2-E: element capture is labelled visible-area-limited",
+      "pass": true,
+      "detail": "visible-area after scrollIntoView; NOT full-page or offscreen capture"
+    },
+    {
+      "name": "D2-E: full capture is distinguishable from element capture",
+      "pass": true,
+      "detail": "full 3841 vs element 159"
+    },
+    {
+      "name": "D2-E: a size-capped capture discloses its downscale ladder",
+      "pass": true,
+      "detail": "{\"scaled\":true,\"rungs\":4,\"bytes\":6088}"
+    },
+    {
       "name": "browser_mouse move dispatched with coordinates",
       "pass": true,
-      "detail": "{\"tabId\":\"64790249277602020\",\"action\":\"move\",\"dispatched\":true,\"x\":12,\"y\":34,\"screenshotId\":null,\"screenshotCheck\":null,\"delivery\":\"unverifi"
+      "detail": "{\"tabId\":\"58403815789268400\",\"action\":\"move\",\"dispatched\":true,\"x\":12,\"y\":34,\"screenshotId\":null,\"screenshotCheck\":null,\"delivery\":\"unverifi"
     },
     {
       "name": "browser_mouse scroll dispatched",
       "pass": true,
-      "detail": "{\"tabId\":\"64790249277602020\",\"action\":\"scroll\",\"dispatched\":true,\"deltaX\":0,\"deltaY\":240,\"ms\":0,\"note\":\"mouseWheel synthesized per Electron "
+      "detail": "{\"tabId\":\"58403815789268400\",\"action\":\"scroll\",\"dispatched\":true,\"deltaX\":0,\"deltaY\":240,\"ms\":0,\"note\":\"mouseWheel synthesized per Electron "
     },
     {
       "name": "browser_mouse rejects unknown screenshotId (structured over stdio)",
@@ -151,7 +336,7 @@
     {
       "name": "browser_grant risky_click ok (single-use, tab-bound)",
       "pass": true,
-      "detail": "{\"granted\":true,\"action\":\"risky_click\",\"tabId\":\"64790249277602020\",\"ttlSeconds\":120,\"grantsActive\":1}"
+      "detail": "{\"granted\":true,\"action\":\"risky_click\",\"tabId\":\"58403815789268400\",\"ttlSeconds\":120,\"grantsActive\":1}"
     },
     {
       "name": "granted risky click -> dom-change, grant consumed",
@@ -171,7 +356,7 @@
     {
       "name": "browser_grant sensitive_type ok (ref-bound)",
       "pass": true,
-      "detail": "{\"granted\":true,\"action\":\"sensitive_type\",\"tabId\":\"64790249277602020\",\"ttlSeconds\":60,\"grantsActive\":1}"
+      "detail": "{\"granted\":true,\"action\":\"sensitive_type\",\"tabId\":\"58403815789268400\",\"ttlSeconds\":60,\"grantsActive\":1}"
     },
     {
       "name": "browser_status.bridge.grants exposes active count only (no sensitive detail)",
@@ -181,7 +366,7 @@
     {
       "name": "granted sensitive typing -> value-length verified (P1-01C semantics), grant consumed",
       "pass": true,
-      "detail": "{\n  \"tabId\": \"64790249277602020\",\n  \"ref\": \"r8\",\n  \"target\": {\n    \"role\": \"textbox\",\n    \"name\": \"\",\n    \"nameIndex\": 0,\n    \"shadowPath\": "
+      "detail": "{\n  \"tabId\": \"58403815789268400\",\n  \"ref\": \"ra\",\n  \"target\": {\n    \"role\": \"textbox\",\n    \"name\": \"\",\n    \"nameIndex\": 0,\n    \"shadowPath\": "
     },
     {
       "name": "second sensitive typing without a new grant -> 403 (single use)",
@@ -211,12 +396,12 @@
     {
       "name": "browser_batch: 5-step multi-page sequence, per-step ok flags",
       "pass": true,
-      "detail": "{\"ok\":true,\"completed\":5,\"totalMs\":6493}"
+      "detail": "{\"ok\":true,\"completed\":5,\"totalMs\":4550}"
     },
     {
       "name": "browser_batch: wait step verified exercised mid-batch",
       "pass": true,
-      "detail": "{\"satisfied\":true,\"waitedMs\":3042,\"reason\":\"no new activity for 3042ms; in-flight=2 (pre-existing)\"}"
+      "detail": "{\"satisfied\":true,\"drained\":true,\"waitedMs\":1037,\"quietMs\":1000,\"semantics\":\"no NEW request started in this tab for the quiet window and the tab is drained; requests already in flight when the wait be"
     },
     {
       "name": "browser_batch: browser_grant excluded (step error), stop-on-error prevents step 3",
@@ -251,12 +436,12 @@
     {
       "name": "ad-blocker: blocker handler observed http(s) requests during this run (net.observedTotal > 0)",
       "pass": true,
-      "detail": "{\"inflight\":2,\"observedTotal\":31,\"settledTotal\":29,\"blockedTotal\":0,\"filteringBlockedCount\":0}"
+      "detail": "{\"inflight\":2,\"observedTotal\":36,\"settledTotal\":34,\"blockedTotal\":0,\"filteringBlockedCount\":0}"
     },
     {
       "name": "ad-blocker: filter pipeline still blocks (persisted count >= 0 known tracker fixtures handled by probe:waits — here: counters consistent)",
       "pass": true,
-      "detail": "{\"settled\":29,\"observed\":31}"
+      "detail": "{\"settled\":34,\"observed\":36}"
     },
     {
       "name": "adapter stdout still carried only MCP frames after batch phase",

@@ -12,23 +12,23 @@ Non-goals for Phase 1: extension manager UI, multi-agent sessions, remote access
 
 Verified against this tree. These are the hooks the bridge would sit on.
 
-| Concern | Existing code | Notes |
-|---|---|---|
-| Window creation | `main/main.js:157` `createWindow()`, `main/main.js:192` `createWindowWithBounds()` | `mainView` is a `WebContentsView` (`main/main.js:214`), not a `<webview>` |
-| Window registry | `main/windowManagement.js:5` `windowFromContents()`, `:54` `getAll()` | already used by `main/main.js:461` |
-| Tab view registry | `main/viewManager.js:1` `viewMap` (id → view), `:314` `getView(id)`, **`:468` `global.getView = getView`** | `getView` is already a main-process global — the bridge can resolve a tab id to a live `WebContentsView` without new plumbing |
-| id ↔ webContents | `main/viewManager.js:318` `getTabIDFromWebContents(contents)` | reverse mapping already exists |
-| Navigate | `main/viewManager.js:366` `loadURLInView(id, url, win)`, IPC `:382` | single funnel for URL loads |
-| Focus / select | `main/viewManager.js:290` `focusView(id)`, `:267` `setView()`, IPC `:358`, `:343` | |
-| Tab data model | `js/tabState/tab.js` `TabList` — `:87` `get(id)`, `:117` `getSelected()`, `:126` `getSelectedIndex()` | fields: `url,title,id,secure,private,selected,loaded,muted,hasAudio,previewImage,scrollPosition,…`; `temporaryProperties` at `:9` |
-| Tab state in main | `main/main.js:461` `ipc.on('tab-state-change')`, `:477` `ipc.on('request-tab-state')` | main already receives per-window tab state events |
-| Navigation history | `main/viewManager.js:421` `ipc.handle('getNavigationHistory')` | returns `{activeIndex, entries}` — reuse for `browser_status` |
-| Screenshot | `main/viewManager.js:440` `ipc.on('getCapture')` → `view.webContents.capturePage()` → `img.toDataURL()`; `:457` `saveViewCapture` | `capturePage()` is already the product's screenshot primitive |
-| Hidden-view caveat | `js/webviews.js:19` comment: *"capturePage doesn't work while the view is hidden"* | hard constraint on background mode (§10) |
-| Session / partition | `main/main.js:60` `app.setPath('userData', …)` (dev mode appends `-development`); tab views use `persist:webcontent` | see §10 |
-| Settings persistence | `js/util/settings/settingsMain.js` — atomic write, `privateMode` forces `persist:incognito` | reuse for the bridge's own settings |
-| Permission gating | `main/permissionManager.js` | existing gate for geolocation/media/etc. |
-| Existing generic RPC (do **not** reuse) | `main/viewManager.js:387` `ipc.on('callViewMethod')` | see §3 |
+| Concern                                 | Existing code                                                                                                                     | Notes                                                                                                                             |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Window creation                         | `main/main.js:157` `createWindow()`, `main/main.js:192` `createWindowWithBounds()`                                                | `mainView` is a `WebContentsView` (`main/main.js:214`), not a `<webview>`                                                         |
+| Window registry                         | `main/windowManagement.js:5` `windowFromContents()`, `:54` `getAll()`                                                             | already used by `main/main.js:461`                                                                                                |
+| Tab view registry                       | `main/viewManager.js:1` `viewMap` (id → view), `:314` `getView(id)`, **`:468` `global.getView = getView`**                        | `getView` is already a main-process global — the bridge can resolve a tab id to a live `WebContentsView` without new plumbing     |
+| id ↔ webContents                        | `main/viewManager.js:318` `getTabIDFromWebContents(contents)`                                                                     | reverse mapping already exists                                                                                                    |
+| Navigate                                | `main/viewManager.js:366` `loadURLInView(id, url, win)`, IPC `:382`                                                               | single funnel for URL loads                                                                                                       |
+| Focus / select                          | `main/viewManager.js:290` `focusView(id)`, `:267` `setView()`, IPC `:358`, `:343`                                                 |                                                                                                                                   |
+| Tab data model                          | `js/tabState/tab.js` `TabList` — `:87` `get(id)`, `:117` `getSelected()`, `:126` `getSelectedIndex()`                             | fields: `url,title,id,secure,private,selected,loaded,muted,hasAudio,previewImage,scrollPosition,…`; `temporaryProperties` at `:9` |
+| Tab state in main                       | `main/main.js:461` `ipc.on('tab-state-change')`, `:477` `ipc.on('request-tab-state')`                                             | main already receives per-window tab state events                                                                                 |
+| Navigation history                      | `main/viewManager.js:421` `ipc.handle('getNavigationHistory')`                                                                    | returns `{activeIndex, entries}` — reuse for `browser_status`                                                                     |
+| Screenshot                              | `main/viewManager.js:440` `ipc.on('getCapture')` → `view.webContents.capturePage()` → `img.toDataURL()`; `:457` `saveViewCapture` | `capturePage()` is already the product's screenshot primitive                                                                     |
+| Hidden-view caveat                      | `js/webviews.js:19` comment: _"capturePage doesn't work while the view is hidden"_                                                | hard constraint on background mode (§10)                                                                                          |
+| Session / partition                     | `main/main.js:60` `app.setPath('userData', …)` (dev mode appends `-development`); tab views use `persist:webcontent`              | see §10                                                                                                                           |
+| Settings persistence                    | `js/util/settings/settingsMain.js` — atomic write, `privateMode` forces `persist:incognito`                                       | reuse for the bridge's own settings                                                                                               |
+| Permission gating                       | `main/permissionManager.js`                                                                                                       | existing gate for geolocation/media/etc.                                                                                          |
+| Existing generic RPC (do **not** reuse) | `main/viewManager.js:387` `ipc.on('callViewMethod')`                                                                              | see §3                                                                                                                            |
 
 **Correction to the task brief:** there is no `js/store` in this tree. Tab data lives in `js/tabState/tab.js` (`TabList`) and `js/tabState/task.js` (tasks), synchronised across windows by `js/tabState/windowSync.js`, with the main-process mirror at `main/main.js:461`.
 
@@ -55,7 +55,13 @@ POST http://127.0.0.1:<ephemeral>/rpc     Content-Type: application/json
 On start, write `<userData>/agent-rpc.json`:
 
 ```json
-{ "v": 1, "port": 53377, "token": "<hex>", "pid": 12345, "startedAt": "ISO-8601" }
+{
+  "v": 1,
+  "port": 53377,
+  "token": "<hex>",
+  "pid": 12345,
+  "startedAt": "ISO-8601"
+}
 ```
 
 Deleted on shutdown and on unclean exit (`process.on('exit')`). Consumers read it; nothing about it is ever printed to stdout or written to a log. On Windows the file inherits the user profile ACL — acceptable for a per-launch secret in the user's own profile, and stated rather than assumed strong.
@@ -68,22 +74,23 @@ Deleted on shutdown and on unclean exit (`process.on('exit')`). Consumers read i
 
 **No secret in logs.** The token never appears in any `console.log`, error message, evidence file, or crash report. The discovery file is the only place it exists. Request logging (if any) records method name, outcome, and latency — never headers or bodies.
 
-**CSRF / DNS-rebinding guard.** A random web page can make a *simple* cross-origin POST to `http://127.0.0.1:<port>`, and it cannot read the token — but it can still fire blind requests. Therefore:
+**CSRF / DNS-rebinding guard.** A random web page can make a _simple_ cross-origin POST to `http://127.0.0.1:<port>`, and it cannot read the token — but it can still fire blind requests. Therefore:
+
 - reject any request carrying an `Origin` or `Sec-Fetch-Site` header (a native local client sends neither);
 - require the `Authorization` header to be present at all;
 - validate the `Host` header is `127.0.0.1:<port>` (blocks DNS rebinding against a browser that resolves an attacker domain to loopback).
 
 **Explicitly forbidden, and why:**
 
-| Forbidden | Reason |
-|---|---|
-| Routing to `callViewMethod` (`main/viewManager.js:387`) | it performs `webContents[data.method](...data.args)` with a caller-chosen method name and args — that *is* unrestricted privileged API access. Min's own renderer uses it over trusted IPC; a network-facing bridge must never reach it. |
-| `webContents.executeJavaScript` with any request-derived string | arbitrary script execution in the page. See §6 for the fixed-source pattern that replaces it. |
-| `webContents.debugger` / CDP / `--remote-debugging-port` | CDP is a superset of everything the bridge is meant to restrict; one flag would make the whole surface moot. |
-| `shell.openExternal`, `fs.*` with request-derived paths | filesystem and OS escape hatches. |
-| `process.env`, `app.getPath` passthrough | information disclosure. |
-| `loadURL` with non-`http(s)` schemes | `file://`, `data:`, `javascript:`, `min:`, `chrome:` would let a navigate call read local files or run privileged internal pages. |
-| `session.setPermissionRequestHandler` overrides from the bridge | permission decisions stay with `main/permissionManager.js`. |
+| Forbidden                                                       | Reason                                                                                                                                                                                                                                   |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Routing to `callViewMethod` (`main/viewManager.js:387`)         | it performs `webContents[data.method](...data.args)` with a caller-chosen method name and args — that _is_ unrestricted privileged API access. Min's own renderer uses it over trusted IPC; a network-facing bridge must never reach it. |
+| `webContents.executeJavaScript` with any request-derived string | arbitrary script execution in the page. See §6 for the fixed-source pattern that replaces it.                                                                                                                                            |
+| `webContents.debugger` / CDP / `--remote-debugging-port`        | CDP is a superset of everything the bridge is meant to restrict; one flag would make the whole surface moot.                                                                                                                             |
+| `shell.openExternal`, `fs.*` with request-derived paths         | filesystem and OS escape hatches.                                                                                                                                                                                                        |
+| `process.env`, `app.getPath` passthrough                        | information disclosure.                                                                                                                                                                                                                  |
+| `loadURL` with non-`http(s)` schemes                            | `file://`, `data:`, `javascript:`, `min:`, `chrome:` would let a navigate call read local files or run privileged internal pages.                                                                                                        |
+| `session.setPermissionRequestHandler` overrides from the bridge | permission decisions stay with `main/permissionManager.js`.                                                                                                                                                                              |
 
 The command table in §5 is a closed set. An unknown method is `514 method not found` — never proxied to anything.
 
@@ -94,7 +101,12 @@ The command table in §5 is a closed set. An unknown method is `514 method not f
 JSON-RPC 2.0 subset:
 
 ```json
-{ "jsonrpc": "2.0", "id": "c1", "method": "browser_navigate", "params": { "tabId": "123", "url": "https://example.com/" } }
+{
+  "jsonrpc": "2.0",
+  "id": "c1",
+  "method": "browser_navigate",
+  "params": { "tabId": "123", "url": "https://example.com/" }
+}
 ```
 
 ```json
@@ -106,19 +118,19 @@ Validation is declarative and runs before any handler: required/optional, type, 
 
 Error categories (stable, machine-readable; `code` is the JSON-RPC number):
 
-| category | code | meaning |
-|---|---|---|
-| `invalid_request` | -32700 | malformed JSON, oversize body, wrong content type |
-| `invalid_params` | -32602 | schema violation; `data.field` names the offending field |
-| `method not found` | -32601 | method not in the closed set |
-| `unauthorized` | -32001 | missing/bad token |
-| `not found` | -32002 | `tabId` has no live view (destroyed, or belongs to another window) |
-| `invalid target` | -32003 | locator matched nothing, or matched >1 without `index` |
-| `unsupported` | -32004 | command not available in this mode/profile (e.g. screenshot of a hidden view) |
-| `blocked` | -32005 | refused by policy (non-http scheme, private tab in background mode, disabled feature) |
-| `timeout` | -32006 | action or verification window elapsed |
-| `busy` | -32007 | another command holds this tab |
-| `internal` | -32603 | unexpected; message is generic, detail stays server-side |
+| category           | code   | meaning                                                                               |
+| ------------------ | ------ | ------------------------------------------------------------------------------------- |
+| `invalid_request`  | -32700 | malformed JSON, oversize body, wrong content type                                     |
+| `invalid_params`   | -32602 | schema violation; `data.field` names the offending field                              |
+| `method not found` | -32601 | method not in the closed set                                                          |
+| `unauthorized`     | -32001 | missing/bad token                                                                     |
+| `not found`        | -32002 | `tabId` has no live view (destroyed, or belongs to another window)                    |
+| `invalid target`   | -32003 | locator matched nothing, or matched >1 without `index`                                |
+| `unsupported`      | -32004 | command not available in this mode/profile (e.g. screenshot of a hidden view)         |
+| `blocked`          | -32005 | refused by policy (non-http scheme, private tab in background mode, disabled feature) |
+| `timeout`          | -32006 | action or verification window elapsed                                                 |
+| `busy`             | -32007 | another command holds this tab                                                        |
+| `internal`         | -32603 | unexpected; message is generic, detail stays server-side                              |
 
 Error messages must not echo request values back (URLs and typed text can contain secrets).
 
@@ -129,98 +141,183 @@ Error messages must not echo request values back (URLs and typed text can contai
 All tab ids are strings, matching `js/tabState/tab.js` (`id: tabId` is a string). All timeouts are milliseconds, default 5000, max 15000 (navigate: default 15000, max 30000).
 
 ### `browser_status` → capability and mode snapshot
+
 ```jsonc
 // params: {}
 // result:
 {
-  "app": { "name": "Min", "version": "1.35.7", "electron": "43.4.1", "chromium": "150.0.7871.124" },
-  "mode": { "visible": true, "background": false, "privateMode": false, "development": false },
-  "profile": { "kind": "agent", "dir": "<userData>/agent-profile" },   // never the user's real dir in background mode
+  "app": {
+    "name": "Min",
+    "version": "1.35.7",
+    "electron": "43.4.1",
+    "chromium": "150.0.7871.124"
+  },
+  "mode": {
+    "visible": true,
+    "background": false,
+    "privateMode": false,
+    "development": false
+  },
+  "profile": { "kind": "agent", "dir": "<userData>/agent-profile" }, // never the user's real dir in background mode
   "windows": 1,
   "tabs": 3,
   "activeTabId": "123",
   "features": { "snapshot": true, "screenshot": true, "extensions": false },
-  "limits": { "snapshotNodes": 200, "screenshotBytes": 2097152, "bodyBytes": 65536 }
+  "limits": {
+    "snapshotNodes": 200,
+    "screenshotBytes": 2097152,
+    "bodyBytes": 65536
+  }
 }
 ```
+
 Sources: `app.getVersion()`, `process.versions`, `main/main.js:57` `isDevelopmentMode`, `js/util/settings/settingsMain.js` `privateMode`, `main/windowManagement.js:54` `getAll()`, tab count from the main-process tab mirror (`main/main.js:461`).
 
 ### `browser_tabs` → list / create / close / select
+
 ```jsonc
 // params: { "action": "list" | "create" | "close" | "select", "tabId"?: string, "url"?: string, "background"?: boolean }
 // result (list):
-{ "tabs": [ { "tabId": "123", "url": "https://example.com/", "title": "Example Domain",
-              "selected": true, "loaded": true, "secure": true, "private": false,
-              "active": true, "windowId": 1 } ] }
+{
+  "tabs": [
+    {
+      "tabId": "123",
+      "url": "https://example.com/",
+      "title": "Example Domain",
+      "selected": true,
+      "loaded": true,
+      "secure": true,
+      "private": false,
+      "active": true,
+      "windowId": 1
+    }
+  ]
+}
 // result (create): { "tabId": "456", "created": true }
 // result (close/select): { "tabId": "123", "ok": true }
 ```
+
 Mapping: `list` from the tab mirror; `create` → `main/viewManager.js:331` `createView` path via the existing `newTab` IPC, or `main/remoteActions.js:110` for a new window; `close` → `main/viewManager.js:244` `destroyView`; `select` → `main/viewManager.js:290` `focusView` + `:267` `setView`. `url` on create is validated exactly like `browser_navigate`.
 
 ### `browser_navigate`
+
 ```jsonc
 // params: { "tabId": "123", "url": "https://example.com/", "waitUntil"?: "load" | "domcontentloaded" | "none", "timeoutMs"?: 15000 }
 // result:
-{ "tabId": "123", "url": "https://example.com/", "title": "Example Domain",
-  "httpStatusOrError": null, "verified": true, "waitedMs": 812 }
+{
+  "tabId": "123",
+  "url": "https://example.com/",
+  "title": "Example Domain",
+  "httpStatusOrError": null,
+  "verified": true,
+  "waitedMs": 812
+}
 ```
-Mapping: `main/viewManager.js:366` `loadURLInView(id, url, win)`. Validation: absolute URL, `URL.parse` must succeed, protocol ∈ `{http:, https:}`. Redirects are followed by the page; the *result* URL is read back from `webContents.getURL()`, so a redirect off the requested origin is visible to the caller. Verification: `did-finish-load` / `did-fail-load` within `timeoutMs`, then `getURL()` equals-or-descends-from the requested origin.
+
+Mapping: `main/viewManager.js:366` `loadURLInView(id, url, win)`. Validation: absolute URL, `URL.parse` must succeed, protocol ∈ `{http:, https:}`. Redirects are followed by the page; the _result_ URL is read back from `webContents.getURL()`, so a redirect off the requested origin is visible to the caller. Verification: `did-finish-load` / `did-fail-load` within `timeoutMs`, then `getURL()` equals-or-descends-from the requested origin.
 
 ### `browser_snapshot` → bounded a11y-ish tree
+
 ```jsonc
 // params: { "tabId": "123", "root"?: "#main", "maxNodes"?: 200, "maxDepth"?: 12,
 //           "includeText"?: true, "interactiveOnly"?: false }
 // result:
 {
-  "tabId": "123", "url": "https://example.com/", "title": "Example Domain",
-  "nodeCount": 42, "truncated": false, "bytes": 6180,
+  "tabId": "123",
+  "url": "https://example.com/",
+  "title": "Example Domain",
+  "nodeCount": 42,
+  "truncated": false,
+  "bytes": 6180,
   "nodes": [
-    { "ref": "n7", "role": "heading", "name": "Example Domain", "level": 1, "depth": 2 },
-    { "ref": "n9", "role": "textbox", "name": "Search", "value": "", "placeholder": "Search",
-      "box": { "x": 12, "y": 88, "w": 240, "h": 24 }, "visible": true, "enabled": true,
-      "actions": ["click", "type"] },
-    { "ref": "n11", "role": "button", "name": "Submit",
-      "box": { "x": 260, "y": 88, "w": 72, "h": 24 }, "visible": true, "enabled": true,
-      "actions": ["click"] }
+    {
+      "ref": "n7",
+      "role": "heading",
+      "name": "Example Domain",
+      "level": 1,
+      "depth": 2
+    },
+    {
+      "ref": "n9",
+      "role": "textbox",
+      "name": "Search",
+      "value": "",
+      "placeholder": "Search",
+      "box": { "x": 12, "y": 88, "w": 240, "h": 24 },
+      "visible": true,
+      "enabled": true,
+      "actions": ["click", "type"]
+    },
+    {
+      "ref": "n11",
+      "role": "button",
+      "name": "Submit",
+      "box": { "x": 260, "y": 88, "w": 72, "h": 24 },
+      "visible": true,
+      "enabled": true,
+      "actions": ["click"]
+    }
   ]
 }
 ```
+
 `ref` is a per-snapshot, opaque handle into a short-lived server-side map (TTL 60s, max 8 snapshots retained). It is **not** a CSS selector, so a stale snapshot cannot silently target a mutated DOM. See §7.
 
 ### `browser_click`
+
 ```jsonc
 // params: { "tabId": "123", "ref": "n9" }  |  { "tabId": "123", "locator": { ... } }  |  { "tabId": "123", "x": 260, "y": 96 }
 //         optional: "button"?: "left"|"right", "clickCount"?: 1, "modifiers"?: ["shift"], "timeoutMs"?: 5000
 // result:
-{ "tabId": "123", "target": { "role": "button", "name": "Submit" },
-  "dispatched": true, "verified": true, "verification": "navigation",
-  "urlBefore": "https://a/", "urlAfter": "https://a/b", "waitedMs": 640 }
+{
+  "tabId": "123",
+  "target": { "role": "button", "name": "Submit" },
+  "dispatched": true,
+  "verified": true,
+  "verification": "navigation",
+  "urlBefore": "https://a/",
+  "urlAfter": "https://a/b",
+  "waitedMs": 640
+}
 ```
+
 Mapping: `webContents.sendInputEvent({type:'mouseDown'|'mouseUp', x, y, button, clickCount, modifiers})` at the centre of the resolved element's box. **Native input events, not `element.click()`** — framework-bound handlers, hover menus, and pointer-event listeners behave as with a real user, and the events are trusted. Coordinates are validated finite numbers within the view bounds.
 
 ### `browser_type`
+
 ```jsonc
 // params: { "tabId": "123", "ref"|"locator": ..., "text": "hello",
 //           "clearFirst"?: true, "verify"?: true, "timeoutMs"?: 5000 }
 // result:
-{ "tabId": "123", "target": { "role": "textbox", "name": "Search" },
-  "verified": true, "valueLength": 5, "valueMatches": true, "waitedMs": 180 }
+{
+  "tabId": "123",
+  "target": { "role": "textbox", "name": "Search" },
+  "verified": true,
+  "valueLength": 5,
+  "valueMatches": true,
+  "waitedMs": 180
+}
 ```
+
 Mapping: focus via `sendInputEvent({type:'keyDown'/'char'})` sequence, or `insertText` for the whole string after a click focuses the element. `clearFirst` selects-all + deletes with key events rather than assigning `.value`, so React/Vue controlled inputs see real input. **The typed text is never echoed in the response or logs** — `valueLength`/`valueMatches` only.
 
 ### `browser_press`
+
 ```jsonc
 // params: { "tabId": "123", "key": "Enter", "modifiers"?: ["ctrl"] }
 // result: { "tabId": "123", "key": "Enter", "dispatched": true, "verified": bool, "verification": "...", "waitedMs": n }
 ```
+
 Mapping: `sendInputEvent({type:'keyDown'/'keyUp', keyCode})`. `key` is validated against a **closed enum** (`Enter, Tab, Escape, Backspace, Delete, ArrowUp/Down/Left/Right, PageUp, PageDown, Home, End, Space, F1–F12`) — never a free string, so a press cannot smuggle a chord that Min's own shortcuts (`main/js/util/keyBindings.js`, `main/main.js` shortcut handlers) would act on.
 
 ### `browser_screenshot`
+
 ```jsonc
 // params: { "tabId": "123", "format"?: "png"|"jpeg", "quality"?: 80, "maxBytes"?: 2097152, "save"?: false }
 // result: { "tabId": "123", "url": "...", "format": "png", "width": 1280, "height": 800,
 //           "bytes": 143021, "sha256": "…", "base64": "…" | "path": "<agentScreenshotDir>/…png" }
 ```
+
 Mapping: `view.webContents.capturePage()` — the same call as `main/viewManager.js:440`. If `size.width === 0 && size.height === 0` (the case Min already guards at `main/viewManager.js:449`) → `unsupported`, because the view is hidden or occluded.
 
 ---
@@ -232,10 +329,12 @@ The bridge never accepts code. It accepts a name plus validated scalars.
 Page-side work (snapshot, locator resolution, value read-back) is done by **fixed source compiled into Min's own bundle** — e.g. `js/agentRuntime/snapshot.js` and `js/agentRuntime/locate.js`, exported as pre-built function sources. The bridge calls:
 
 ```js
-webContents.executeJavaScript(FIXED_SNAPSHOT_SOURCE + '(' + JSON.stringify(validatedOpts) + ')')
+webContents.executeJavaScript(
+  FIXED_SNAPSHOT_SOURCE + "(" + JSON.stringify(validatedOpts) + ")"
+);
 ```
 
-where `validatedOpts` contains only numbers, booleans, and short strings that passed a pattern, and `FIXED_SNAPSHOT_SOURCE` is a constant from Min's own code. The request can choose *parameters*, never *source*. This is the one place the design touches `executeJavaScript`, and it is deliberately narrower than Min's existing internal use at `js/webviews.js:74`.
+where `validatedOpts` contains only numbers, booleans, and short strings that passed a pattern, and `FIXED_SNAPSHOT_SOURCE` is a constant from Min's own code. The request can choose _parameters_, never _source_. This is the one place the design touches `executeJavaScript`, and it is deliberately narrower than Min's existing internal use at `js/webviews.js:74`.
 
 Alternative if that is judged too sharp: run the snapshot/locator routine in an **isolated-world content script** loaded through the already-proven extension host (`main/extensionHost.js`, `ses.extensions.loadExtension`), and talk to it over `chrome.runtime.sendMessage` from a fixed main-process caller. That path is proven to work in this Electron (see `docs/EXTENSION-COMPATIBILITY.md` §1) and keeps page-world access out of Min entirely. Trade-off: `file://` injection is unreliable there, so the `executeJavaScript` path is the default and the extension path is the fallback.
 
@@ -255,6 +354,7 @@ Resolution order — most semantic first, so a UI redesign doesn't silently reta
 4. **`css`** — last resort, and only when the caller explicitly supplies it. Never auto-generated from a snapshot.
 
 Rules:
+
 - The candidate set is built inside the target frame only (`frame` selects it; default is the top frame).
 - Zero matches → `invalid target`. More than one match and no `index` → `invalid target` with `data.candidates` listing up to 5 `{role, name}` pairs — never `outerHTML`.
 - Hidden/off-screen candidates are excluded unless `includeHidden: true`; `display:none` and zero-area boxes never match.
@@ -280,17 +380,17 @@ Honest limitation: this is a **DOM-derived** accessibility tree, not Chromium's 
 
 Every mutating command returns `verified` plus a `verification` string naming what was observed. Verification is best-effort and its kind is reported, never implied:
 
-| kind | observed by |
-|---|---|
+| kind         | observed by                                                                          |
+| ------------ | ------------------------------------------------------------------------------------ |
 | `navigation` | `did-start-navigation` / `did-finish-load` within the window, and `getURL()` changed |
-| `dom-change` | a bounded re-snapshot of the target's subtree differs from before |
-| `value` | for `browser_type`, the element's value length/equality matches the request |
-| `focus` | `document.activeElement` now matches the target |
-| `none` | nothing observable changed — `verified: false`, and the caller decides |
+| `dom-change` | a bounded re-snapshot of the target's subtree differs from before                    |
+| `value`      | for `browser_type`, the element's value length/equality matches the request          |
+| `focus`      | `document.activeElement` now matches the target                                      |
+| `none`       | nothing observable changed — `verified: false`, and the caller decides               |
 
-Timeouts: per-command default 5000ms, max 15000ms; `browser_navigate` default 15000ms, max 30000ms. A timeout is a **result**, not a dropped connection: the response says `category: "timeout"` and includes what *did* happen (`urlBefore`/`urlAfter`, `dispatched: true`). A dispatched-but-unverified action must not be reported as a failure, because the agent needs to know the click probably landed.
+Timeouts: per-command default 5000ms, max 15000ms; `browser_navigate` default 15000ms, max 30000ms. A timeout is a **result**, not a dropped connection: the response says `category: "timeout"` and includes what _did_ happen (`urlBefore`/`urlAfter`, `dispatched: true`). A dispatched-but-unverified action must not be reported as a failure, because the agent needs to know the click probably landed.
 
-Deadline discipline: the whole command has one deadline shared by action + verification. No command may hold a tab past `max 15000ms`; a stuck renderer surfaces as `timeout`, and the tab is *not* force-reloaded (that would destroy agent context).
+Deadline discipline: the whole command has one deadline shared by action + verification. No command may hold a tab past `max 15000ms`; a stuck renderer surfaces as `timeout`, and the tab is _not_ force-reloaded (that would destroy agent context).
 
 ---
 
@@ -298,10 +398,10 @@ Deadline discipline: the whole command has one deadline shared by action + verif
 
 Two modes, and the profile choice is a policy decision, not an implementation detail:
 
-| Mode | Window | Profile | Notes |
-|---|---|---|---|
-| **visible** | normal Min window, shown | the user's real profile (default) | the agent can see logged-in sessions — that is the point, and the risk. Requires an explicit user action to enable, per launch. |
-| **background** | `show: false` | **dedicated** `--user-data-dir` under `<userData>/agent-profile` | no user cookies, no user extensions; nothing of the user's leaks into an automated run |
+| Mode           | Window                   | Profile                                                          | Notes                                                                                                                           |
+| -------------- | ------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **visible**    | normal Min window, shown | the user's real profile (default)                                | the agent can see logged-in sessions — that is the point, and the risk. Requires an explicit user action to enable, per launch. |
+| **background** | `show: false`            | **dedicated** `--user-data-dir` under `<userData>/agent-profile` | no user cookies, no user extensions; nothing of the user's leaks into an automated run                                          |
 
 - The dedicated directory is created with `app.setPath('userData', …)` **before** `app.on('ready')`, mirroring `main/main.js:60`. Note that dev mode appends `-development` to `userData`; the agent path must not collide with the smoke harness's throwaway profile.
 - Background mode must not reuse `persist:webcontent` from the user's profile. Either a distinct partition (`persist:agent`) or a distinct `userData` root — the latter is stronger because it isolates extension storage, cache, and the places DB too.
@@ -323,19 +423,19 @@ Two modes, and the profile choice is a policy decision, not an implementation de
 
 ## 12. Risks and unsupported behaviour (explicit)
 
-| Risk / limitation | Status |
-|---|---|
-| Bridge is a local HTTP server; any process as the same user can connect with the token | **Accepted, documented.** Token is per-launch and file-only; same-user processes are already inside the trust boundary. |
-| Blind CSRF from a web page to `127.0.0.1` | **Mitigated** by Origin/Sec-Fetch-Site rejection, mandatory `Authorization`, and `Host` validation (§3). Must be tested, not just coded. |
-| DOM-derived a11y tree ≠ native AX tree; no shadow DOM, no `aria-owns` | **Known limitation**, §7. |
-| `capturePage()` fails for hidden views | **Known**, §10. Measure in Phase 1; may force background mode to use an offscreen sized view. |
-| Screenshots are unredacted pixels | **Known**, §11. Needs explicit user consent in visible mode. |
-| `executeJavaScript` with fixed source is one refactor away from arbitrary JS | **Watch item.** The fallback is the isolated-world extension path (§6). Keep the constant `FIXED_*_SOURCE` in Min's own bundle, never in a template literal fed by request data. |
-| `callViewMethod` (`main/viewManager.js:387`) is reachable from any Min renderer | **Pre-existing**, not introduced here. The bridge must not add a network path to it. Worth a separate hardening task. |
-| Visible mode exposes the user's logged-in sessions to an agent | **Design decision for the user**, §10. |
-| Extension host is dev-gated and `file://` injection is unreliable | **Known** (`docs/EXTENSION-COMPATIBILITY.md` §2). Do not build the snapshot path on extension injection for `file://` targets. |
-| Multi-window tab ids are per-window (`main/main.js:461` mirrors per window) | **Handle explicitly**: `browser_tabs` must qualify by `windowId` or flatten deterministically. |
-| No rate limit on expensive commands (snapshot/screenshot) | Add per-command cost budget, not just request count. |
+| Risk / limitation                                                                      | Status                                                                                                                                                                           |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bridge is a local HTTP server; any process as the same user can connect with the token | **Accepted, documented.** Token is per-launch and file-only; same-user processes are already inside the trust boundary.                                                          |
+| Blind CSRF from a web page to `127.0.0.1`                                              | **Mitigated** by Origin/Sec-Fetch-Site rejection, mandatory `Authorization`, and `Host` validation (§3). Must be tested, not just coded.                                         |
+| DOM-derived a11y tree ≠ native AX tree; no shadow DOM, no `aria-owns`                  | **Known limitation**, §7.                                                                                                                                                        |
+| `capturePage()` fails for hidden views                                                 | **Known**, §10. Measure in Phase 1; may force background mode to use an offscreen sized view.                                                                                    |
+| Screenshots are unredacted pixels                                                      | **Known**, §11. Needs explicit user consent in visible mode.                                                                                                                     |
+| `executeJavaScript` with fixed source is one refactor away from arbitrary JS           | **Watch item.** The fallback is the isolated-world extension path (§6). Keep the constant `FIXED_*_SOURCE` in Min's own bundle, never in a template literal fed by request data. |
+| `callViewMethod` (`main/viewManager.js:387`) is reachable from any Min renderer        | **Pre-existing**, not introduced here. The bridge must not add a network path to it. Worth a separate hardening task.                                                            |
+| Visible mode exposes the user's logged-in sessions to an agent                         | **Design decision for the user**, §10.                                                                                                                                           |
+| Extension host is dev-gated and `file://` injection is unreliable                      | **Known** (`docs/EXTENSION-COMPATIBILITY.md` §2). Do not build the snapshot path on extension injection for `file://` targets.                                                   |
+| Multi-window tab ids are per-window (`main/main.js:461` mirrors per window)            | **Handle explicitly**: `browser_tabs` must qualify by `windowId` or flatten deterministically.                                                                                   |
+| No rate limit on expensive commands (snapshot/screenshot)                              | Add per-command cost budget, not just request count.                                                                                                                             |
 
 ---
 
@@ -354,12 +454,12 @@ Built: `main/agentRpc.js`, wired last in `scripts/buildMain.js` (it needs `viewM
 
 ### 14.1 Deliberate deviations from this design
 
-| Design said | Built | Why |
-|---|---|---|
-| §2 discovery file `{v, port, token, pid, startedAt}` | `{v, url, token, pid, version, launchedAt}` | the task brief specified these keys; `url` replaces `port`, `launchedAt` replaces `startedAt`, `version` added |
-| §5 `browser_tabs` with `action: list/create/close/select` | **list only, and `params` is rejected outright** | P0-06 scope is status/tabs only. Creating, closing or selecting a tab is control, and control needs the verification and timeout machinery of §9 — shipping it without those would be worse than shipping nothing. Recorded as a narrowing, not an oversight. |
-| §5 `browser_status.profile.kind: "agent"` | `profile.userDataPath` (live) + `profile.dedicated: false` | Min has no automation launch mode yet. Reporting the real path — which reflects `--user-data-dir` — is honest; claiming `kind: "agent"` would not be. |
-| §4 eleven error categories | seven implemented | `not found`, `invalid target`, `timeout`, `unsupported` only arise for page commands, which do not exist yet |
+| Design said                                               | Built                                                      | Why                                                                                                                                                                                                                                                           |
+| --------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| §2 discovery file `{v, port, token, pid, startedAt}`      | `{v, url, token, pid, version, launchedAt}`                | the task brief specified these keys; `url` replaces `port`, `launchedAt` replaces `startedAt`, `version` added                                                                                                                                                |
+| §5 `browser_tabs` with `action: list/create/close/select` | **list only, and `params` is rejected outright**           | P0-06 scope is status/tabs only. Creating, closing or selecting a tab is control, and control needs the verification and timeout machinery of §9 — shipping it without those would be worse than shipping nothing. Recorded as a narrowing, not an oversight. |
+| §5 `browser_status.profile.kind: "agent"`                 | `profile.userDataPath` (live) + `profile.dedicated: false` | Min has no automation launch mode yet. Reporting the real path — which reflects `--user-data-dir` — is honest; claiming `kind: "agent"` would not be.                                                                                                         |
+| §4 eleven error categories                                | seven implemented                                          | `not found`, `invalid target`, `timeout`, `unsupported` only arise for page commands, which do not exist yet                                                                                                                                                  |
 
 Enable gate: the literal argv `--agent-rpc`, matching `--development-mode` / `--debug-browser` (`main/main.js:35-36`). **Not** a persisted setting — a network listener must never reappear without an explicit launch decision. Verified inert: a launch without the flag produced 0 `[agent-rpc]` lines and no discovery file.
 
@@ -368,21 +468,22 @@ Enable gate: the literal argv `--agent-rpc`, matching `--development-mode` / `--
 **1. `capturePage()` on a hidden window rejects — it does not return a zero-size image.**
 Measured on Electron 43.4.1 with a fixture reproducing Min's exact setup (`BrowserWindow` + `WebContentsView` attached via `win.contentView`), `docs/capture-page-probe.json`:
 
-| Case | Result |
-|---|---|
-| A `show: false`, view attached | **rejected**: `Current display surface not available for capture` |
-| B `show: false` + `backgroundThrottling: false` | **rejected**, same error — disabling throttling does not help |
-| C view removed from the view tree | **rejected**, same error |
-| D visible window (control) | **2420×1513, 9 distinct colours — works** |
-| E visible, then **minimized** | **2420×1513, 9 distinct colours — works** |
+| Case                                            | Result                                                            |
+| ----------------------------------------------- | ----------------------------------------------------------------- |
+| A `show: false`, view attached                  | **rejected**: `Current display surface not available for capture` |
+| B `show: false` + `backgroundThrottling: false` | **rejected**, same error — disabling throttling does not help     |
+| C view removed from the view tree               | **rejected**, same error                                          |
+| D visible window (control)                      | **2420×1513, 9 distinct colours — works**                         |
+| E visible, then **minimized**                   | **2420×1513, 9 distinct colours — works**                         |
 
 Consequences:
+
 - §10's open question is answered: background mode cannot use a never-shown window. It must show the window at least once, then minimise or move it off-screen. Case E is the viable shape.
 - Min's existing guard at `main/viewManager.js:449` tests `size.width === 0 && size.height === 0`, which is **not** how this Electron fails. `getCapture` (`main/viewManager.js:440`) has no `.catch()`, so a hidden-view capture is an unhandled promise rejection. Pre-existing, not introduced here, and out of P0-06 scope to fix — but it must be fixed before `browser_screenshot` ships.
 - `js/webviews.js:19` ("capturePage doesn't work while the view is hidden") is confirmed, with the correction that the failure is a rejection rather than an empty image.
 
 **2. A force-killed or crashed launch leaves a stale discovery file behind.**
-After `taskkill /F`, `before-quit` and `process.on('exit')` never run, so `agent-rpc.json` survives. Mitigated: `agentRpcStartServer()` unlinks any existing file before publishing a new one. Verified — a planted stale file with a bogus token was replaced by the new launch's token. A client that reads the file *between* a crash and the next launch can still see a dead port; that is acceptable (connection simply fails) and is stated rather than papered over.
+After `taskkill /F`, `before-quit` and `process.on('exit')` never run, so `agent-rpc.json` survives. Mitigated: `agentRpcStartServer()` unlinks any existing file before publishing a new one. Verified — a planted stale file with a bogus token was replaced by the new launch's token. A client that reads the file _between_ a crash and the next launch can still see a dead port; that is acceptable (connection simply fails) and is stated rather than papered over.
 
 **3. `windowId` is only known for the tab a window currently shows.**
 Real Min returned two tabs: the selected one with `windowId: "1"`, and the non-selected one with `windowId: null`. `windows.getState(win).selectedView` (`main/viewManager.js:280`) records one view id per window, so main cannot attribute a background tab to its window. §12's multi-window risk is confirmed and is worse than stated: a multi-window `browser_tabs` needs either a renderer round-trip to the tab model (`js/tabState/tab.js`) or a new main-side mirror. Do not build page commands on the assumption that `windowId` is reliable.
@@ -402,12 +503,12 @@ Real Min returned two tabs: the selected one with `windowId: "1"`, and the non-s
 
 The P0-06 table ("hidden window rejects") was true for its fixture but incomplete. On Electron 43.4.1, measured inside Min with `docs/capture-page-probe.json`:
 
-| View state | capturePage() | Handle |
-|---|---|---|
-| Never attached to a window | resolves **0x0** | Min's zero-size guard (`viewManager.js:449`) — **must stay** |
-| Attached + rendered, then detached (= every non-selected tab view) | **rejects** | new `.catch` (`CAPTURE_UNAVAILABLE`) |
-| `show: false` window, view attached + rendered | **rejects** | new `.catch` |
-| Shown, then minimized | **works** (2420×1513) | viable background shape |
+| View state                                                         | capturePage()         | Handle                                                       |
+| ------------------------------------------------------------------ | --------------------- | ------------------------------------------------------------ |
+| Never attached to a window                                         | resolves **0x0**      | Min's zero-size guard (`viewManager.js:449`) — **must stay** |
+| Attached + rendered, then detached (= every non-selected tab view) | **rejects**           | new `.catch` (`CAPTURE_UNAVAILABLE`)                         |
+| `show: false` window, view attached + rendered                     | **rejects**           | new `.catch`                                                 |
+| Shown, then minimized                                              | **works** (2420×1513) | viable background shape                                      |
 
 `getCapture`/`saveViewCapture` now handle rejection by dropping (the renderer's `captureData` contract has no error channel) and logging a rate-limited category. A plain launch logs `CAPTURE_UNAVAILABLE count=1` naturally, with no unhandled rejection.
 
@@ -446,19 +547,21 @@ Validation hardening added along the way: NaN arriving as `null` through JSON is
 Implemented on the P0-09 foundation: `browser_click { tabId, ref }` and `browser_type { tabId, ref, text }` (text ≤1000 chars, control characters including newlines rejected). **No selector, CSS, JS, or coordinate parameter exists** — verified by schema tests. Resolution and verification per sections 7-9, with these concrete mechanisms:
 
 **Ref resolution (no stale DOM handles, no string interpolation ever):** the page function gained a `locate` mode that runs the IDENTICAL enumeration as snapshot mode (same function, so ordinals are comparable) with only a validated integer ordinal as argument, and returns the full bounded node list. Resolution is server-side:
+
 1. **Strict**: enumeration `total` equals the snapshot's recorded length AND the element at the recorded ordinal matches the ref's `role + name + nameIndex` → resolved.
 2. **Weak** (page changed since snapshot): match `role + name` in the current enumeration — exactly one → resolved (element legitimately moved); zero → `ref_stale`; **more than one → `ambiguous` (-32011), never a guess**.
-Guard rails before dispatch: view attached to a live window (`view_not_attached`), element not disabled (`disabled`), typing into password/email/tel/sensitive-autocomplete fields refused (`sensitive_field`, no bypass flag), and clicks whose accessible name matches purchase/payment patterns (`Pay Now`, `Checkout`, `Place Order`, …) refused with `risky_action` **by default**; `--agent-rpc-allow-risky` (launch-time literal, never persisted) marks user approval given outside the bridge.
+   Guard rails before dispatch: view attached to a live window (`view_not_attached`), element not disabled (`disabled`), typing into password/email/tel/sensitive-autocomplete fields refused (`sensitive_field`, no bypass flag), and clicks whose accessible name matches purchase/payment patterns (`Pay Now`, `Checkout`, `Place Order`, …) refused with `risky_action` **by default**; `--agent-rpc-allow-risky` (launch-time literal, never persisted) marks user approval given outside the bridge.
 
 **Dispatch:** native only — `sendInputEvent` mouseDown/mouseUp at the element's box center (click; also focuses), ctrl/meta+A + Backspace key events (replace semantics; fixed policy — no `clearFirst` parameter exists by this task's schema), then `webContents.insertText(text)`. No `element.click()`, no JS.
 
 **Verification (section 9 kinds):** exactly one dispatch, then a bounded 5s window with fixed poll beats (300/700/1200/2000/3000/4000/5000ms):
+
 - `navigation` — `did-navigate`/`did-navigate-in-page` fired (strongest, wins);
 - `dom-change` — body-text marker (innerText length + trailing-120 sample) plus interactive count differ from the pre-dispatch capture;
 - `value` (type) — the re-located field's `value` equals the typed text (sanitized comparison; `valueLength` must match exactly so >120-char typing is verified by length, not truncated prefix);
 - `focus` — the target (or the weak-moved element) holds `document.activeElement`;
 - `dispatched-unverified` — nothing observed; returned with `verified: false`, **never counted as success**.
-Response echoes `verified` alongside `verification` and `waitedMs`. The overall action budget is bounded (resolve ≤8s + verify ≤5s); verification failures of intermediate enumerations during navigation are tolerated and fall back to the navigation signal.
+  Response echoes `verified` alongside `verification` and `waitedMs`. The overall action budget is bounded (resolve ≤8s + verify ≤5s); verification failures of intermediate enumerations during navigation are tolerated and fall back to the navigation signal.
 
 Limitations, explicitly: page zoom ≠ 100% desynchronizes CSS-px input coordinates from view DIPs (Min's default zoom is fine; per-tab zoom must be reset or absolute coordinates mis-target); macOS select-all uses `meta` (implemented) but the probe only exercises Windows `control`; typing verifies `valueLength` exactly but truncated (>120-char) values only by prefix; weak matching trusts accessible name equality, so a same-name redesign inside a changed DOM resolves to the walker's single candidate (the ambiguity and staleness guards above cover the multi/zero cases); `select` combobox values are typed as text with no popup interaction; multi-window remains out of scope.
 

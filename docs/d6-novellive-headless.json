@@ -1,0 +1,71 @@
+{
+  "ts": "2026-10-20T04:42:21.881Z",
+  "url": "https://novellive.com/",
+  "reps": 2,
+  "timeoutMs": 25000,
+  "note": "Read-only observation. No challenge was solved, clicked or bypassed. A challenge that requires human interaction stays unsolved by design.",
+  "runtimes": {
+    "min": "Electron 43.4.1 / Chromium 150.0.7871.224",
+    "chrome": "installed Google Chrome 155.0.8059.84"
+  },
+  "results": [
+    {
+      "rep": 1,
+      "runtime": "min",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment...",
+      "timeline": [
+        {
+          "at": 1535,
+          "title": "Just a moment..."
+        }
+      ],
+      "timeoutMs": 25000
+    },
+    {
+      "rep": 1,
+      "runtime": "chrome",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment...",
+      "timeline": [
+        {
+          "at": 516,
+          "title": "Just a moment...",
+          "url": "https://novellive.com/"
+        }
+      ],
+      "timeoutMs": 25000
+    },
+    {
+      "rep": 2,
+      "runtime": "min",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment...",
+      "timeline": [
+        {
+          "at": 1518,
+          "title": "Just a moment..."
+        }
+      ],
+      "timeoutMs": 25000
+    },
+    {
+      "rep": 2,
+      "runtime": "chrome",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment...",
+      "timeline": [
+        {
+          "at": 509,
+          "title": "Just a moment...",
+          "url": "https://novellive.com/"
+        }
+      ],
+      "timeoutMs": 25000
+    }
+  ]
+}

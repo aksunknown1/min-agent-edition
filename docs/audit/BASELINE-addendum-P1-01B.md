@@ -7,6 +7,7 @@
 single 1500 ms two-point URL re-read.
 
 ### Parameters (all optional, documented defaults)
+
 - `waitUntil` — `"load"` (default; did-finish-load) | `"domcontentloaded"` (dom-ready).
 - `expectUrlPrefix` — non-empty string, max 300 chars, no control chars.
   **Full-URL prefix semantics** (must be a prefix of the absolute final URL).
@@ -26,6 +27,7 @@ navigate. Raising it detects later bounces at linear latency cost; lowering it
 (via stabilityWindowMs) reduces latency for known-static pages.
 
 ### Structured results (verification kinds)
+
 - `navigation` + `verified:true` — URL settled and stayed stable (and matched
   `expectUrlPrefix` when supplied). `urlChanges` is 0 for a clean load.
 - `redirected` + `verified:false` — prefix supplied and the final URL did not
@@ -46,12 +48,14 @@ All results carry `finalUrl`, `urlChanges`, `routeChangeKind`,
 envelope data; spot-checked by the probe).
 
 ### Retry policy
+
 At most one retry, ONLY when `expectUrlPrefix` was supplied and the
 classification is `redirected`. The retry is a fresh top-level GET of the
 requested URL (idempotent; cannot repeat page actions). `unstable`,
 `load_failed`, and `timeout` are never retried.
 
 ### Min internal-page handling
+
 Min swaps its own internal pages (e.g. `min://app/pages/error/...`) into a tab
 asynchronously after refused navigations; a settle firing during such a swap
 mis-anchored the monitor (observed as a false `unstable` on the following
@@ -59,6 +63,7 @@ static navigation). Transitions where either endpoint is a `min://` URL are
 absorbed as re-anchors and never counted as page-side changes.
 
 ### webRequest / ad blocker
+
 The ad blocker (main/filtering.js `onBeforeRequest`) and UASwitcher
 (`onBeforeSendHeaders`) were inspected and are untouched; the stability
 monitor uses only webContents lifecycle events (`did-navigate`,
@@ -66,28 +71,29 @@ monitor uses only webContents lifecycle events (`did-navigate`,
 250 ms URL polling.
 
 ## Changed files & backups
-| File | Backup | Change |
-|---|---|---|
-| `main/agentRpc.js` | `docs/backups/P1-01B/agentRpc.js` | stability monitor, classification, schemas (waitUntil/expectUrlPrefix/stabilityWindowMs), 4 nav constants |
-| `mcp/min-agent-mcp.js` | `docs/backups/P1-01B/min-agent-mcp.js` | navigate inputSchema: waitUntil/expectUrlPrefix/stabilityWindowMs + docs |
-| `scripts/agent-nps-probe.js` | `docs/backups/P1-01B/agent-nps-probe.js` | loopback HTTP nav matrix: 13 new assertions |
-| `scripts/agent-rpc-test.js` | `docs/backups/P1-01B/agent-rpc-test.js` | 6 new schema checks for stabilityWindowMs (161 total) |
+
+| File                         | Backup                                   | Change                                                                                                    |
+| ---------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `main/agentRpc.js`           | `docs/backups/P1-01B/agentRpc.js`        | stability monitor, classification, schemas (waitUntil/expectUrlPrefix/stabilityWindowMs), 4 nav constants |
+| `mcp/min-agent-mcp.js`       | `docs/backups/P1-01B/min-agent-mcp.js`   | navigate inputSchema: waitUntil/expectUrlPrefix/stabilityWindowMs + docs                                  |
+| `scripts/agent-nps-probe.js` | `docs/backups/P1-01B/agent-nps-probe.js` | loopback HTTP nav matrix: 13 new assertions                                                               |
+| `scripts/agent-rpc-test.js`  | `docs/backups/P1-01B/agent-rpc-test.js`  | 6 new schema checks for stabilityWindowMs (161 total)                                                     |
 
 ## Evidence (actual runs)
 
-| Test | Result |
-|---|---|
-| static page | `verified:true, navigation, finalUrl=/static, urlChanges:0` |
-| immediate 302 | `verified:true` at `/static` (chain completes pre-settle) |
-| delayed redirect (~1.2 s JS bounce) | `verified:false, verification:unstable, finalUrl=/landed, urlChanges>=1` |
-| SPA pushState | `verified:false, unstable, routeChangeKind:same-document, finalUrl=/spa-route` |
-| hung server | `verified:false, timeout, waitedMs≈8100` |
-| expectUrlPrefix match | `verified:true` |
-| delayed bounce INTO prefix | `verified:true` at `/landed` (stable for full window) |
-| prefix match then bounce away | `verified:false, redirected, finalUrl=/landed` (NOT hidden) |
-| impossible prefix | `verified:false, redirected` after bounded wait |
-| stabilityWindowMs echo/bounds | `stabilityWindowMs:300` honored; 15001 → 400 invalid_params; 0 and 3000 accepted at schema |
-| leak spot-check | no page text in any navigate response body |
+| Test                                | Result                                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------------ |
+| static page                         | `verified:true, navigation, finalUrl=/static, urlChanges:0`                                |
+| immediate 302                       | `verified:true` at `/static` (chain completes pre-settle)                                  |
+| delayed redirect (~1.2 s JS bounce) | `verified:false, verification:unstable, finalUrl=/landed, urlChanges>=1`                   |
+| SPA pushState                       | `verified:false, unstable, routeChangeKind:same-document, finalUrl=/spa-route`             |
+| hung server                         | `verified:false, timeout, waitedMs≈8100`                                                   |
+| expectUrlPrefix match               | `verified:true`                                                                            |
+| delayed bounce INTO prefix          | `verified:true` at `/landed` (stable for full window)                                      |
+| prefix match then bounce away       | `verified:false, redirected, finalUrl=/landed` (NOT hidden)                                |
+| impossible prefix                   | `verified:false, redirected` after bounded wait                                            |
+| stabilityWindowMs echo/bounds       | `stabilityWindowMs:300` honored; 15001 → 400 invalid_params; 0 and 3000 accepted at schema |
+| leak spot-check                     | no page text in any navigate response body                                                 |
 
 Regression: build OK; `test:agent-rpc` **161/161**; `probe:nps` **38/38**;
 `probe:tabs` **16/16 ×5 consecutive** (exit 0 each); probe:agent-actions
@@ -95,6 +101,7 @@ Regression: build OK; `test:agent-rpc` **161/161**; `probe:nps` **38/38**;
 exit 0; smoke:baseline ×3 = 6/6 each; 0 electron processes remain.
 
 ## Known limitations
+
 - A bounce that lands on a suffix-compatible URL on a DIFFERENT host within
   the window is reported as `unstable` (no prefix) — correct, but the caller
   sees only URLs to judge it. With expectUrlPrefix (full URL) the
@@ -108,6 +115,7 @@ exit 0; smoke:baseline ×3 = 6/6 each; 0 electron processes remain.
   event between two polls (rare).
 
 ## Next recommended task
+
 P1-01 Stage C — React-controlled input verification (value-length + native
 setter retries), now that navigation to and post-settle classification of
 real signup flows is trustworthy. (Restage: waits probe, CAPTCHA handoff,

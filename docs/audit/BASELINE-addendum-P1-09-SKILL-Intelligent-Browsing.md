@@ -36,14 +36,14 @@ The skill teaches one central rule with seven sub-policies:
 
 ## 4. Walkthrough scenarios (6 scenarios)
 
-| scenario | evidence type | correct tools used |
-|---|---|---|
+| scenario                                     | evidence type              | correct tools used                                               |
+| -------------------------------------------- | -------------------------- | ---------------------------------------------------------------- |
 | S1: Sparse DOM visual gate (hdhub4u pattern) | live-verified this session | navigate→content→snapshot→screenshot→mouse→wait→snapshot→content |
-| S2: Semantic form | policy prescription | snapshot→type→press→wait→verify |
-| S3: Canvas/visual control | policy prescription | screenshot→mouse click→screenshot verify |
-| S4: Empty content after navigation | policy prescription | wait→re-read→screenshot→re-plan |
-| S5: CAPTCHA | policy prescription | state→pause→verify clearance→resume |
-| S6: Batch vs re-plan decision | policy prescription | batch for known forms; observe-and-replan for unknowns |
+| S2: Semantic form                            | policy prescription        | snapshot→type→press→wait→verify                                  |
+| S3: Canvas/visual control                    | policy prescription        | screenshot→mouse click→screenshot verify                         |
+| S4: Empty content after navigation           | policy prescription        | wait→re-read→screenshot→re-plan                                  |
+| S5: CAPTCHA                                  | policy prescription        | state→pause→verify clearance→resume                              |
+| S6: Batch vs re-plan decision                | policy prescription        | batch for known forms; observe-and-replan for unknowns           |
 
 All tools referenced match actual bridge methods. All response fields (`finalUrl`, `verified`,
 `textContains`, `screenshotId`, `cssPerPixel`, `delivery`, `deliveryNote`, `transformId`,
@@ -53,7 +53,7 @@ throughout P1-06 through P1-08.
 ## 5. API/tool gaps reserved for P1-10
 
 - `browser_page_overview` / `browser_inspect` — not added (existing `browser_content` 8k chars
-  + `browser_screenshot` real image + `browser_snapshot` 200 browser nodes sufficient)
+  - `browser_screenshot` real image + `browser_snapshot` 200 browser nodes sufficient)
 - Durable synthetic hover — **PLATFORM_LIMITED** (P1-06.4 evidence; physical cursor re-assertion)
 - Wheel page delivery — **PLATFORM_LIMITED** (use `browser_scroll` DOM-level)
 - Real-network list fetch — environment-limited (P1-07)
@@ -61,12 +61,12 @@ throughout P1-06 through P1-08.
 
 ## 6. Regression gate (minimal: SKILL.md is a doc file, no source changes)
 
-| command | exit | result |
-|---|---|---|
-| `npm run test:agent-rpc` | 0 | 182/182 |
-| `node scripts/mcp-e2e.js` | 0 | 56/56 |
-| `npm run probe:mouse` | 2 | 26/27 (wheel: documented limitation) |
-| tool name audit (all 22 MCP tools vs 31 bridge methods) | — | 0 invalid / 0 invented |
+| command                                                 | exit | result                               |
+| ------------------------------------------------------- | ---- | ------------------------------------ |
+| `npm run test:agent-rpc`                                | 0    | 182/182                              |
+| `node scripts/mcp-e2e.js`                               | 0    | 56/56                                |
+| `npm run probe:mouse`                                   | 2    | 26/27 (wheel: documented limitation) |
+| tool name audit (all 22 MCP tools vs 31 bridge methods) | —    | 0 invalid / 0 invented               |
 
 `npm run build` returned 1 but `node --check main.build.js` passed and all tests green (the build
 exit code 1 was from a test-script side effect, not a production code issue).

@@ -4,16 +4,16 @@ Date: 2026-10-19 · **Gate: PASS** (installation identity made distinct; coexist
 
 ## 1. Identity values — before vs after (source: `package.json`, `scripts/buildWindows.js`, embedded Squirrel nuspec)
 
-| identity layer | BEFORE (collision) | AFTER (repair) |
-|---|---|---|
-| package `name` (Squirrel/NuGet id) | `min` (identical to official Min) | `min-agent-edition` → nuspec `<id>min_agent_edition</id>` (verified in produced installer) |
-| `productName` (title/exe/profile) | `Min` | `Min Agent Edition` → nuspec `<title>`, exe `Min Agent Edition.exe` (in package lib/net45 + ExecutionStub), Start-Menu title |
-| default Electron userData | `%APPDATA%/%productName%` = `%APPDATA%/Min` (official Min's profile!) | `%APPDATA%/Min Agent Edition` (distinct; proven by launch test) |
-| Squirrel install dir | `%LOCALAPPDATA%/min` (official Min's) | `%LOCALAPPDATA%/min_agent_edition` (Squirrel derives from id) |
-| artifacts | `Min-v1.35.7-windows.zip`, `min-1.35.7-setup.exe` | `Min-Agent-Edition-v1.35.7-windows.zip`, `Min-Agent-Edition-1.35.7-setup.exe` (per arch) |
-| description/metadata | upstream description | fork-specific description ("separate developer fork … distinct from the official Min browser") |
-| registry uninstall identity | would have overlapped official Min | follows new id `min_agent_edition` (Squirrel HKCU uninstall entry; static config audit) |
-| exe icon/version resource | stock Electron (signAndEditExecutable:false env blocker) | unchanged — intentional temporary limitation, documented in RELEASE_NOTES; setup.exe still embeds `icons/icon256.ico` via `--setupIcon` for installer/shortcut icon |
+| identity layer                     | BEFORE (collision)                                                    | AFTER (repair)                                                                                                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| package `name` (Squirrel/NuGet id) | `min` (identical to official Min)                                     | `min-agent-edition` → nuspec `<id>min_agent_edition</id>` (verified in produced installer)                                                                          |
+| `productName` (title/exe/profile)  | `Min`                                                                 | `Min Agent Edition` → nuspec `<title>`, exe `Min Agent Edition.exe` (in package lib/net45 + ExecutionStub), Start-Menu title                                        |
+| default Electron userData          | `%APPDATA%/%productName%` = `%APPDATA%/Min` (official Min's profile!) | `%APPDATA%/Min Agent Edition` (distinct; proven by launch test)                                                                                                     |
+| Squirrel install dir               | `%LOCALAPPDATA%/min` (official Min's)                                 | `%LOCALAPPDATA%/min_agent_edition` (Squirrel derives from id)                                                                                                       |
+| artifacts                          | `Min-v1.35.7-windows.zip`, `min-1.35.7-setup.exe`                     | `Min-Agent-Edition-v1.35.7-windows.zip`, `Min-Agent-Edition-1.35.7-setup.exe` (per arch)                                                                            |
+| description/metadata               | upstream description                                                  | fork-specific description ("separate developer fork … distinct from the official Min browser")                                                                      |
+| registry uninstall identity        | would have overlapped official Min                                    | follows new id `min_agent_edition` (Squirrel HKCU uninstall entry; static config audit)                                                                             |
+| exe icon/version resource          | stock Electron (signAndEditExecutable:false env blocker)              | unchanged — intentional temporary limitation, documented in RELEASE_NOTES; setup.exe still embeds `icons/icon256.ico` via `--setupIcon` for installer/shortcut icon |
 
 ## 2. Collision evidence found (before repair)
 
@@ -21,24 +21,24 @@ Date: 2026-10-19 · **Gate: PASS** (installation identity made distinct; coexist
 2. Host filesystem: `C:\Users\AKS-PC\AppData\Roaming\Min` exists (an original-Min profile);
    a packaged Agent Edition launched without `--user-data-dir` used to default into it.
 3. Produced installer's embedded nuspec (pre-repair): `<id>min</id> <title>Min</title>
-   <authors>PalmerAL</authors>` — byte-equivalent package identity to official Min's
+<authors>PalmerAL</authors>` — byte-equivalent package identity to official Min's
    installer ⇒ same `%LOCALAPPDATA%\min` install dir, same upgrade/uninstall identity,
    same shortcut title.
 
 ## 3. Coexistence results — tested on this host (16/16, `docs/p1111-coexistence.json`)
 
-| test | result |
-|---|---|
-| packaged app launches with NO `--user-data-dir` on a host that HAS an original-Min profile | PASS |
-| default root is the distinct `%APPDATA%/Min Agent Edition` (exact-path compare, not prefix) | PASS |
-| default root is NOT `%APPDATA%/Min` | PASS |
-| original `%APPDATA%/Min` untouched by the default launch (before/after dir-listing hash) | PASS |
-| concurrent instance A + B: separate bridges, distinct ports and tokens (no cross-attach) | PASS |
-| instance A sees only its own pages; B only its own (example.com vs example.org) | PASS |
-| A's navigation/error does not disturb B; no mutual termination (tasklist during test) | PASS |
-| temp profiles removed; cleanup targeted (`taskkill /PID` of self-spawned PIDs only) | PASS |
-| cold-start acceptance re-run on renamed build (31-tool MCP path) | 30/30 |
-| packaged filter re-check on renamed build (bundled list blocks, benign loads) | PASS |
+| test                                                                                        | result |
+| ------------------------------------------------------------------------------------------- | ------ |
+| packaged app launches with NO `--user-data-dir` on a host that HAS an original-Min profile  | PASS   |
+| default root is the distinct `%APPDATA%/Min Agent Edition` (exact-path compare, not prefix) | PASS   |
+| default root is NOT `%APPDATA%/Min`                                                         | PASS   |
+| original `%APPDATA%/Min` untouched by the default launch (before/after dir-listing hash)    | PASS   |
+| concurrent instance A + B: separate bridges, distinct ports and tokens (no cross-attach)    | PASS   |
+| instance A sees only its own pages; B only its own (example.com vs example.org)             | PASS   |
+| A's navigation/error does not disturb B; no mutual termination (tasklist during test)       | PASS   |
+| temp profiles removed; cleanup targeted (`taskkill /PID` of self-spawned PIDs only)         | PASS   |
+| cold-start acceptance re-run on renamed build (31-tool MCP path)                            | 30/30  |
+| packaged filter re-check on renamed build (bundled list blocks, benign loads)               | PASS   |
 
 **Not tested (explicit):** actual `setup.exe` install/uninstall cycles on a disposable
 VM/test user (constraint forbids installer operations on the daily-use host; no disposable
@@ -62,13 +62,13 @@ untouchedness was tested instead, which is the risky part for a daily host).
 
 ## 5. Changed files & backups
 
-| file | change | backup |
-|---|---|---|
-| `package.json` | name/productName/author/description → distinct Agent-Edition identity | `docs/backups/P1-11.1/package.json.post-p1111` (post state; pre state reconstructible: name=min, productName=Min, author=PalmerAL, upstream description) |
-| `scripts/buildWindows.js` | distinct artifact naming; tolerant Squirrel setup rename; explicit `exe` option; `path` require | `docs/backups/P1-11.1/buildWindows.js.post-p1111` |
-| `RELEASE_NOTES.md` | identity + signing caveats | `docs/backups/P1-11.1/RELEASE_NOTES.md.p1111` |
-| `scripts/p111-*.js` / `scripts/p1111-coexistence.js` | new test tooling (exe-name resolution) | new files |
-| pre-repair reference | production sources are additionally backed up at `docs/backups/P1-11/agentRpc.js.pre-p111`, `docs/backups/P1-11/min-agent-mcp.js.pre-p111` | P1-11 backups retained |
+| file                                                 | change                                                                                                                                     | backup                                                                                                                                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `package.json`                                       | name/productName/author/description → distinct Agent-Edition identity                                                                      | `docs/backups/P1-11.1/package.json.post-p1111` (post state; pre state reconstructible: name=min, productName=Min, author=PalmerAL, upstream description) |
+| `scripts/buildWindows.js`                            | distinct artifact naming; tolerant Squirrel setup rename; explicit `exe` option; `path` require                                            | `docs/backups/P1-11.1/buildWindows.js.post-p1111`                                                                                                        |
+| `RELEASE_NOTES.md`                                   | identity + signing caveats                                                                                                                 | `docs/backups/P1-11.1/RELEASE_NOTES.md.p1111`                                                                                                            |
+| `scripts/p111-*.js` / `scripts/p1111-coexistence.js` | new test tooling (exe-name resolution)                                                                                                     | new files                                                                                                                                                |
+| pre-repair reference                                 | production sources are additionally backed up at `docs/backups/P1-11/agentRpc.js.pre-p111`, `docs/backups/P1-11/min-agent-mcp.js.pre-p111` | P1-11 backups retained                                                                                                                                   |
 
 Functional invariants preserved: single `onBeforeRequest` registrant
 (`main/filtering.js:293`; bridge = comments only), SKILL.md shipped, all P1-11 behaviors

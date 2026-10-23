@@ -1,0 +1,43 @@
+{
+  "ts": "2026-10-20T02:59:41.544Z",
+  "pass": 9,
+  "total": 9,
+  "results": [
+    {
+      "name": "spawnTracked: spawned node child is alive (tracked pid owned by this test)",
+      "pass": true
+    },
+    {
+      "name": "killTree: tracked child terminated, nothing else touched",
+      "pass": true
+    },
+    {
+      "name": "pollReadiness: still FAILS with PT_TIMEOUT when readiness never arrives (no masking)",
+      "pass": true
+    },
+    {
+      "name": "pollReadiness: transient empty-shell reads tolerated until stable readiness",
+      "pass": true
+    },
+    {
+      "name": "cleanup-on-failure: finally-path killTree reclaims a spawned process after a failed readiness await",
+      "pass": true
+    },
+    {
+      "name": "tabsStablePredicate rejects empty arrays",
+      "pass": true
+    },
+    {
+      "name": "tabsStablePredicate rejects empty-shell entries",
+      "pass": true
+    },
+    {
+      "name": "tabsStablePredicate rejects still-loading tabs",
+      "pass": true
+    },
+    {
+      "name": "tabsStablePredicate requires the start-URL fragment when given",
+      "pass": true
+    }
+  ]
+}

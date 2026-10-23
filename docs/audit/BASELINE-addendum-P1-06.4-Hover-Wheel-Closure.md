@@ -16,12 +16,12 @@ supports `accelerationRatioX/Y`, `canScroll`, `deltaX/deltaY`, `hasPreciseScroll
 
 Production view + fixture with page-side wheel counter, delta log, and independent scrollY:
 
-| variant | payload additions | page wheel event | scroll |
-|---|---|---|---|
-| A | current (`canScroll:true`) | **0** | 0 |
-| B1 | +`hasPreciseScrollingDeltas:true` | **0** | 0 |
-| B2 | +`wheelTicksX/Y` | **0** | 0 |
-| D | CDP `Input.dispatchMouseEvent type:mouseWheel` (diagnostic, no port, own attach/detach) | **0** | 0 |
+| variant | payload additions                                                                       | page wheel event | scroll |
+| ------- | --------------------------------------------------------------------------------------- | ---------------- | ------ |
+| A       | current (`canScroll:true`)                                                              | **0**            | 0      |
+| B1      | +`hasPreciseScrollingDeltas:true`                                                       | **0**            | 0      |
+| B2      | +`wheelTicksX/Y`                                                                        | **0**            | 0      |
+| D       | CDP `Input.dispatchMouseEvent type:mouseWheel` (diagnostic, no port, own attach/detach) | **0**            | 0      |
 
 All wheel variants incl. **CDP** are dropped in the production view on this Electron/OS —
 `mouseWheel page delivery: PLATFORM_LIMITED / NOT_VERIFIED (drops in Min production windows; the
@@ -42,7 +42,7 @@ T+1750:          1600,1036 | 139,150 | 1600,1036            ← stable state: ph
 after away+back: ... 139,150 | 1600,1036 | 1599,1035 ...   ← repeats identically; INBOX:1 transient
 ```
 
-**Conclusion**: synthetic movement *does* transiently enter the hover target and establish
+**Conclusion**: synthetic movement _does_ transiently enter the hover target and establish
 `:hover` for one sampled instant, then the physical cursor re-assertion immediately overrides it.
 **Durable synthetic hover is not possible on this platform without moving the physical OS
 cursor (forbidden/OS-global)** — classified as a platform limitation; no simulation via DOM
@@ -57,32 +57,32 @@ contents quoted above). Backup dir: `docs/backups/P1-06.4/main_agentRpc.js`.
 
 ## 5. Final regression matrix (raw counts)
 
-| command | exit | result |
-|---|---|---|
-| `npm run build`, syntax checks | 0 | clean |
-| `npm run test:agent-rpc` | 0 | 182/182 (census 31) |
-| `node scripts/mcp-e2e.js` | 0 | 56/56 |
+| command                                                     | exit  | result                                                                         |
+| ----------------------------------------------------------- | ----- | ------------------------------------------------------------------------------ |
+| `npm run build`, syntax checks                              | 0     | clean                                                                          |
+| `npm run test:agent-rpc`                                    | 0     | 182/182 (census 31)                                                            |
+| `node scripts/mcp-e2e.js`                                   | 0     | 56/56                                                                          |
 | `npm run probe:mouse` ×3 (post-experiment source identical) | 0/2/2 | **27/27, 26/27, 26/27** (intermittent wheel-page delivery; hover passed all 3) |
-| `npm run probe:transform` / `downloads` | 0 | 18/18, 33/33 |
-| pav / inputs / captcha / waits | 0 | 15/15, 20/20, 14/14, 16/16 |
-| tabs ×5 | 0 | 16/16 each |
-| actions / snapshot / nps | 0 | 33/33, 27/27, 38/38 |
-| capture / detach, smoke ×3 | 0 | 0, 0, 6/6 ×3 |
-| stray electrons | — | 0 |
-| ad-blocker | — | 1 effective `onBeforeRequest` (filtering.js:272); bridge 0 |
+| `npm run probe:transform` / `downloads`                     | 0     | 18/18, 33/33                                                                   |
+| pav / inputs / captcha / waits                              | 0     | 15/15, 20/20, 14/14, 16/16                                                     |
+| tabs ×5                                                     | 0     | 16/16 each                                                                     |
+| actions / snapshot / nps                                    | 0     | 33/33, 27/27, 38/38                                                            |
+| capture / detach, smoke ×3                                  | 0     | 0, 0, 6/6 ×3                                                                   |
+| stray electrons                                             | —     | 0                                                                              |
+| ad-blocker                                                  | —     | 1 effective `onBeforeRequest` (filtering.js:272); bridge 0                     |
 
 ## 6. Final capability contract for downstream phases
 
-| capability | contract |
-|---|---|
-| click / down / up / right-click (`explicit tabId+coords`) | **Trusted page-level input, verified page-side.** |
-| standalone move / smooth path | Dispatched and **page-observed** (verified with page counters); pointer state is transient — physical cursor re-assertions override final pointer position; hover-dependent assertions are inherently transient. |
-| drag | Down/up deliver; intermediate move events subject to the same transient behavior (drop verified with absolute-positioned targets when moves deliver). |
-| durable hover | **NOT POSSIBLE SAFELY** without moving the physical OS cursor (forbidden). CSS `:hover`/mouseenter effects must not be asserted as persistent by agents. |
-| Electron wheel page delivery | Dispatch per contract; **delivery intermittent-to-dropped** in production views (document). |
-| DOM `browser_scroll` | **PASS** — the reliable semantic scroll method. |
-| screenshot/MCP image transport, downloads, transforms, tabs, navigation, extensions, ad-blocker | All **intact** (verified this phase). |
-| OS-global cursor | NOT_IMPLEMENTED (forbidden by roadmap scope). |
+| capability                                                                                      | contract                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| click / down / up / right-click (`explicit tabId+coords`)                                       | **Trusted page-level input, verified page-side.**                                                                                                                                                                |
+| standalone move / smooth path                                                                   | Dispatched and **page-observed** (verified with page counters); pointer state is transient — physical cursor re-assertions override final pointer position; hover-dependent assertions are inherently transient. |
+| drag                                                                                            | Down/up deliver; intermediate move events subject to the same transient behavior (drop verified with absolute-positioned targets when moves deliver).                                                            |
+| durable hover                                                                                   | **NOT POSSIBLE SAFELY** without moving the physical OS cursor (forbidden). CSS `:hover`/mouseenter effects must not be asserted as persistent by agents.                                                         |
+| Electron wheel page delivery                                                                    | Dispatch per contract; **delivery intermittent-to-dropped** in production views (document).                                                                                                                      |
+| DOM `browser_scroll`                                                                            | **PASS** — the reliable semantic scroll method.                                                                                                                                                                  |
+| screenshot/MCP image transport, downloads, transforms, tabs, navigation, extensions, ad-blocker | All **intact** (verified this phase).                                                                                                                                                                            |
+| OS-global cursor                                                                                | NOT_IMPLEMENTED (forbidden by roadmap scope).                                                                                                                                                                    |
 
 ## 7. Gate decision: **PARTIAL PASS — P1-06 CLOSED with accepted limitations**
 

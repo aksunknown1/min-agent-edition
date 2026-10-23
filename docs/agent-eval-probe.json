@@ -1,0 +1,95 @@
+{
+  "ts": "2026-10-20T04:12:36.147Z",
+  "results": [
+    {
+      "name": "bridge discovery appeared",
+      "pass": true
+    },
+    {
+      "name": "fixture tab enumerated",
+      "pass": true
+    },
+    {
+      "name": "1a. read DOM property (document.title)",
+      "pass": true
+    },
+    {
+      "name": "1b. structured page state (nested object serialized safely)",
+      "pass": true
+    },
+    {
+      "name": "1c. DOM query count",
+      "pass": true
+    },
+    {
+      "name": "2. canvas getImageData pixel inspection (red fill counted)",
+      "pass": true
+    },
+    {
+      "name": "3. localStorage read EXCLUDED (renderer storage unavailable on this origin: reported by fixture, not faked)",
+      "pass": true
+    },
+    {
+      "name": "4a. page-local DOM modification dispatched",
+      "pass": true
+    },
+    {
+      "name": "4b. modification independently verified via browser_verify",
+      "pass": true
+    },
+    {
+      "name": "5a. awaited promise resolves",
+      "pass": true
+    },
+    {
+      "name": "5b. explicitly awaited promise value",
+      "pass": true
+    },
+    {
+      "name": "5c. rejected promise -> structured eval_rejected (never crashes bridge)",
+      "pass": true
+    },
+    {
+      "name": "6a. sync exception -> eval_exception with name/message (awaitPromise:false path)",
+      "pass": true
+    },
+    {
+      "name": "6b. oversized structured output -> truncated flag + tight detail",
+      "pass": true
+    },
+    {
+      "name": "6c. circular value -> serialized as circular (no crash)",
+      "pass": true
+    },
+    {
+      "name": "7a. missing tab -> ref_not_found",
+      "pass": true
+    },
+    {
+      "name": "7b. never-resolving awaited promise -> bounded timeout (PT race)",
+      "pass": true
+    },
+    {
+      "name": "8a. navigate to example.com for targeting check",
+      "pass": true
+    },
+    {
+      "name": "8b. eval sees the TARGET tab (Example Domain), not a stray tab",
+      "pass": true
+    },
+    {
+      "name": "9. no Node/process/filesystem in page world (require/process absent)",
+      "pass": true
+    },
+    {
+      "name": "10. result shape (tabId, executionContext, awaitedPromise)",
+      "pass": true
+    },
+    {
+      "name": "10b. localStorage read on http origin (real storage, authorized context)",
+      "pass": true
+    }
+  ],
+  "pass": 22,
+  "total": 22
+}

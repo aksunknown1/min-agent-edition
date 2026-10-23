@@ -1,7 +1,7 @@
 {
-  "ranAt": "2026-10-19T03:07:09.896Z",
-  "passed": 14,
-  "total": 14,
+  "ranAt": "2026-10-20T04:14:10.524Z",
+  "passed": 19,
+  "total": 19,
   "results": [
     {
       "name": "bridge discovery appeared",
@@ -44,19 +44,44 @@
       "detail": "textbox found=true"
     },
     {
-      "name": "type at/over challenge widget -> 409 captcha_handoff_required",
+      "name": "type into field overlapping challenge widget -> normal verified path (no blanket 409)",
       "pass": true,
-      "detail": "{\"status\":409,\"cat\":\"captcha_handoff_required\",\"handled\":-32021}"
+      "detail": "{\"status\":200,\"cat\":null,\"ver\":\"value\"}"
     },
     {
-      "name": "content still readable on the captcha page (no blanket block)",
+      "name": "visible challenge control has a snapshot ref",
       "pass": true,
-      "detail": "null"
+      "detail": "ref=r3"
+    },
+    {
+      "name": "explicit click on visible challenge control is NOT rejected by a global guard",
+      "pass": true,
+      "detail": "{\"status\":200,\"cat\":null}"
+    },
+    {
+      "name": "unrelated ordinary button still clickable while captcha present",
+      "pass": true,
+      "detail": "{\"status\":200}"
+    },
+    {
+      "name": "ordinary click effect independently verified from page content",
+      "pass": true,
+      "detail": ""
     },
     {
       "name": "bridge status/managers still available during captcha",
       "pass": true,
       "detail": "status=200"
+    },
+    {
+      "name": "clicking a challenge control does NOT count as clearance (detection persists)",
+      "pass": true,
+      "detail": "{\"detected\":true,\"kind\":\"hcaptcha\",\"confidence\":\"high\",\"basis\":\"locator .h-captcha (1 match(es))\",\"widgetCount\":1,\"policy\":\"never solved, bypassed or automated by the agent; complete challenges manually in the visible wi"
+    },
+    {
+      "name": "content still readable on the captcha page (no blanket block)",
+      "pass": true,
+      "detail": "null"
     },
     {
       "name": "challenge cleared state after navigating away (poll-for-continue flow)",

@@ -26,6 +26,7 @@ counter-contrast).
 
 **Differential matrix ruling out other factors** (temp views inside Min's production window;
 all delivered when the physical cursor was outside their bounds):
+
 - A-control (fresh partition): delivered
 - B-production session (`persist:webcontent`): delivered
 - C-production prefs (preload + contextIsolation + sandbox + nodeIntegrationInSubFrames + ...): delivered
@@ -56,27 +57,27 @@ Backups: unchanged from `docs/backups/P1-06/`.
 
 ## 4. Before/after + event counts
 
-| case | mouseMove page events | wheel page events |
-|---|---|---|
-| fresh temp view in Min production window (cursor outside) | 15/15 delivered (P1-06.1 diag) | n/a |
-| production Min view, cursor outside bounds | 3/10 (coalesced) | dropped; scrollY stays 0 |
-| production Min view, cursor inside bounds | **0/injected; all events at real cursor pos (814,938)** | dropped; scrollY stays 0 |
-| isolation harness windows (cursor outside) | delivered 30/30 at injected coords | (n/a) |
+| case                                                      | mouseMove page events                                   | wheel page events        |
+| --------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
+| fresh temp view in Min production window (cursor outside) | 15/15 delivered (P1-06.1 diag)                          | n/a                      |
+| production Min view, cursor outside bounds                | 3/10 (coalesced)                                        | dropped; scrollY stays 0 |
+| production Min view, cursor inside bounds                 | **0/injected; all events at real cursor pos (814,938)** | dropped; scrollY stays 0 |
+| isolation harness windows (cursor outside)                | delivered 30/30 at injected coords                      | (n/a)                    |
 
 ## 5. Regression gate (post-fix, same source as P1-06.1 final)
 
-| command | exit | result |
-|---|---|---|
-| `npm run build` / `node --check main/agentRpc.js` | 0 | clean |
-| `npm run test:agent-rpc` | 0 | 182/182 (census 31) |
-| `node scripts/mcp-e2e.js` | 0 | 56/56 |
-| `npm run probe:mouse` ×3 | 2 | **22/26 each** (4 stable fails: hover indication, path events, queued flush, drag-in-B — all the cursor-re-assertion limitation) |
-| probe:transform / downloads / pav / inputs / waits | 0 | 18/18, 33/33, 15/15, 20/20, 16/16 |
-| probe:tabs ×2 | 0 | 16/16 each |
-| agent-actions / snapshot / nps | 0 | 33/33, 27/27, 38/38 |
-| capture / detach / smoke ×3 | 0 | 0, 0, 6/6 each |
-| electrons | — | 0 |
-| ad-blocker | — | exactly 1 effective `onBeforeRequest` (filtering.js:272); bridge 0 |
+| command                                            | exit | result                                                                                                                           |
+| -------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build` / `node --check main/agentRpc.js`  | 0    | clean                                                                                                                            |
+| `npm run test:agent-rpc`                           | 0    | 182/182 (census 31)                                                                                                              |
+| `node scripts/mcp-e2e.js`                          | 0    | 56/56                                                                                                                            |
+| `npm run probe:mouse` ×3                           | 2    | **22/26 each** (4 stable fails: hover indication, path events, queued flush, drag-in-B — all the cursor-re-assertion limitation) |
+| probe:transform / downloads / pav / inputs / waits | 0    | 18/18, 33/33, 15/15, 20/20, 16/16                                                                                                |
+| probe:tabs ×2                                      | 0    | 16/16 each                                                                                                                       |
+| agent-actions / snapshot / nps                     | 0    | 33/33, 27/27, 38/38                                                                                                              |
+| capture / detach / smoke ×3                        | 0    | 0, 0, 6/6 each                                                                                                                   |
+| electrons                                          | —    | 0                                                                                                                                |
+| ad-blocker                                         | —    | exactly 1 effective `onBeforeRequest` (filtering.js:272); bridge 0                                                               |
 
 (Note: hover-indication fails consistently in this final state — the physical cursor stood
 outside the fixture box, page-hover follows the real cursor, exactly per the root cause. The
@@ -84,16 +85,16 @@ check is strict and was not weakened.)
 
 ## 6. Status summary per capability
 
-| capability | status |
-|---|---|
-| clicks (down/up at explicit tabId+coords) | **PASS** (page-verified) |
-| right-click → page contextmenu | **PASS** (page-verified) |
-| screenshot image transport (MCP stdio `image` block) | **PASS** (56/56 includes it; live PNGs exported) |
-| coordinate/staleness semantics | **PASS** (`ref_stale` live-verified) |
-| move/movePath/drag page delivery | **PLATFORM_LIMITED** — follows only the physical cursor; structured `delivery:'unverified'` results prevent false success |
-| wheel page delivery | **PLATFORM_LIMITED** — dropped; dispatch reported with honest note |
-| DOM `browser_scroll` | **PASS** |
-| OS-global cursor | **NOT_IMPLEMENTED** (and explicitly forbidden mechanism) |
+| capability                                           | status                                                                                                                    |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| clicks (down/up at explicit tabId+coords)            | **PASS** (page-verified)                                                                                                  |
+| right-click → page contextmenu                       | **PASS** (page-verified)                                                                                                  |
+| screenshot image transport (MCP stdio `image` block) | **PASS** (56/56 includes it; live PNGs exported)                                                                          |
+| coordinate/staleness semantics                       | **PASS** (`ref_stale` live-verified)                                                                                      |
+| move/movePath/drag page delivery                     | **PLATFORM_LIMITED** — follows only the physical cursor; structured `delivery:'unverified'` results prevent false success |
+| wheel page delivery                                  | **PLATFORM_LIMITED** — dropped; dispatch reported with honest note                                                        |
+| DOM `browser_scroll`                                 | **PASS**                                                                                                                  |
+| OS-global cursor                                     | **NOT_IMPLEMENTED** (and explicitly forbidden mechanism)                                                                  |
 
 ## 7. Gate decision: **PARTIAL PASS** ✅⚠️
 

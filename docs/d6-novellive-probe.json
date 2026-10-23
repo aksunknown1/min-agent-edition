@@ -1,0 +1,115 @@
+{
+  "ts": "2026-10-20T04:38:35.027Z",
+  "url": "https://novellive.com/",
+  "reps": 3,
+  "timeoutMs": 30000,
+  "note": "Read-only observation. No challenge was solved, clicked or bypassed. A challenge that requires human interaction stays unsolved by design.",
+  "runtimes": {
+    "min": "Electron 43.4.1 / Chromium 150.0.7871.224",
+    "chrome": "installed Google Chrome 155.0.8059.84"
+  },
+  "results": [
+    {
+      "rep": 1,
+      "runtime": "min",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment...",
+      "timeline": [
+        {
+          "at": 1506,
+          "title": "Just a moment..."
+        }
+      ],
+      "timeoutMs": 30000
+    },
+    {
+      "rep": 1,
+      "runtime": "chrome",
+      "clearedAtMs": 2562,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free",
+      "timeline": [
+        {
+          "at": 521,
+          "title": "Just a moment...",
+          "url": "https://novellive.com/"
+        },
+        {
+          "at": 2561,
+          "title": "Novel Live - Reading Novel Free",
+          "url": "https://novellive.com/"
+        }
+      ],
+      "timeoutMs": 30000
+    },
+    {
+      "rep": 2,
+      "runtime": "min",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment...",
+      "timeline": [
+        {
+          "at": 1501,
+          "title": "Just a moment..."
+        }
+      ],
+      "timeoutMs": 30000
+    },
+    {
+      "rep": 2,
+      "runtime": "chrome",
+      "clearedAtMs": 2551,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free",
+      "timeline": [
+        {
+          "at": 513,
+          "title": "Just a moment...",
+          "url": "https://novellive.com/"
+        },
+        {
+          "at": 2550,
+          "title": "Novel Live - Reading Novel Free",
+          "url": "https://novellive.com/"
+        }
+      ],
+      "timeoutMs": 30000
+    },
+    {
+      "rep": 3,
+      "runtime": "min",
+      "clearedAtMs": null,
+      "sawChallenge": true,
+      "finalTitle": "Just a moment...",
+      "timeline": [
+        {
+          "at": 1614,
+          "title": "Just a moment..."
+        }
+      ],
+      "timeoutMs": 30000
+    },
+    {
+      "rep": 3,
+      "runtime": "chrome",
+      "clearedAtMs": 3048,
+      "sawChallenge": true,
+      "finalTitle": "Novel Live - Reading Novel Free",
+      "timeline": [
+        {
+          "at": 507,
+          "title": "Just a moment...",
+          "url": "https://novellive.com/"
+        },
+        {
+          "at": 3048,
+          "title": "Novel Live - Reading Novel Free",
+          "url": "https://novellive.com/"
+        }
+      ],
+      "timeoutMs": 30000
+    }
+  ]
+}

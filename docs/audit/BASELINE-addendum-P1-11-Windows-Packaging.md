@@ -4,12 +4,13 @@ Date: 2026-10-18 · **Gate: PASS** (release-ready with documented, honest limita
 
 ## 1. Artifacts (`dist/app/`, all `npm run buildWindows` exit 0)
 
-| artifact | bytes | sha256 (prefix) |
-|---|---|---|
-| Min-v1.35.7-windows.zip (x64) | 169,858,160 | 2fd0dda339dced96b907f47a3ce46de206878c1e052b4ca6b20d34b783eef902 |
-| min-1.35.7-setup.exe (x64 Squirrel installer) | 161,914,368 | 77e13bd9fca2ab9f4efdfcf7009a0e7ef6966c7c3a8f3a9e821169d4d67d82e4 |
-| Min-v1.35.7-windows-ia32.zip / min-1.35.7-ia32-setup.exe | 146,934,483 / 140,392,960 | 388f81a8… / 8a97b428… |
-| Min-v1.35.7-windows-arm64.zip / min-1.35.7-arm64-setup.exe | 167,824,032 / 158,418,944 | 58536690… / ae179e6c… |
+| artifact                                                   | bytes                     | sha256 (prefix)                                                  |
+| ---------------------------------------------------------- | ------------------------- | ---------------------------------------------------------------- |
+| Min-v1.35.7-windows.zip (x64)                              | 169,858,160               | 2fd0dda339dced96b907f47a3ce46de206878c1e052b4ca6b20d34b783eef902 |
+| min-1.35.7-setup.exe (x64 Squirrel installer)              | 161,914,368               | 77e13bd9fca2ab9f4efdfcf7009a0e7ef6966c7c3a8f3a9e821169d4d67d82e4 |
+| Min-v1.35.7-windows-ia32.zip / min-1.35.7-ia32-setup.exe   | 146,934,483 / 140,392,960 | 388f81a8… / 8a97b428…                                            |
+| Min-v1.35.7-windows-arm64.zip / min-1.35.7-arm64-setup.exe | 167,824,032 / 158,418,944 | 58536690… / ae179e6c…                                            |
+
 - Architecture: x64 (validated), ia32 + arm64 (built, not launch-validated — no hardware/VM).
 - **Code signing: NOT performed** (honest). electron-builder `signAndEditExecutable:false`
   was required because the winCodeSign tool archive contains darwin symlinks that 7-Zip
@@ -22,30 +23,30 @@ Date: 2026-10-18 · **Gate: PASS** (release-ready with documented, honest limita
 
 ## 2. Changed files & backups
 
-| file | change | backup |
-|---|---|---|
-| `scripts/createPackage.js` | win.signAndEditExecutable:false (env blocker, documented in-file); extraResources → ships SKILL.md (electron-builder cannot un-ignore `!**/*.md`) | `docs/backups/P1-10/createPackage.js.pre-p111` |
-| `main/agentRpc.js` | 3 minimal typed fixes (see §5) | `docs/backups/P1-11/agentRpc.js.pre-p111` |
-| `mcp/min-agent-mcp.js` | schema: expose transform restore via transformId/selector | `docs/backups/P1-11/min-agent-mcp.js.pre-p111` |
-| `scripts/agent-pav-probe.js` | pipe-drain (P1-10, reused) | `docs/backups/P1-10/agent-pav-probe.js.pre-p110` |
-| repo root junk removed | `%TMP%`, `%TMP%p63-cdr7.log`, `%TMP%p63-cdr8.log` (stray probe logs), `404"` (0-byte, filename with quote = invalid OPC part → Squirrel installer crash), `p1-04-tr-cmd-dump.txt` (debug dump shipped in package) | deleted (accidental artifacts; contents quoted in work log) |
-| `RELEASE_NOTES.md` | new | new file |
-| new test scripts | `scripts/p111-*.js` (coldstart-accept, packaged-filter-test, space-path-test, api/jig debuggers) | new files |
+| file                         | change                                                                                                                                                                                                            | backup                                                      |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `scripts/createPackage.js`   | win.signAndEditExecutable:false (env blocker, documented in-file); extraResources → ships SKILL.md (electron-builder cannot un-ignore `!**/*.md`)                                                                 | `docs/backups/P1-10/createPackage.js.pre-p111`              |
+| `main/agentRpc.js`           | 3 minimal typed fixes (see §5)                                                                                                                                                                                    | `docs/backups/P1-11/agentRpc.js.pre-p111`                   |
+| `mcp/min-agent-mcp.js`       | schema: expose transform restore via transformId/selector                                                                                                                                                         | `docs/backups/P1-11/min-agent-mcp.js.pre-p111`              |
+| `scripts/agent-pav-probe.js` | pipe-drain (P1-10, reused)                                                                                                                                                                                        | `docs/backups/P1-10/agent-pav-probe.js.pre-p110`            |
+| repo root junk removed       | `%TMP%`, `%TMP%p63-cdr7.log`, `%TMP%p63-cdr8.log` (stray probe logs), `404"` (0-byte, filename with quote = invalid OPC part → Squirrel installer crash), `p1-04-tr-cmd-dump.txt` (debug dump shipped in package) | deleted (accidental artifacts; contents quoted in work log) |
+| `RELEASE_NOTES.md`           | new                                                                                                                                                                                                               | new file                                                    |
+| new test scripts             | `scripts/p111-*.js` (coldstart-accept, packaged-filter-test, space-path-test, api/jig debuggers)                                                                                                                  | new files                                                   |
 
 **No agent-browser contract changes beyond the documented transform restore fixes.**
 
 ## 3. Packaged-resource audit
 
-| resource | status |
-|---|---|
-| `main.build.js` + all preloads/renderer (`dist/preload.js` etc.) | present, syntax OK |
-| `filterUpdate.js` resolved from packaged main process | ✓ (runtime updater ran inside packaged app) |
-| `ext/abp-filter-parser-modified/` + bundled lists (`minFilters.txt`, combined EasyList+EasyPrivacy 108,444 non-comment rules) | present & readable |
-| runtime filter cache under `userData/filterCache/` | ✓ (created by packaged updater) |
-| managed downloads under `userData/agent-downloads/` | ✓ (file verified on disk) |
-| `SKILL.md` | `resources/SKILL.md` |
-| exclusions | docs/, scripts/, extensions/, main/ (bundled), private data — none present |
-| install path with spaces | PASS (dedicated test: launch + bridge up from `…p111 spaced dir\Min\Min.exe`) |
+| resource                                                                                                                      | status                                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `main.build.js` + all preloads/renderer (`dist/preload.js` etc.)                                                              | present, syntax OK                                                            |
+| `filterUpdate.js` resolved from packaged main process                                                                         | ✓ (runtime updater ran inside packaged app)                                   |
+| `ext/abp-filter-parser-modified/` + bundled lists (`minFilters.txt`, combined EasyList+EasyPrivacy 108,444 non-comment rules) | present & readable                                                            |
+| runtime filter cache under `userData/filterCache/`                                                                            | ✓ (created by packaged updater)                                               |
+| managed downloads under `userData/agent-downloads/`                                                                           | ✓ (file verified on disk)                                                     |
+| `SKILL.md`                                                                                                                    | `resources/SKILL.md`                                                          |
+| exclusions                                                                                                                    | docs/, scripts/, extensions/, main/ (bundled), private data — none present    |
+| install path with spaces                                                                                                      | PASS (dedicated test: launch + bridge up from `…p111 spaced dir\Min\Min.exe`) |
 
 ## 4. Cold-start acceptance (packaged app + SHIPPED MCP adapter, fresh profile): **30/30**
 
@@ -65,6 +66,7 @@ stored no `ref` (op envelope dropped it), record also lacked role/name/nameIndex
 identity check treated the transform's own text change as drift, and the documented
 transformId restore path was stripped by the MCP schema. Fixes (all typed, all
 verified in source AND packaged artifact):
+
 1. op envelope carries `ref` (`main/agentRpc.js`)
 2. record persists role/name/nameIndex (`main/agentRpc.js`)
 3. `restore_target` identity check keeps ordinal+role, tolerates self-transformed name (`main/agentRpc.js`)
@@ -95,27 +97,27 @@ uBOL unattributed, no manager/store, not universal CWS).
 
 ## 8. Full regression matrix (exact commands, post-fix)
 
-| command | result |
-|---|---|
-| `npm run build` / `node --check main.build.js` | exit 0 / OK |
-| `npm run buildWindows` (final) | exit 0 |
-| `npm run test:agent-rpc` | 182/182 |
-| `node scripts/mcp-e2e.js` | 56/56 (image content) |
-| `node scripts/p110-api-matrix.js` (re-run post-fix) | 90/90 |
-| `node scripts/p111-coldstart-accept.js` | 30/30 |
-| `node scripts/p111-packaged-filter-test.js` | 2/2 + updater evidence |
-| `node scripts/p111-space-path-test.js` | PASS |
-| `npm run probe:transform` / `probe:downloads` | 18/18 / 33/33 |
-| `npm run probe:pav` | 15/15 (isolated; chain-run flake documented) |
-| `probe:tabs` / `probe:inputs` / `probe:waits` / `probe:captcha` | 16/16 / 20/20 / 16/16 / 14/14 |
-| `probe:agent-actions` / `agent-snapshot` / `probe:nps` | 33/33 / 27/27 / 38/38 |
-| `npm run probe:mouse` | 26/27 (documented wheel platform limit) |
-| `node scripts/p1-07-updater-test.js` | 18/18 |
-| `npm run smoke:baseline` | 6/6 |
-| `probe:capture` / `probe:detach` / `probe:two-url-argv` | visibleCaptureOk+hiddenRejectionHandled / guardBlocksDeadlyCapture:true / allPassed:true (report-style) |
-| `node scripts/extension-probe.js` | report-style evidence, runs completed, cleanup true |
-| P1-09.1 schema audit | 0 invalid tool names (SKILL.md) |
-| lingering processes | 0 (targeted kills throughout) |
+| command                                                         | result                                                                                                  |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `npm run build` / `node --check main.build.js`                  | exit 0 / OK                                                                                             |
+| `npm run buildWindows` (final)                                  | exit 0                                                                                                  |
+| `npm run test:agent-rpc`                                        | 182/182                                                                                                 |
+| `node scripts/mcp-e2e.js`                                       | 56/56 (image content)                                                                                   |
+| `node scripts/p110-api-matrix.js` (re-run post-fix)             | 90/90                                                                                                   |
+| `node scripts/p111-coldstart-accept.js`                         | 30/30                                                                                                   |
+| `node scripts/p111-packaged-filter-test.js`                     | 2/2 + updater evidence                                                                                  |
+| `node scripts/p111-space-path-test.js`                          | PASS                                                                                                    |
+| `npm run probe:transform` / `probe:downloads`                   | 18/18 / 33/33                                                                                           |
+| `npm run probe:pav`                                             | 15/15 (isolated; chain-run flake documented)                                                            |
+| `probe:tabs` / `probe:inputs` / `probe:waits` / `probe:captcha` | 16/16 / 20/20 / 16/16 / 14/14                                                                           |
+| `probe:agent-actions` / `agent-snapshot` / `probe:nps`          | 33/33 / 27/27 / 38/38                                                                                   |
+| `npm run probe:mouse`                                           | 26/27 (documented wheel platform limit)                                                                 |
+| `node scripts/p1-07-updater-test.js`                            | 18/18                                                                                                   |
+| `npm run smoke:baseline`                                        | 6/6                                                                                                     |
+| `probe:capture` / `probe:detach` / `probe:two-url-argv`         | visibleCaptureOk+hiddenRejectionHandled / guardBlocksDeadlyCapture:true / allPassed:true (report-style) |
+| `node scripts/extension-probe.js`                               | report-style evidence, runs completed, cleanup true                                                     |
+| P1-09.1 schema audit                                            | 0 invalid tool names (SKILL.md)                                                                         |
+| lingering processes                                             | 0 (targeted kills throughout)                                                                           |
 
 ## 9. Remaining limitations (honest)
 

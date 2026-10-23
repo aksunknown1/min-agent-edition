@@ -11,10 +11,10 @@ proven by the isolation system.
 
 ## 2. Real extensions loaded through Min's production extension host
 
-| extension | tag | sha256(12) | method |
-|---|---|---|---|
-| Dark Reader | v4.9.103 | 890e1e3355a3 | GitHub release zip → PowerShell Extract-Archive |
-| uBlock Origin Lite | 2026.1012.1545 | (via expanded_assets scrape) | same |
+| extension          | tag            | sha256(12)                   | method                                          |
+| ------------------ | -------------- | ---------------------------- | ----------------------------------------------- |
+| Dark Reader        | v4.9.103       | 890e1e3355a3                 | GitHub release zip → PowerShell Extract-Archive |
+| uBlock Origin Lite | 2026.1012.1545 | (via expanded_assets scrape) | same                                            |
 
 Both extensions loaded through `--load-extension` alongside the extension host fixtures, exposing
 the full path (Min's `sessions` → content scripts ↔ background → host). State changes persisted
@@ -23,19 +23,19 @@ identity after the process remains alive.
 
 ## 3. Capability matrix
 
-| capability | Dark Reader | uBlock Origin Lite |
-|---|---|---|
-| loadExtension() success | ✓ | ✓ |
-| content script injection | ✓ (DOM effects visible) | likely (not independently extractable from ad-blocker effects) |
-| background/service worker loaded | ✓ (no crash) | ✓ (no crash) |
-| real feature effect (dark mode / blocking) | ✓ (screenshot `p1081-mdn-darkreader.png`) | **ATTRIBUTION_UNRESOLVED** (Min's own blocker active simultaneously) |
-| popup/action UI | **UI_NOT_AVAILABLE** (Min has no toolbar popup or extension icon) — separation documented | same |
-| storage round-trip | likely ✓ (not directly read; content effect proves background+content pipeline) | likely ✓ (same) |
-| restart persistence | NOT_TESTED (session-limited) | NOT_TESTED |
-| unload/cleanup | NOT_TESTED (dev-only extension host, process killed rather than unloaded) | NOT_TESTED |
-| unsupported API warnings | none observed in bridge logs | no crashes; `chrome.declarativeNetRequest` support NOT_TESTED via API introspection |
-| Min integration path | Production extension host / same session / `--load-extension` + extension host fixtures | same |
-| ad-blocker co-existence | confirmed (10/11 checks passed with both extensions active) | same |
+| capability                                 | Dark Reader                                                                               | uBlock Origin Lite                                                                  |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| loadExtension() success                    | ✓                                                                                         | ✓                                                                                   |
+| content script injection                   | ✓ (DOM effects visible)                                                                   | likely (not independently extractable from ad-blocker effects)                      |
+| background/service worker loaded           | ✓ (no crash)                                                                              | ✓ (no crash)                                                                        |
+| real feature effect (dark mode / blocking) | ✓ (screenshot `p1081-mdn-darkreader.png`)                                                 | **ATTRIBUTION_UNRESOLVED** (Min's own blocker active simultaneously)                |
+| popup/action UI                            | **UI_NOT_AVAILABLE** (Min has no toolbar popup or extension icon) — separation documented | same                                                                                |
+| storage round-trip                         | likely ✓ (not directly read; content effect proves background+content pipeline)           | likely ✓ (same)                                                                     |
+| restart persistence                        | NOT_TESTED (session-limited)                                                              | NOT_TESTED                                                                          |
+| unload/cleanup                             | NOT_TESTED (dev-only extension host, process killed rather than unloaded)                 | NOT_TESTED                                                                          |
+| unsupported API warnings                   | none observed in bridge logs                                                              | no crashes; `chrome.declarativeNetRequest` support NOT_TESTED via API introspection |
+| Min integration path                       | Production extension host / same session / `--load-extension` + extension host fixtures   | same                                                                                |
+| ad-blocker co-existence                    | confirmed (10/11 checks passed with both extensions active)                               | same                                                                                |
 
 ## 4. Results
 
@@ -51,17 +51,17 @@ identity after the process remains alive.
 
 ## 5. Regression counts (post P1-08.1 loading)
 
-| command | exit | result |
-|---|---|---|
-| `npm run test:agent-rpc` | 0 | **182/182** |
-| `node scripts/mcp-e2e.js` | 0 | **56/56** |
-| `npm run probe:mouse` ×3 | 2/0/2 | 26/27, 27/27, 26/27 (documented wheel P1-06.4 fail) |
-| `node scripts/p1-07-updater-test.js` | 0 | **18/18** |
-| transform / downloads / pav / inputs / captcha / waits | 0 | all green |
-| tabs ×5 | 0 | 16/16 each |
-| actions / snapshot / nps | 0 | 33/33, 27/27, 38/38 |
-| capture / detach / smoke ×3 | 0 | 0, 0, 6/6 each |
-| ad-blocker invariant | — | filtering.js:272 = 1; bridge = 0 |
+| command                                                | exit  | result                                              |
+| ------------------------------------------------------ | ----- | --------------------------------------------------- |
+| `npm run test:agent-rpc`                               | 0     | **182/182**                                         |
+| `node scripts/mcp-e2e.js`                              | 0     | **56/56**                                           |
+| `npm run probe:mouse` ×3                               | 2/0/2 | 26/27, 27/27, 26/27 (documented wheel P1-06.4 fail) |
+| `node scripts/p1-07-updater-test.js`                   | 0     | **18/18**                                           |
+| transform / downloads / pav / inputs / captcha / waits | 0     | all green                                           |
+| tabs ×5                                                | 0     | 16/16 each                                          |
+| actions / snapshot / nps                               | 0     | 33/33, 27/27, 38/38                                 |
+| capture / detach / smoke ×3                            | 0     | 0, 0, 6/6 each                                      |
+| ad-blocker invariant                                   | —     | filtering.js:272 = 1; bridge = 0                    |
 
 ## 6. Summary
 

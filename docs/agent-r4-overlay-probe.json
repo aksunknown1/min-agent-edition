@@ -1,0 +1,202 @@
+{
+  "ts": "2026-10-20T04:21:09.878Z",
+  "results": [
+    {
+      "name": "bridge discovery appeared",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "fixture tab ready",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "default: browser_state omits the overlay field entirely",
+      "pass": true,
+      "detail": "tabId,url,title,readyState,dialogs,captcha,blocked,focus,net,lastNavigation,waitedMs"
+    },
+    {
+      "name": "default: browser_state still returns its normal signals",
+      "pass": true,
+      "detail": "complete"
+    },
+    {
+      "name": "default: fixture button enumerated",
+      "pass": true,
+      "detail": "r1"
+    },
+    {
+      "name": "default: click still works with the overlay off",
+      "pass": true,
+      "detail": "{\"d\":true,\"v\":true}"
+    },
+    {
+      "name": "default: no overlay record is kept when disabled",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "default: overlay DOM is absent when disabled",
+      "pass": true,
+      "detail": "nodes=0"
+    },
+    {
+      "name": "opt-in: overlay state appears after policy.json enables it",
+      "pass": true,
+      "detail": "true"
+    },
+    {
+      "name": "opt-in: records start empty (policy enabling is not a click)",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "name": "opt-in: both fixture buttons enumerated",
+      "pass": true,
+      "detail": "r6/r7"
+    },
+    {
+      "name": "opt-in: click dispatched",
+      "pass": true,
+      "detail": "{\"d\":true,\"v\":true}"
+    },
+    {
+      "name": "opt-in: exactly one record after one click",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "name": "opt-in: record names the ACTUAL resolved target",
+      "pass": true,
+      "detail": "button:Plain Action"
+    },
+    {
+      "name": "opt-in: record carries the viewport box the dispatch used",
+      "pass": true,
+      "detail": "{\"x\":0,\"y\":80,\"w\":85,\"h\":21}"
+    },
+    {
+      "name": "opt-in: record carries a categorical outcome stage",
+      "pass": true,
+      "detail": "verified/effect_verified"
+    },
+    {
+      "name": "opt-in: outcome stage is one of the pipeline stages, never \"painted\"",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "opt-in: bounded metadata (no page text, no value)",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "opt-in: the real click effect still happened",
+      "pass": true,
+      "detail": "clicked-plain"
+    },
+    {
+      "name": "opt-in: marker DOM rendered on the page",
+      "pass": true,
+      "detail": "nodes=2"
+    },
+    {
+      "name": "opt-in: overlay cannot intercept input (pointer-events:none)",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "opt-in: overlay is hidden from assistive tech (aria-hidden)",
+      "pass": true,
+      "detail": "true"
+    },
+    {
+      "name": "equivalence: click outcome is identical with overlay on/off",
+      "pass": true,
+      "detail": "{\"on\":[true,true,\"dom-change\"],\"off\":[true,true,\"dom-change\"]}"
+    },
+    {
+      "name": "equivalence: page effect is identical with overlay on/off",
+      "pass": true,
+      "detail": "on=\"clicked-labelled\" off=\"clicked-labelled\""
+    },
+    {
+      "name": "equivalence: the click STILL verifies a real DOM change (overlay cannot mask it)",
+      "pass": true,
+      "detail": "{\"on\":\"dom-change\",\"off\":\"dom-change\"}"
+    },
+    {
+      "name": "privacy: password target recorded as redacted",
+      "pass": true,
+      "detail": "[redacted: sensitive field]"
+    },
+    {
+      "name": "privacy: password accessible name is masked, not stored",
+      "pass": true,
+      "detail": "[redacted: sensitive field]"
+    },
+    {
+      "name": "privacy: overlay payload contains no typed value",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "privacy: password click itself is unchanged by the overlay",
+      "pass": true,
+      "detail": "{\"d\":true}"
+    },
+    {
+      "name": "lifecycle: navigation still verifies with the overlay on",
+      "pass": true,
+      "detail": "\"navigation\""
+    },
+    {
+      "name": "lifecycle: navigation clears the record set",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "name": "lifecycle: navigation removes the marker DOM",
+      "pass": true,
+      "detail": "nodes=0"
+    },
+    {
+      "name": "lifecycle: a new page starts a fresh record set",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "name": "lifecycle: background tab opened",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "lifecycle: tab close succeeded",
+      "pass": true,
+      "detail": "\"ok\""
+    },
+    {
+      "name": "lifecycle: closed tab has no overlay state",
+      "pass": true,
+      "detail": "ref_not_found"
+    },
+    {
+      "name": "no-mutation: page text is the page text (no injected copy)",
+      "pass": true,
+      "detail": "Second Page Second Button"
+    },
+    {
+      "name": "no-mutation: overlay nodes are self-contained and removable",
+      "pass": true,
+      "detail": "nodes=2"
+    },
+    {
+      "name": "disable: switching the policy off stops the overlay entirely",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "pass": 39,
+  "total": 39
+}

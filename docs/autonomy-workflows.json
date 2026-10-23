@@ -5,9 +5,7 @@
       "workflow": "W1 search+extraction (HN front page)",
       "durationMs": 2454,
       "mcpCalls": 1,
-      "calls": [
-        "browser_batch"
-      ],
+      "calls": ["browser_batch"],
       "outcome": {
         "verified": true,
         "note": "top titles extracted from a batched navigate+snapshot",
@@ -34,10 +32,7 @@
       "workflow": "W2 form filling (PlayLab #forms, fill-only)",
       "durationMs": 1456,
       "mcpCalls": 2,
-      "calls": [
-        "browser_batch",
-        "browser_type"
-      ],
+      "calls": ["browser_batch", "browser_type"],
       "outcome": {
         "verified": true,
         "note": "fill verified by read-back via browser_type structured result",
@@ -48,9 +43,7 @@
       "workflow": "W3 SPA navigation + network settle (PlayLab)",
       "durationMs": 11088,
       "mcpCalls": 1,
-      "calls": [
-        "browser_batch"
-      ],
+      "calls": ["browser_batch"],
       "outcome": {
         "verified": true,
         "note": "navigate+wait+snapshot in one round trip",

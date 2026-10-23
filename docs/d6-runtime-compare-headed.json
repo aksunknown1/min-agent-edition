@@ -1,0 +1,403 @@
+{
+  "ts": "2026-10-20T04:44:23.648Z",
+  "reps": 2,
+  "machine": {
+    "os": "win32 10.0.26300",
+    "arch": "x64",
+    "cpus": 32,
+    "totalMemGB": 128,
+    "node": "v24.19.0"
+  },
+  "runtimes": {
+    "min": {
+      "kind": "product (Electron 43.4.1 / Chromium 150.0.7871.224)"
+    },
+    "chrome": {
+      "kind": "installed Google Chrome",
+      "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "available": true
+    },
+    "cloak": {
+      "kind": "cached CloakBrowser binary",
+      "found": true,
+      "version": "146.0.7680.177.5",
+      "executed": false
+    }
+  },
+  "targets": [
+    {
+      "id": "example",
+      "url": "https://example.com/"
+    },
+    {
+      "id": "httpbin-html",
+      "url": "https://httpbin.org/html"
+    },
+    {
+      "id": "wikipedia",
+      "url": "https://en.wikipedia.org/wiki/CSS"
+    },
+    {
+      "id": "iana",
+      "url": "https://www.iana.org/help/example-domains"
+    },
+    {
+      "id": "novellive",
+      "url": "https://novellive.com/"
+    }
+  ],
+  "results": [
+    {
+      "rep": 1,
+      "target": "example",
+      "runtime": "min",
+      "url": "https://example.com/",
+      "firstTargetMs": null,
+      "titleMs": null,
+      "title": "Example Domain",
+      "finalUrl": "https://example.com/",
+      "challenge": false,
+      "timedOut": true,
+      "verified": false
+    },
+    {
+      "rep": 1,
+      "target": "example",
+      "chromeVersion": "155.0.8059.84",
+      "runtime": "chrome",
+      "url": "https://example.com/",
+      "firstTargetMs": 232,
+      "titleMs": 868,
+      "title": "Example Domain",
+      "finalUrl": "https://example.com/",
+      "challenge": false,
+      "timedOut": false
+    },
+    {
+      "rep": 1,
+      "target": "httpbin-html",
+      "runtime": "min",
+      "url": "https://httpbin.org/html",
+      "firstTargetMs": null,
+      "titleMs": 1231,
+      "title": "httpbin.org/html",
+      "finalUrl": "https://httpbin.org/html",
+      "challenge": false,
+      "timedOut": false,
+      "verified": true
+    },
+    {
+      "rep": 1,
+      "target": "httpbin-html",
+      "chromeVersion": "155.0.8059.84",
+      "runtime": "chrome",
+      "url": "https://httpbin.org/html",
+      "firstTargetMs": 210,
+      "titleMs": 1051,
+      "title": "httpbin.org/html",
+      "finalUrl": "https://httpbin.org/html",
+      "challenge": false,
+      "timedOut": false
+    },
+    {
+      "rep": 1,
+      "target": "wikipedia",
+      "runtime": "min",
+      "url": "https://en.wikipedia.org/wiki/CSS",
+      "firstTargetMs": null,
+      "titleMs": 1238,
+      "title": "CSS - Wikipedia",
+      "finalUrl": "https://en.wikipedia.org/wiki/CSS",
+      "challenge": false,
+      "timedOut": false,
+      "verified": true
+    },
+    {
+      "rep": 1,
+      "target": "wikipedia",
+      "chromeVersion": "155.0.8059.84",
+      "runtime": "chrome",
+      "url": "https://en.wikipedia.org/wiki/CSS",
+      "firstTargetMs": 219,
+      "titleMs": 633,
+      "title": "CSS - Wikipedia",
+      "finalUrl": "https://en.wikipedia.org/wiki/CSS",
+      "challenge": false,
+      "timedOut": false
+    },
+    {
+      "rep": 1,
+      "target": "iana",
+      "runtime": "min",
+      "url": "https://www.iana.org/help/example-domains",
+      "firstTargetMs": null,
+      "titleMs": 763,
+      "title": "Example Domains",
+      "finalUrl": "https://www.iana.org/help/example-domains",
+      "challenge": false,
+      "timedOut": false,
+      "verified": true
+    },
+    {
+      "rep": 1,
+      "target": "iana",
+      "chromeVersion": "155.0.8059.84",
+      "runtime": "chrome",
+      "url": "https://www.iana.org/help/example-domains",
+      "firstTargetMs": 212,
+      "titleMs": 431,
+      "title": "Example Domains",
+      "finalUrl": "https://www.iana.org/help/example-domains",
+      "challenge": false,
+      "timedOut": false
+    },
+    {
+      "rep": 1,
+      "target": "novellive",
+      "runtime": "min",
+      "url": "https://novellive.com/",
+      "firstTargetMs": null,
+      "titleMs": 1129,
+      "title": "Just a moment...",
+      "finalUrl": "https://novellive.com/",
+      "challenge": true,
+      "timedOut": false,
+      "verified": true
+    },
+    {
+      "rep": 1,
+      "target": "novellive",
+      "chromeVersion": "155.0.8059.84",
+      "runtime": "chrome",
+      "url": "https://novellive.com/",
+      "firstTargetMs": 231,
+      "titleMs": 447,
+      "title": "Novel Live - Reading Novel Free",
+      "finalUrl": "https://novellive.com/",
+      "challenge": false,
+      "timedOut": false
+    },
+    {
+      "rep": 2,
+      "target": "example",
+      "runtime": "min",
+      "url": "https://example.com/",
+      "firstTargetMs": null,
+      "titleMs": 585,
+      "title": "Example Domain",
+      "finalUrl": "https://example.com/",
+      "challenge": false,
+      "timedOut": false,
+      "verified": true
+    },
+    {
+      "rep": 2,
+      "target": "example",
+      "chromeVersion": "155.0.8059.84",
+      "runtime": "chrome",
+      "url": "https://example.com/",
+      "firstTargetMs": 210,
+      "titleMs": 418,
+      "title": "Example Domain",
+      "finalUrl": "https://example.com/",
+      "challenge": false,
+      "timedOut": false
+    },
+    {
+      "rep": 2,
+      "target": "httpbin-html",
+      "runtime": "min",
+      "url": "https://httpbin.org/html",
+      "firstTargetMs": null,
+      "titleMs": 1216,
+      "title": "httpbin.org/html",
+      "finalUrl": "https://httpbin.org/html",
+      "challenge": false,
+      "timedOut": false,
+      "verified": true
+    },
+    {
+      "rep": 2,
+      "target": "httpbin-html",
+      "chromeVersion": "155.0.8059.84",
+      "runtime": "chrome",
+      "url": "https://httpbin.org/html",
+      "firstTargetMs": 211,
+      "titleMs": 1462,
+      "title": "httpbin.org/html",
+      "finalUrl": "https://httpbin.org/html",
+      "challenge": false,
+      "timedOut": false
+    },
+    {
+      "rep": 2,
+      "target": "wikipedia",
+      "runtime": "min",
+      "url": "https://en.wikipedia.org/wiki/CSS",
+      "firstTargetMs": null,
+      "titleMs": 883,
+      "title": "CSS - Wikipedia",
+      "finalUrl": "https://en.wikipedia.org/wiki/CSS",
+      "challenge": false,
+      "timedOut": false,
+      "verified": true
+    },
+    {
+      "rep": 2,
+      "target": "wikipedia",
+      "chromeVersion": "155.0.8059.84",
+      "runtime": "chrome",
+      "url": "https://en.wikipedia.org/wiki/CSS",
+      "firstTargetMs": 220,
+      "titleMs": 634,
+      "title": "CSS - Wikipedia",
+      "finalUrl": "https://en.wikipedia.org/wiki/CSS",
+      "challenge": false,
+      "timedOut": false
+    },
+    {
+      "rep": 2,
+      "target": "iana",
+      "runtime": "min",
+      "url": "https://www.iana.org/help/example-domains",
+      "firstTargetMs": null,
+      "titleMs": 612,
+      "title": "Example Domains",
+      "finalUrl": "https://www.iana.org/help/example-domains",
+      "challenge": false,
+      "timedOut": false,
+      "verified": true
+    },
+    {
+      "rep": 2,
+      "target": "iana",
+      "chromeVersion": "155.0.8059.84",
+      "runtime": "chrome",
+      "url": "https://www.iana.org/help/example-domains",
+      "firstTargetMs": 210,
+      "titleMs": 423,
+      "title": "Example Domains",
+      "finalUrl": "https://www.iana.org/help/example-domains",
+      "challenge": false,
+      "timedOut": false
+    },
+    {
+      "rep": 2,
+      "target": "novellive",
+      "runtime": "min",
+      "url": "https://novellive.com/",
+      "firstTargetMs": null,
+      "titleMs": 653,
+      "title": "Just a moment...",
+      "finalUrl": "https://novellive.com/",
+      "challenge": true,
+      "timedOut": false,
+      "verified": true
+    },
+    {
+      "rep": 2,
+      "target": "novellive",
+      "chromeVersion": "155.0.8059.84",
+      "runtime": "chrome",
+      "url": "https://novellive.com/",
+      "firstTargetMs": 223,
+      "titleMs": 448,
+      "title": "Just a moment...",
+      "finalUrl": "https://novellive.com/",
+      "challenge": true,
+      "timedOut": false
+    }
+  ],
+  "summary": [
+    {
+      "runtime": "min",
+      "target": "example",
+      "runs": 2,
+      "medianMs": 585,
+      "normal": 2,
+      "challenge": 0,
+      "timeout": 0
+    },
+    {
+      "runtime": "chrome",
+      "target": "example",
+      "runs": 2,
+      "medianMs": 868,
+      "normal": 2,
+      "challenge": 0,
+      "timeout": 0
+    },
+    {
+      "runtime": "min",
+      "target": "httpbin-html",
+      "runs": 2,
+      "medianMs": 1231,
+      "normal": 2,
+      "challenge": 0,
+      "timeout": 0
+    },
+    {
+      "runtime": "chrome",
+      "target": "httpbin-html",
+      "runs": 2,
+      "medianMs": 1462,
+      "normal": 2,
+      "challenge": 0,
+      "timeout": 0
+    },
+    {
+      "runtime": "min",
+      "target": "wikipedia",
+      "runs": 2,
+      "medianMs": 1238,
+      "normal": 2,
+      "challenge": 0,
+      "timeout": 0
+    },
+    {
+      "runtime": "chrome",
+      "target": "wikipedia",
+      "runs": 2,
+      "medianMs": 634,
+      "normal": 2,
+      "challenge": 0,
+      "timeout": 0
+    },
+    {
+      "runtime": "min",
+      "target": "iana",
+      "runs": 2,
+      "medianMs": 763,
+      "normal": 2,
+      "challenge": 0,
+      "timeout": 0
+    },
+    {
+      "runtime": "chrome",
+      "target": "iana",
+      "runs": 2,
+      "medianMs": 431,
+      "normal": 2,
+      "challenge": 0,
+      "timeout": 0
+    },
+    {
+      "runtime": "min",
+      "target": "novellive",
+      "runs": 2,
+      "medianMs": 1129,
+      "normal": 0,
+      "challenge": 2,
+      "timeout": 0
+    },
+    {
+      "runtime": "chrome",
+      "target": "novellive",
+      "runs": 2,
+      "medianMs": 448,
+      "normal": 1,
+      "challenge": 1,
+      "timeout": 0
+    }
+  ]
+}

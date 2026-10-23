@@ -16,7 +16,7 @@ proven by live diagnosis (raw HTTP against the bridge, bridge-side logs):
    same corruption event. Any browser_wait call threw synchronously.
 
 3. **Snapshot page function referenced undeclared variables** (`nodes`,
-   `state.elementByIndex`): a casualty of the same edit. *Every*
+   `state.elementByIndex`): a casualty of the same edit. _Every_
    `browser_snapshot` returned `-32004` ("could not be collected"), which
    cascaded into the tabs probe (snapshots on newly opened / URL / startup
    tabs all nulled out).
@@ -56,16 +56,17 @@ proven by live diagnosis (raw HTTP against the bridge, bridge-side logs):
 
 ## Files changed in this task
 
-| File | Backup (pre-edit) |
-|---|---|
-| `main/agentRpc.js` | `docs/backups/P1-00A.1/main_agentRpc.js` |
-| `scripts/agent-tabs-probe.js` | `docs/backups/P1-00A.1/scripts_agent-tabs-probe.js` |
-| `mcp/min-agent-mcp.js` | `docs/backups/P1-00A.1/mcp_min-agent-mcp.js` |
-| `scripts/agent-snapshot-probe.js` | no pre-edit copy (process deviation; exact edits documented above) |
-| `scripts/agent-nps-probe.js` | no pre-edit copy (process deviation; exact edits documented above) |
-| `scripts/agent-rpc-test.js` (method-set closure list 12 → 19) | no pre-edit copy (same deviation) |
+| File                                                          | Backup (pre-edit)                                                  |
+| ------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `main/agentRpc.js`                                            | `docs/backups/P1-00A.1/main_agentRpc.js`                           |
+| `scripts/agent-tabs-probe.js`                                 | `docs/backups/P1-00A.1/scripts_agent-tabs-probe.js`                |
+| `mcp/min-agent-mcp.js`                                        | `docs/backups/P1-00A.1/mcp_min-agent-mcp.js`                       |
+| `scripts/agent-snapshot-probe.js`                             | no pre-edit copy (process deviation; exact edits documented above) |
+| `scripts/agent-nps-probe.js`                                  | no pre-edit copy (process deviation; exact edits documented above) |
+| `scripts/agent-rpc-test.js` (method-set closure list 12 → 19) | no pre-edit copy (same deviation)                                  |
 
 New permanent helpers (not temporary diagnostics):
+
 - `scripts/p1-00a1-symbolcheck.js` — asserts every `agentRpc*` symbol and
   `AGENT_*` constant referenced in the bridge is defined (guards against the
   corruption class that caused this task).
